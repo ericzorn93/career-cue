@@ -1,0 +1,14 @@
+{
+  "name": "@career-cue/source",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {},
+  "private": true,
+  "dependencies": {
+    "@nx-go/nx-go": "3.3.0"
+  },
+  "devDependencies": {
+    "@nx/workspace": "20.1.3",
+    "nx": "20.1.3"
+  }
+}
