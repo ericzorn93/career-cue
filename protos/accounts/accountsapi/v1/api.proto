@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package accounts.accountsapi.v1;
+
+service AccountsAPIV1 {
+    rpc GetPerson(Empty) returns (Person) {}
+}
+
+message Empty {}
+
+message Person {
+    string first_name = 1;
+    string last_name = 2;
+    int32 age = 3;
+}

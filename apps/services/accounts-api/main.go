@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	accountsapiv1 "packages/proto-gen/go/accounts/accountsapi/v1"
 
 	"github.com/gofiber/fiber/v3"
+	"google.golang.org/protobuf/proto"
 )
 
 func Hello(name string) string {
@@ -14,6 +16,10 @@ func Hello(name string) string {
 
 func main() {
 	fmt.Println(Hello("accounts-api"))
+
+	person := &accountsapiv1.Person{FirstName: "Eric", LastName: "Zorn", Age: 29}
+	b, _ := proto.Marshal(person)
+	fmt.Println("bytes", b)
 
 	app := fiber.New()
 

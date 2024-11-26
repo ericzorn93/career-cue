@@ -2,7 +2,10 @@ module apps/services/accounts-api
 
 go 1.23
 
-require github.com/gofiber/fiber/v3 v3.0.0-beta.3
+require (
+	github.com/gofiber/fiber/v3 v3.0.0-beta.3
+	google.golang.org/protobuf v1.35.2
+)
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
