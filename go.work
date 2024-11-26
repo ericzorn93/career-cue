@@ -1,1 +1,7 @@
 go 1.23
+
+use (
+	./apps/services/accounts-api
+	./apps/services/accounts-worker
+	./apps/services/inbound-webhooks-api
+)
