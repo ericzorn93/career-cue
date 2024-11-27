@@ -1,3 +1,3 @@
-module github.com/ericzorn93/career-cue/accounts-worker
+module apps/services/accounts-worker
 
 go 1.23
