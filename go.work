@@ -6,4 +6,6 @@ use (
 	./apps/services/inbound-webhooks-api
 
 	./packages/proto-gen/go/accounts
+	./packages/proto-gen/go/billing
+	./packages/proto-gen/go/common
 )

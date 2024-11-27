@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+package common.v1;
+
+// Empty represents a completely empty message
+message Empty {}

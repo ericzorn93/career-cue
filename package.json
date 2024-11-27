@@ -2,7 +2,11 @@
   "name": "@career-cue/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "proto:update": "buf dep update",
+    "proto:gen": "pnpm proto:update && buf generate && pnpm go:tidy",
+    "go:tidy": "sh ./scripts/go_mod_tidy.sh"
+  },
   "private": true,
   "dependencies": {
     "@nx-go/nx-go": "3.3.0"

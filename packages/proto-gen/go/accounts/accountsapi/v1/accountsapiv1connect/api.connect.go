@@ -9,7 +9,8 @@ import (
 	errors "errors"
 	connect_go "github.com/bufbuild/connect-go"
 	http "net/http"
-	v1 "packages/proto-gen/go/accounts/accountsapi/v1"
+	v11 "packages/proto-gen/go/accounts/accountsapi/v1"
+	v1 "packages/proto-gen/go/common/v1"
 	strings "strings"
 )
 
@@ -39,7 +40,7 @@ const (
 
 // AccountsAPIV1Client is a client for the accounts.accountsapi.v1.AccountsAPIV1 service.
 type AccountsAPIV1Client interface {
-	GetPerson(context.Context, *connect_go.Request[v1.Empty]) (*connect_go.Response[v1.Person], error)
+	GetPerson(context.Context, *connect_go.Request[v1.Empty]) (*connect_go.Response[v11.Person], error)
 }
 
 // NewAccountsAPIV1Client constructs a client for the accounts.accountsapi.v1.AccountsAPIV1 service.
@@ -52,7 +53,7 @@ type AccountsAPIV1Client interface {
 func NewAccountsAPIV1Client(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) AccountsAPIV1Client {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &accountsAPIV1Client{
-		getPerson: connect_go.NewClient[v1.Empty, v1.Person](
+		getPerson: connect_go.NewClient[v1.Empty, v11.Person](
 			httpClient,
 			baseURL+AccountsAPIV1GetPersonProcedure,
 			opts...,
@@ -62,17 +63,17 @@ func NewAccountsAPIV1Client(httpClient connect_go.HTTPClient, baseURL string, op
 
 // accountsAPIV1Client implements AccountsAPIV1Client.
 type accountsAPIV1Client struct {
-	getPerson *connect_go.Client[v1.Empty, v1.Person]
+	getPerson *connect_go.Client[v1.Empty, v11.Person]
 }
 
 // GetPerson calls accounts.accountsapi.v1.AccountsAPIV1.GetPerson.
-func (c *accountsAPIV1Client) GetPerson(ctx context.Context, req *connect_go.Request[v1.Empty]) (*connect_go.Response[v1.Person], error) {
+func (c *accountsAPIV1Client) GetPerson(ctx context.Context, req *connect_go.Request[v1.Empty]) (*connect_go.Response[v11.Person], error) {
 	return c.getPerson.CallUnary(ctx, req)
 }
 
 // AccountsAPIV1Handler is an implementation of the accounts.accountsapi.v1.AccountsAPIV1 service.
 type AccountsAPIV1Handler interface {
-	GetPerson(context.Context, *connect_go.Request[v1.Empty]) (*connect_go.Response[v1.Person], error)
+	GetPerson(context.Context, *connect_go.Request[v1.Empty]) (*connect_go.Response[v11.Person], error)
 }
 
 // NewAccountsAPIV1Handler builds an HTTP handler from the service implementation. It returns the
@@ -81,18 +82,24 @@ type AccountsAPIV1Handler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewAccountsAPIV1Handler(svc AccountsAPIV1Handler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle(AccountsAPIV1GetPersonProcedure, connect_go.NewUnaryHandler(
+	accountsAPIV1GetPersonHandler := connect_go.NewUnaryHandler(
 		AccountsAPIV1GetPersonProcedure,
 		svc.GetPerson,
 		opts...,
-	))
-	return "/accounts.accountsapi.v1.AccountsAPIV1/", mux
+	)
+	return "/accounts.accountsapi.v1.AccountsAPIV1/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case AccountsAPIV1GetPersonProcedure:
+			accountsAPIV1GetPersonHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedAccountsAPIV1Handler returns CodeUnimplemented from all methods.
 type UnimplementedAccountsAPIV1Handler struct{}
 
-func (UnimplementedAccountsAPIV1Handler) GetPerson(context.Context, *connect_go.Request[v1.Empty]) (*connect_go.Response[v1.Person], error) {
+func (UnimplementedAccountsAPIV1Handler) GetPerson(context.Context, *connect_go.Request[v1.Empty]) (*connect_go.Response[v11.Person], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("accounts.accountsapi.v1.AccountsAPIV1.GetPerson is not implemented"))
 }

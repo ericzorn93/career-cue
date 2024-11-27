@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package billing.paymentsapi.v1;
+
+service PaymentsAPI {
+    rpc GetPaymentMethod(GetPaymentMethodRequest) returns (GetPaymentMethodResponse) {}
+}
+
+message GetPaymentMethodRequest {
+    string id = 1;
+}
+
+message GetPaymentMethodResponse {
+    bool isPrimary = 1;
+}
