@@ -14,5 +14,5 @@ plugins:
   - remote: buf.build/bufbuild/connect-go
     out: packages/proto-gen/go
     opt: paths=source_relative
-  # - remote: buf.build/bufbuild/es
-  #   out: packages/proto-gen/es
+  - remote: buf.build/bufbuild/es
+    out: packages/proto-gen/es/src
