@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func Hello(name string) string {
 	result := "Hello " + name
@@ -8,5 +11,6 @@ func Hello(name string) string {
 }
 
 func main() {
+	time.Sleep(time.Millisecond * 500)
 	fmt.Println(Hello("accounts-worker"))
 }
