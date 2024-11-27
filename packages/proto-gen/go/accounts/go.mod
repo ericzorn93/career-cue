@@ -1,4 +1,4 @@
-module github.com/ericzorn93/career-cue/proto-gen/go/accounts
+module packages/proto-gen/go/accounts
 
 go 1.23
 
