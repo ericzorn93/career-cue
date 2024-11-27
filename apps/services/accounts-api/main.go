@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	accountsapiv1 "packages/proto-gen/go/accounts/accountsapi/v1"
+
+	accountsapiv1 "github.com/ericzorn93/career-cue/proto-gen/go/accounts/accountsapi/v1"
 
 	"github.com/gofiber/fiber/v3"
 	"google.golang.org/protobuf/proto"

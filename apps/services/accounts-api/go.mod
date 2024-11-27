@@ -1,4 +1,4 @@
-module apps/services/accounts-api
+module github.com/ericzorn93/career-cue/accounts-api
 
 go 1.23
 
