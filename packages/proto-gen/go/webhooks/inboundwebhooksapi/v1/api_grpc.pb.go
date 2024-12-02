@@ -27,8 +27,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InboundWebhooksAPIClient interface {
-	// User APIs
-	UserCreated(ctx context.Context, in *v1.Empty, opts ...grpc.CallOption) (*v1.Empty, error)
+	// Auth0
+	UserCreated(ctx context.Context, in *UserCreatedRequest, opts ...grpc.CallOption) (*v1.Empty, error)
 }
 
 type inboundWebhooksAPIClient struct {
@@ -39,7 +39,7 @@ func NewInboundWebhooksAPIClient(cc grpc.ClientConnInterface) InboundWebhooksAPI
 	return &inboundWebhooksAPIClient{cc}
 }
 
-func (c *inboundWebhooksAPIClient) UserCreated(ctx context.Context, in *v1.Empty, opts ...grpc.CallOption) (*v1.Empty, error) {
+func (c *inboundWebhooksAPIClient) UserCreated(ctx context.Context, in *UserCreatedRequest, opts ...grpc.CallOption) (*v1.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Empty)
 	err := c.cc.Invoke(ctx, InboundWebhooksAPI_UserCreated_FullMethodName, in, out, cOpts...)
@@ -53,8 +53,8 @@ func (c *inboundWebhooksAPIClient) UserCreated(ctx context.Context, in *v1.Empty
 // All implementations must embed UnimplementedInboundWebhooksAPIServer
 // for forward compatibility.
 type InboundWebhooksAPIServer interface {
-	// User APIs
-	UserCreated(context.Context, *v1.Empty) (*v1.Empty, error)
+	// Auth0
+	UserCreated(context.Context, *UserCreatedRequest) (*v1.Empty, error)
 	mustEmbedUnimplementedInboundWebhooksAPIServer()
 }
 
@@ -65,7 +65,7 @@ type InboundWebhooksAPIServer interface {
 // pointer dereference when methods are called.
 type UnimplementedInboundWebhooksAPIServer struct{}
 
-func (UnimplementedInboundWebhooksAPIServer) UserCreated(context.Context, *v1.Empty) (*v1.Empty, error) {
+func (UnimplementedInboundWebhooksAPIServer) UserCreated(context.Context, *UserCreatedRequest) (*v1.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserCreated not implemented")
 }
 func (UnimplementedInboundWebhooksAPIServer) mustEmbedUnimplementedInboundWebhooksAPIServer() {}
@@ -90,7 +90,7 @@ func RegisterInboundWebhooksAPIServer(s grpc.ServiceRegistrar, srv InboundWebhoo
 }
 
 func _InboundWebhooksAPI_UserCreated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.Empty)
+	in := new(UserCreatedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func _InboundWebhooksAPI_UserCreated_Handler(srv interface{}, ctx context.Contex
 		FullMethod: InboundWebhooksAPI_UserCreated_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InboundWebhooksAPIServer).UserCreated(ctx, req.(*v1.Empty))
+		return srv.(InboundWebhooksAPIServer).UserCreated(ctx, req.(*UserCreatedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

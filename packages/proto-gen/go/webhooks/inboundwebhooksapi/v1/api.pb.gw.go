@@ -13,7 +13,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"packages/proto-gen/go/common/v1"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
@@ -38,7 +37,7 @@ var (
 
 func request_InboundWebhooksAPI_UserCreated_0(ctx context.Context, marshaler runtime.Marshaler, client InboundWebhooksAPIClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq commonv1.Empty
+		protoReq UserCreatedRequest
 		metadata runtime.ServerMetadata
 	)
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
@@ -50,7 +49,7 @@ func request_InboundWebhooksAPI_UserCreated_0(ctx context.Context, marshaler run
 
 func local_request_InboundWebhooksAPI_UserCreated_0(ctx context.Context, marshaler runtime.Marshaler, server InboundWebhooksAPIServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq commonv1.Empty
+		protoReq UserCreatedRequest
 		metadata runtime.ServerMetadata
 	)
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {

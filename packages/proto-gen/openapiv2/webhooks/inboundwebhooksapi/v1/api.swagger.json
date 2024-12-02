@@ -18,7 +18,7 @@
   "paths": {
     "/v1/webhooks/inbound/user": {
       "post": {
-        "summary": "User APIs",
+        "summary": "Auth0",
         "operationId": "InboundWebhooksAPI_UserCreated",
         "responses": {
           "200": {
@@ -40,7 +40,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1Empty"
+              "$ref": "#/definitions/v1UserCreatedRequest"
             }
           }
         ],
@@ -82,6 +82,33 @@
     "v1Empty": {
       "type": "object",
       "title": "Empty represents a completely empty message"
+    },
+    "v1UserCreatedRequest": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string"
+        },
+        "emailAddressVerified": {
+          "type": "boolean"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "phoneNumberVerified": {
+          "type": "boolean"
+        }
+      },
+      "title": "UserCreatedRequest defines the incoming data for the user created event from\nAuth0 Actions after the user has registered for the first time"
     }
   }
 }

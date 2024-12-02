@@ -3,14 +3,28 @@ syntax = "proto3";
 package webhooks.inboundwebhooksapi.v1;
 
 import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
 import "common/v1/empty.proto";
 
 service InboundWebhooksAPI {
-    // User APIs
-    rpc UserCreated(common.v1.Empty) returns (common.v1.Empty) {
+    // Auth0
+    rpc UserCreated(UserCreatedRequest) returns (common.v1.Empty) {
         option (google.api.http) = {
             post: "/v1/webhooks/inbound/user"
             body: "*"
         };
     }
+}
+
+// UserCreatedRequest defines the incoming data for the user created event from
+// Auth0 Actions after the user has registered for the first time
+message UserCreatedRequest {
+    string first_name = 1 [(buf.validate.field).string.min_len = 1];
+    string last_name = 2 [(buf.validate.field).string.min_len = 1];
+    string nickname = 3 [(buf.validate.field).string.min_len = 1];
+    string email_address = 5 [(buf.validate.field).string.email = true];
+    bool email_address_verified = 6;
+    string phone_number = 7 [(buf.validate.field).string.min_len = 1];
+    bool phone_number_verified = 8;
 }

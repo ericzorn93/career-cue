@@ -4,6 +4,7 @@ package accounts.accountsapi.v1;
 
 import "buf/validate/validate.proto";
 import "google/type/datetime.proto";
+
 import "common/v1/empty.proto";
 
 service AccountsAPI {
