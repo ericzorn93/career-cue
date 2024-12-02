@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package webhooks.inboundwebhooksapi.v1;
+
+import "google/api/annotations.proto";
+import "common/v1/empty.proto";
+
+service InboundWebhooksAPI {
+    // User APIs
+    rpc UserCreated(common.v1.Empty) returns (common.v1.Empty) {
+        option (google.api.http) = {
+            post: "/v1/webhooks/inbound/user"
+            body: "*"
+        };
+    }
+}

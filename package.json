@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "proto:update": "buf dep update",
-    "proto:gen": "pnpm proto:update && buf generate && pnpm go:tidy",
+    "proto:gen": "pnpm proto:update && buf generate && pnpm proto:push && pnpm go:tidy",
+    "proto:push": "buf push",
     "go:tidy": "sh ./scripts/go_mod_tidy.sh"
   },
   "private": true,

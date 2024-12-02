@@ -5,7 +5,9 @@ use (
 	./apps/services/accounts-worker
 	./apps/services/inbound-webhooks-api
 
-	./packages/proto-gen/go/accounts
-	./packages/proto-gen/go/billing
-	./packages/proto-gen/go/common
+	// ./packages/proto-gen/go/accounts
+	// ./packages/proto-gen/go/billing
+	// ./packages/proto-gen/go/webhooks
+	// ./packages/proto-gen/go/common
+	./packages/proto-gen/go
 )

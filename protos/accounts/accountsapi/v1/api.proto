@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "google/type/datetime.proto";
 import "common/v1/empty.proto";
 
-service AccountsAPIV1 {
+service AccountsAPI {
     rpc GetPerson(common.v1.Empty) returns (Person) {}
 }
 

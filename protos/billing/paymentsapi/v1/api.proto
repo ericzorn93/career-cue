@@ -2,14 +2,24 @@ syntax = "proto3";
 
 package billing.paymentsapi.v1;
 
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
 service PaymentsAPI {
-    rpc GetPaymentMethod(GetPaymentMethodRequest) returns (GetPaymentMethodResponse) {}
+    rpc GetPaymentMethod(GetPaymentMethodRequest) returns (GetPaymentMethodResponse) {
+        option (google.api.http) = {
+            post: "/v1/payments/{paymentMethodId}"
+            body: "*"
+        };
+    }
 }
 
 message GetPaymentMethodRequest {
-    string id = 1;
+    string paymentMethodId = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetPaymentMethodResponse {
-    bool isPrimary = 1;
+    bool isPrimary = 1 [
+        (buf.validate.field).bool.const = true
+    ];
 }

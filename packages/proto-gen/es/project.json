@@ -1,9 +1,0 @@
-{
-  "name": "proto-gen-es",
-  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/proto-gen/es/src",
-  "projectType": "library",
-  "tags": ["node", "api", "grpc", "proto"],
-  "// targets": "to see all targets run: nx show project proto-gen-es --web",
-  "targets": {}
-}
