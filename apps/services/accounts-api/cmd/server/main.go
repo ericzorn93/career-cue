@@ -1,6 +1,7 @@
 package main
 
 import (
+	"apps/services/accounts-api/internal/random"
 	"fmt"
 	"log"
 	accountsapiv1 "packages/proto-gen/go/accounts/accountsapi/v1"
@@ -9,14 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func Hello(name string) string {
-	result := "Hello " + name
-	return result
-}
-
 func main() {
-	fmt.Println(Hello("accounts-api"))
-
 	person := &accountsapiv1.Person{FirstName: "Eric", LastName: "Zorn", Age: 29}
 	b, _ := proto.Marshal(person)
 	fmt.Println("bytes", b)
@@ -24,6 +18,7 @@ func main() {
 	app := fiber.New()
 
 	app.Get("/", func(c fiber.Ctx) error {
+		random.RandomMessage("Hello world from Accounts API!")
 		return c.SendString("Hello world from Accounts API!")
 	})
 

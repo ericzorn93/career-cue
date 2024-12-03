@@ -3,12 +3,7 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "apps/services/accounts-api",
-  "tags": [
-    "api",
-    "grpc",
-    "service",
-    "backend"
-  ],
+  "tags": ["api", "grpc", "service", "backend"],
   "targets": {
     "build": {
       "executor": "@nx-go/nx-go:build",
@@ -30,6 +25,10 @@
     },
     "tidy": {
       "executor": "@nx-go/nx-go:tidy"
+    },
+    "docker-build": {
+      "dependsOn": ["build"],
+      "command": "docker build -f apps/services/accounts-api/Dockerfile . -t accounts-api:latest"
     }
   }
 }
