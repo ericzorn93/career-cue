@@ -29,6 +29,12 @@
     "docker-build": {
       "dependsOn": ["build"],
       "command": "docker build -f apps/services/inbound-webhooks-api/Dockerfile . -t inbound-webhooks-api:latest"
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fly deploy -c apps/services/inbound-webhooks-api/fly.toml -y"
+      }
     }
   }
 }

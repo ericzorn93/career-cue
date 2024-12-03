@@ -13,7 +13,7 @@ import (
 func main() {
 	person := &accountsapiv1.Person{FirstName: "Eric", LastName: "Zorn", Age: 29}
 	b, _ := proto.Marshal(person)
-	fmt.Println("bytes", b)
+	fmt.Println("bytes", string(b))
 
 	app := fiber.New()
 
