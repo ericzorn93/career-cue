@@ -29,6 +29,12 @@
     "docker-build": {
       "dependsOn": ["build"],
       "command": "docker build -f apps/services/accounts-worker/Dockerfile . -t accounts-worker:latest"
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "fly deploy -c apps/services/accounts-worker/fly.toml -y"
+      }
     }
   }
 }
