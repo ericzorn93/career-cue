@@ -1,27 +1,32 @@
-def find_docker_compose_files(directory):
-    """Recursively finds all `docker-compose.yml` files in a directory.
+# Primary Docker Compose Imports
+docker_compose(["./docker-compose.yml"])
 
-    Args:
-    directory: The directory to search as a string.
+# Accounts API
+docker_build('career-cue/accounts-api', '.',
+    dockerfile="./apps/services/accounts-api/Dockerfile",
+    live_update = [
+        sync('./apps/services/accounts-api', '/app'),
+        run('air --build.cmd "go build -o /bin/accounts-api ./apps/services/accounts-api/cmd/server/main.go" --build.bin "/bin/accounts-api"'),
+        restart_container()
+    ]
+)
 
-    Returns:
-    A list of paths to the found `docker-compose.yml` files.
-    """
-    files = []
+# Accounts Worker
+docker_build('career-cue/accounts-worker', '.',
+    dockerfile="./apps/services/accounts-worker/Dockerfile",
+    live_update = [
+        sync('./apps/services/accounts-worker', '/app'),
+        run('air --build.cmd "go build -o /bin/accounts-worker ./apps/services/accounts-worker/cmd/server/main.go" --build.bin "/bin/accounts-worker"'),
+        restart_container()
+    ]
+)
 
-    # List all files and directories in the given directory
-    entries = str(local("find {} -type f -name docker-compose.yml".format(directory))).split("\n")
-
-    for entry in entries:
-        if entry:  # Ensure no empty strings are added
-            files.append(entry)
-
-    return files
-
-
-# Print the found docker-compose.yml files (or use them further as needed)
-docker_compose_files = find_docker_compose_files(".")
-for file in docker_compose_files:
-    print("Found docker-compose file:", file)
-if docker_compose_files:
-    docker_compose(docker_compose_files)
+# Inbound Webhooks API
+docker_build('career-cue/inbound-webhooks-api', '.',
+    dockerfile="./apps/services/inbound-webhooks-api/Dockerfile",
+    live_update = [
+        sync('./apps/services/inbound-webhooks-api', '/app'),
+        run('air --build.cmd "go build -o /bin/inbound-webhooks-api ./apps/services/inbound-webhooks-api/cmd/server/main.go" --build.bin "/bin/inbound-webhooks-api"'),
+        restart_container()
+    ]
+)

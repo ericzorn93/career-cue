@@ -1,13 +1,17 @@
 FROM golang:1.23-alpine AS builder
-RUN apk update --no-cache bash curl
 WORKDIR /app
-COPY ../../. .
+COPY go.work .
+COPY go.work.sum .
+COPY ./packages ./packages
+COPY ./apps/services ./apps/services
 ENV GOOS=linux
 ENV GOARCH=amd64
 ENV CGO_ENABLED=0
 RUN go build -o /bin/accounts-worker ./apps/services/accounts-worker/cmd/server/main.go
 
-FROM scratch
+FROM alpine:3.20
+RUN apk update --no-cache bash curl
 WORKDIR /app
-COPY --from=builder /bin/accounts-worker .
-CMD [ "./accounts-worker" ]
+COPY --from=builder /bin/accounts-worker /bin/accounts-worker
+EXPOSE 3000
+CMD [ "/bin/accounts-worker" ]

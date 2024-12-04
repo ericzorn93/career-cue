@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+  inbound-webhooks-api:
+    image: career-cue/inbound-webhooks-api
+    container_name: career-cue-inbound-webhooks-api
+    build:
+      context: .
+      dockerfile: ./apps/services/inbound-webhooks-api/Dockerfile
+    ports:
+      - 3000:3000
+  accounts-api:
+    image: career-cue/accounts-api
+    container_name: career-cue-accounts-api
+    build:
+      context: .
+      dockerfile: ./apps/services/accounts-api/Dockerfile
+    ports:
+      - 3001:3000
+  accounts-worker:
+    image: career-cue/accounts-worker
+    container_name: career-cue-accounts-worker
+    build:
+      context: .
+      dockerfile: ./apps/services/accounts-worker/Dockerfile
+    ports:
+      - 3002:3000
