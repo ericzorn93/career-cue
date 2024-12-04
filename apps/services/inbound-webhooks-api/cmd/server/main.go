@@ -1,24 +1,29 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
+	"net/http"
 
-	"github.com/gofiber/fiber/v3"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	gw "packages/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 )
 
-func Hello(name string) string {
-	result := "Hello " + name
-	return result
-}
-
 func main() {
-	fmt.Println(Hello("inbound-webhooks-api"))
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	app := fiber.New()
-	app.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("Hello world from Inbound Webhooks API!")
-	})
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	err := gw.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, "localhost:3000", opts)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	log.Fatal(app.Listen(":3000"))
+	log.Println("Starting Inbound Webhooks Service")
+	http.ListenAndServe(":3000", mux)
 }

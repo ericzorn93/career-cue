@@ -18,7 +18,10 @@
       }
     },
     "test": {
-      "executor": "@nx-go/nx-go:test"
+      "executor": "@nx-go/nx-go:test",
+      "options": {
+        "race": true
+      }
     },
     "lint": {
       "executor": "@nx-go/nx-go:lint"
