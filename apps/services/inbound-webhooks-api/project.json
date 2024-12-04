@@ -33,7 +33,7 @@
     "deploy": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "fly deploy -c apps/services/inbound-webhooks-api/fly.toml -y"
+        "command": "flyctl deploy -c apps/services/inbound-webhooks-api/fly.toml -y"
       }
     }
   }
