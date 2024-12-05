@@ -8,6 +8,8 @@ services:
       dockerfile: ./apps/services/inbound-webhooks-api/Dockerfile
     ports:
       - 3000:3000
+    env_file:
+      - ./apps/services/inbound-webhooks-api/.env.local
     volumes:
       - inbound-webhooks-api:/app
   accounts-api:
@@ -18,6 +20,8 @@ services:
       dockerfile: ./apps/services/accounts-api/Dockerfile
     ports:
       - 3001:3000
+    env_file:
+      - ./apps/services/accounts-api/.env.local
     volumes:
       - accounts-api:/app
   accounts-worker:
@@ -28,6 +32,8 @@ services:
       dockerfile: ./apps/services/accounts-worker/Dockerfile
     ports:
       - 3002:3000
+    env_file:
+      - ./apps/services/accounts-worker/.env.local
     volumes:
       - accounts-worker:/app
 volumes:

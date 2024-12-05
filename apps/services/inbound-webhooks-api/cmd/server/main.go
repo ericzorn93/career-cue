@@ -18,8 +18,13 @@ type serv struct {
 	pb.UnimplementedInboundWebhooksAPIServer
 }
 
-func (s *serv) UserCreated(ctx context.Context, req *pb.UserCreatedRequest) (*commonv1.Empty, error) {
+func NewServ() *serv {
+	return &serv{}
+}
+
+func (s *serv) UserRegistered(ctx context.Context, req *pb.UserRegisteredRequest) (*commonv1.Empty, error) {
 	log.Println("hit grpc endpoint")
+	log.Println(req)
 	return &commonv1.Empty{}, nil
 }
 
@@ -30,10 +35,16 @@ func main() {
 
 	go func() {
 		server := grpc.NewServer()
-		pb.RegisterInboundWebhooksAPIServer(server, &serv{})
+		pb.RegisterInboundWebhooksAPIServer(server, NewServ())
 
-		l, _ := net.Listen("tcp", ":5000")
-		server.Serve(l)
+		l, err := net.Listen("tcp", ":5000")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err := server.Serve(l); err != nil {
+			log.Fatal(err)
+		}
 	}()
 
 	mux := runtime.NewServeMux()

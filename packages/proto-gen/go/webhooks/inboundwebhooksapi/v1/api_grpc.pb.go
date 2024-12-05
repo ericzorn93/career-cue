@@ -20,7 +20,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	InboundWebhooksAPI_UserCreated_FullMethodName = "/webhooks.inboundwebhooksapi.v1.InboundWebhooksAPI/UserCreated"
+	InboundWebhooksAPI_UserRegistered_FullMethodName = "/webhooks.inboundwebhooksapi.v1.InboundWebhooksAPI/UserRegistered"
 )
 
 // InboundWebhooksAPIClient is the client API for InboundWebhooksAPI service.
@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InboundWebhooksAPIClient interface {
 	// Auth0
-	UserCreated(ctx context.Context, in *UserCreatedRequest, opts ...grpc.CallOption) (*v1.Empty, error)
+	UserRegistered(ctx context.Context, in *UserRegisteredRequest, opts ...grpc.CallOption) (*v1.Empty, error)
 }
 
 type inboundWebhooksAPIClient struct {
@@ -39,10 +39,10 @@ func NewInboundWebhooksAPIClient(cc grpc.ClientConnInterface) InboundWebhooksAPI
 	return &inboundWebhooksAPIClient{cc}
 }
 
-func (c *inboundWebhooksAPIClient) UserCreated(ctx context.Context, in *UserCreatedRequest, opts ...grpc.CallOption) (*v1.Empty, error) {
+func (c *inboundWebhooksAPIClient) UserRegistered(ctx context.Context, in *UserRegisteredRequest, opts ...grpc.CallOption) (*v1.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Empty)
-	err := c.cc.Invoke(ctx, InboundWebhooksAPI_UserCreated_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, InboundWebhooksAPI_UserRegistered_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (c *inboundWebhooksAPIClient) UserCreated(ctx context.Context, in *UserCrea
 // for forward compatibility.
 type InboundWebhooksAPIServer interface {
 	// Auth0
-	UserCreated(context.Context, *UserCreatedRequest) (*v1.Empty, error)
+	UserRegistered(context.Context, *UserRegisteredRequest) (*v1.Empty, error)
 	mustEmbedUnimplementedInboundWebhooksAPIServer()
 }
 
@@ -65,8 +65,8 @@ type InboundWebhooksAPIServer interface {
 // pointer dereference when methods are called.
 type UnimplementedInboundWebhooksAPIServer struct{}
 
-func (UnimplementedInboundWebhooksAPIServer) UserCreated(context.Context, *UserCreatedRequest) (*v1.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UserCreated not implemented")
+func (UnimplementedInboundWebhooksAPIServer) UserRegistered(context.Context, *UserRegisteredRequest) (*v1.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserRegistered not implemented")
 }
 func (UnimplementedInboundWebhooksAPIServer) mustEmbedUnimplementedInboundWebhooksAPIServer() {}
 func (UnimplementedInboundWebhooksAPIServer) testEmbeddedByValue()                            {}
@@ -89,20 +89,20 @@ func RegisterInboundWebhooksAPIServer(s grpc.ServiceRegistrar, srv InboundWebhoo
 	s.RegisterService(&InboundWebhooksAPI_ServiceDesc, srv)
 }
 
-func _InboundWebhooksAPI_UserCreated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserCreatedRequest)
+func _InboundWebhooksAPI_UserRegistered_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserRegisteredRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(InboundWebhooksAPIServer).UserCreated(ctx, in)
+		return srv.(InboundWebhooksAPIServer).UserRegistered(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: InboundWebhooksAPI_UserCreated_FullMethodName,
+		FullMethod: InboundWebhooksAPI_UserRegistered_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InboundWebhooksAPIServer).UserCreated(ctx, req.(*UserCreatedRequest))
+		return srv.(InboundWebhooksAPIServer).UserRegistered(ctx, req.(*UserRegisteredRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -115,8 +115,8 @@ var InboundWebhooksAPI_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*InboundWebhooksAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UserCreated",
-			Handler:    _InboundWebhooksAPI_UserCreated_Handler,
+			MethodName: "UserRegistered",
+			Handler:    _InboundWebhooksAPI_UserRegistered_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
