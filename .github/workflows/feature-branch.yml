@@ -1,9 +1,10 @@
-name: Lint, Test, Build, Deploy - Main
+name: Lint, Test - Feature Branch
 
 on:
   push:
-    branches:
+    branches-ignore:
       - main
+      - master
   pull_request:
 
 permissions:
@@ -40,9 +41,4 @@ jobs:
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: pnpm exec nx-cloud record -- echo Hello World
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
-      - run: pnpm exec nx affected -t lint test build
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: pnpm exec nx affected -t deploy
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - run: pnpm exec nx affected -t lint test
