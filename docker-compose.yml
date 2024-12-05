@@ -36,7 +36,16 @@ services:
       - ./apps/services/accounts-worker/.env.local
     volumes:
       - accounts-worker:/app
+  lavinmq:
+    image: cloudamqp/lavinmq:latest
+    container_name: lavinmq
+    hostname: lavinmq
+    ports:
+      - 15672:15672 # Management UI
+      - 5672:5672 # AMQP
+    restart: always
 volumes:
   inbound-webhooks-api:
   accounts-api:
   accounts-worker:
+  lavinmq:
