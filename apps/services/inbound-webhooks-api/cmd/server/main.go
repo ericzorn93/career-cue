@@ -1,6 +1,7 @@
 package main
 
 import (
+	"apps/services/inbound-webhooks-api/internal/adapters/api"
 	"context"
 	"log"
 	"net"
@@ -10,32 +11,18 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	commonv1 "packages/proto-gen/go/common/v1"
 	pb "packages/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 )
-
-type serv struct {
-	pb.UnimplementedInboundWebhooksAPIServer
-}
-
-func NewServ() *serv {
-	return &serv{}
-}
-
-func (s *serv) UserRegistered(ctx context.Context, req *pb.UserRegisteredRequest) (*commonv1.Empty, error) {
-	log.Println("hit grpc endpoint")
-	log.Println(req)
-	return &commonv1.Empty{}, nil
-}
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	// Concurrently start the gRPC Service
 	go func() {
 		server := grpc.NewServer()
-		pb.RegisterInboundWebhooksAPIServer(server, NewServ())
+		api.RegisterServer(server)
 
 		l, err := net.Listen("tcp", ":5000")
 		if err != nil {
@@ -47,6 +34,7 @@ func main() {
 		}
 	}()
 
+	// Handle HTTP Restful requests as a proxy to gRPC Service
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	err := pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, ":5000", opts)
@@ -55,5 +43,7 @@ func main() {
 	}
 
 	log.Println("Starting Inbound Webhooks Service")
-	http.ListenAndServe(":3000", mux)
+	if err := http.ListenAndServe(":3000", mux); err != nil {
+		log.Fatal(err)
+	}
 }

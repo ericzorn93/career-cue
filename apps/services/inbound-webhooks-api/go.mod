@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/grpc v1.68.1
 )
