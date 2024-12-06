@@ -39,7 +39,7 @@ func (s *InboundWebhooksAPIServer) UserRegistered(
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	body := "Hello World"
+	body := "Hello world"
 	channel.PublishWithContext(ctx,
 		"",         // exchange
 		queue.Name, // routing key
