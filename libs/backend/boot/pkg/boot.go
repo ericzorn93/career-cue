@@ -9,7 +9,7 @@ import (
 
 type Service struct {
 	Name              string
-	ctx               context.Context
+	Ctx               context.Context
 	GRPCPort          *string
 	GRPCDialOptions   []grpc.DialOption
 	ReflectionEnabled bool
@@ -41,7 +41,7 @@ func WithReflection() ServiceOption {
 
 func NewService(ctx context.Context, serviceName string, opts ...ServiceOption) (*Service, error) {
 	s := &Service{
-		ctx:  ctx,
+		Ctx:  ctx,
 		Name: serviceName,
 	}
 
@@ -56,4 +56,8 @@ func NewService(ctx context.Context, serviceName string, opts ...ServiceOption) 
 
 func (s Service) GetServiceName() string {
 	return s.Name
+}
+
+func (s Service) GetGRPCPort() *string {
+	return s.GRPCPort
 }

@@ -12,7 +12,14 @@ func TestBoot(t *testing.T) {
 	mockServiceName := "testService"
 	mockCtx := context.Background()
 
-	result, err := boot.NewService(mockCtx, mockServiceName)
+	mockPort := 5000
+	service, err := boot.NewService(
+		mockCtx,
+		mockServiceName,
+		boot.WithGRPC(mockPort),
+	)
+
 	assert.NoError(t, err)
-	assert.Equal(t, mockServiceName, result.GetServiceName())
+	assert.Equal(t, mockServiceName, service.GetServiceName())
+	assert.Equal(t, ":5000", *service.GRPCPort)
 }
