@@ -10,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/reflection"
 
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 )
@@ -28,6 +29,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// Enable server reflection
+		reflection.Register(server)
 
 		if err := server.Serve(l); err != nil {
 			log.Fatal(err)
