@@ -1,6 +1,7 @@
 package boot_test
 
 import (
+	"context"
 	boot "libs/boot/pkg"
 	"testing"
 
@@ -9,8 +10,9 @@ import (
 
 func TestBoot(t *testing.T) {
 	mockServiceName := "testService"
+	mockCtx := context.Background()
 
-	result := boot.NewService(mockServiceName)
+	result, err := boot.NewService(mockCtx, mockServiceName)
+	assert.NoError(t, err)
 	assert.Equal(t, mockServiceName, result.GetServiceName())
-
 }

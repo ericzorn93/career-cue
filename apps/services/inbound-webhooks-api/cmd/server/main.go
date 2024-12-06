@@ -3,6 +3,7 @@ package main
 import (
 	"apps/services/inbound-webhooks-api/internal/adapters/api"
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -13,12 +14,25 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	boot "libs/boot/pkg"
 )
+
+const serviceName = "inbound-webhooks-api"
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	service, err := boot.NewService(
+		ctx,
+		serviceName,
+		boot.WithReflection(),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(service.GetServiceName())
 
 	// Concurrently start the gRPC Service
 	go func() {
@@ -41,7 +55,7 @@ func main() {
 	// Handle HTTP Restful requests as a proxy to gRPC Service
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err := pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, ":5000", opts)
+	err = pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, ":5000", opts)
 	if err != nil {
 		log.Fatal(err)
 	}
