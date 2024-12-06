@@ -2,7 +2,7 @@ FROM golang:1.23-alpine AS builder
 WORKDIR /app
 COPY go.work .
 COPY go.work.sum .
-COPY ./packages ./packages
+COPY ./libs ./libs
 COPY ./apps/services ./apps/services
 ENV GOOS=linux
 ENV GOARCH=amd64

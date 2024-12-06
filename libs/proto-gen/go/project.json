@@ -2,7 +2,7 @@
   "name": "proto-gen-go",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/proto-gen/go",
+  "sourceRoot": "libs/proto-gen/go",
   "tags": ["lib", "proto", "gen"],
   "targets": {
     "test": {

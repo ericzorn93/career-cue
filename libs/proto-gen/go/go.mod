@@ -1,4 +1,4 @@
-module packages/proto-gen/go
+module libs/proto-gen/go
 
 go 1.23
 

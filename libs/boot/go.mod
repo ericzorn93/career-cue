@@ -1,4 +1,4 @@
-module packages/boot
+module libs/boot
 
 go 1.23
 

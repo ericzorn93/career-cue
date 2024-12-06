@@ -2,7 +2,7 @@
   "name": "boot",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/boot",
+  "sourceRoot": "libs/boot",
   "tags": ["go", "service", "api", "backend"],
   "targets": {
     "test": {

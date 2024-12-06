@@ -1,7 +1,7 @@
 package boot_test
 
 import (
-	boot "packages/boot/pkg"
+	boot "libs/boot/pkg"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

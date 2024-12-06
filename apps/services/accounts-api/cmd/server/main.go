@@ -3,8 +3,8 @@ package main
 import (
 	"apps/services/accounts-api/internal/random"
 	"fmt"
+	accountsapiv1 "libs/proto-gen/go/accounts/accountsapi/v1"
 	"log"
-	accountsapiv1 "packages/proto-gen/go/accounts/accountsapi/v1"
 
 	"github.com/gofiber/fiber/v3"
 	"google.golang.org/protobuf/proto"
