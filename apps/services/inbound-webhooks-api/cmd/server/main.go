@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "libs/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 )
 
 func main() {

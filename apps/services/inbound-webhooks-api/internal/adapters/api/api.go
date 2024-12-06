@@ -1,7 +1,7 @@
 package api
 
 import (
-	pb "libs/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 
 	"google.golang.org/grpc"
 )

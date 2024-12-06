@@ -3,7 +3,7 @@ package main
 import (
 	"apps/services/accounts-api/internal/random"
 	"fmt"
-	accountsapiv1 "libs/proto-gen/go/accounts/accountsapi/v1"
+	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
 	"log"
 
 	"github.com/gofiber/fiber/v3"

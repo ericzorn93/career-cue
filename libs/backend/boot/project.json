@@ -1,12 +1,15 @@
 {
-  "name": "proto-gen-go",
+  "name": "boot",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "libs/proto-gen/go",
-  "tags": ["lib", "proto", "gen"],
+  "sourceRoot": "libs/backend/boot",
+  "tags": ["go", "service", "api", "backend"],
   "targets": {
     "test": {
-      "executor": "@nx-go/nx-go:test"
+      "executor": "@nx-go/nx-go:test",
+      "options": {
+        "race": true
+      }
     },
     "lint": {
       "executor": "@nx-go/nx-go:lint"

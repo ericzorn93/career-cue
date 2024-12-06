@@ -6,22 +6,22 @@ managed:
     - module: buf.build/bufbuild/protovalidate
   override:
     - file_option: go_package_prefix
-      value: libs/proto-gen/go
+      value: libs/backend/proto-gen/go
 plugins:
   - remote: buf.build/protocolbuffers/go
-    out: libs/proto-gen/go
+    out: libs/backend/proto-gen/go
     opt:
       - paths=source_relative
   - remote: buf.build/grpc/go
-    out: libs/proto-gen/go
+    out: libs/backend/proto-gen/go
     opt:
       - paths=source_relative
   - remote: buf.build/grpc-ecosystem/gateway
-    out: libs/proto-gen/go
+    out: libs/backend/proto-gen/go
     opt:
       - paths=source_relative
   - remote: buf.build/grpc-ecosystem/openapiv2
-    out: libs/proto-gen/openapiv2
+    out: libs/backend/proto-gen/openapiv2
   # - remote: buf.build/bufbuild/es
   #   out: libs/proto-gen/es/src/lib
   #   opt:

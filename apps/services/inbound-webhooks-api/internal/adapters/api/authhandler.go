@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	commonv1 "libs/proto-gen/go/common/v1"
-	pb "libs/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	commonv1 "libs/backend/proto-gen/go/common/v1"
+	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
