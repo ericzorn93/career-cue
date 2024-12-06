@@ -1,63 +1,58 @@
 package boot
 
 import (
-	"context"
 	"fmt"
 
+	"go.uber.org/fx"
 	"google.golang.org/grpc"
 )
 
-type Service struct {
+// NewBootServiceModule helps define the dependency injection that
+// can easily be connected within any microservice system
+func NewBootServiceModule() fx.Option {
+	module := fx.Module(
+		"bootService",
+		fx.Provide(NewBootService),
+	)
+
+	return module
+}
+
+// NewBootService sets up constructor for the boot service
+// without any functionality or options
+func NewBootService(params BootServiceParams) BootService {
+	return BootService{
+		name:              params.Name,
+		gRPCPort:          params.GRPCPort,
+		gRPCDialOptions:   params.GRPCDialOptions,
+		reflectionEnabled: params.ReflectionEnabled,
+	}
+}
+
+// BootService primary struct that defines
+// holding the data for all service modules
+type BootService struct {
+	name              string
+	gRPCPort          uint64
+	gRPCDialOptions   []grpc.DialOption
+	reflectionEnabled bool
+}
+
+// GetServiceName returns the service name
+func (s BootService) GetServiceName() string {
+	return s.name
+}
+
+// GetGRPCPort returns the gRPC port
+func (s BootService) GetGRPCPort() string {
+	return fmt.Sprintf(":%d", s.gRPCPort)
+}
+
+// BootServiceParams are the incoming options
+// for the boot service construction
+type BootServiceParams struct {
 	Name              string
-	Ctx               context.Context
-	GRPCPort          *string
+	GRPCPort          uint64
 	GRPCDialOptions   []grpc.DialOption
 	ReflectionEnabled bool
-}
-
-type ServiceOption func(*Service) error
-
-func WithGRPC[P ~int](port P) ServiceOption {
-	return func(s *Service) error {
-		portStr := fmt.Sprintf(":%d", port)
-		s.GRPCPort = &portStr
-		return nil
-	}
-}
-
-func WithGRPCDialOpts(grpcDialOptions ...grpc.DialOption) ServiceOption {
-	return func(s *Service) error {
-		s.GRPCDialOptions = grpcDialOptions
-		return nil
-	}
-}
-
-func WithReflection() ServiceOption {
-	return func(s *Service) error {
-		s.ReflectionEnabled = true
-		return nil
-	}
-}
-
-func NewService(ctx context.Context, serviceName string, opts ...ServiceOption) (*Service, error) {
-	s := &Service{
-		Ctx:  ctx,
-		Name: serviceName,
-	}
-
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			return nil, err
-		}
-	}
-
-	return s, nil
-}
-
-func (s Service) GetServiceName() string {
-	return s.Name
-}
-
-func (s Service) GetGRPCPort() *string {
-	return s.GRPCPort
 }

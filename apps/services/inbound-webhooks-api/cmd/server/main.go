@@ -3,12 +3,12 @@ package main
 import (
 	"apps/services/inbound-webhooks-api/internal/adapters/api"
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -24,15 +24,20 @@ func main() {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	service, err := boot.NewService(
-		ctx,
+	service := fx.Module(
 		serviceName,
-		boot.WithReflection(),
+		fx.Provide(func() boot.BootServiceParams {
+			return boot.BootServiceParams{
+				Name:              serviceName,
+				GRPCPort:          5000,
+				ReflectionEnabled: true,
+			}
+		}),
+		boot.NewBootServiceModule(),
 	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(service.GetServiceName())
+
+	app := fx.New(service)
+	app.Run()
 
 	// Concurrently start the gRPC Service
 	go func() {
@@ -55,7 +60,7 @@ func main() {
 	// Handle HTTP Restful requests as a proxy to gRPC Service
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err = pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, ":5000", opts)
+	err := pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, ":5000", opts)
 	if err != nil {
 		log.Fatal(err)
 	}
