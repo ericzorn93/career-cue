@@ -4,5 +4,6 @@ use (
 	./apps/services/accounts-api
 	./apps/services/accounts-worker
 	./apps/services/inbound-webhooks-api
-	./packages/proto-gen/go
+	./libs/backend/boot
+	./libs/backend/proto-gen/go
 )

@@ -8,6 +8,7 @@ services:
       dockerfile: ./apps/services/inbound-webhooks-api/Dockerfile
     ports:
       - 3000:3000
+      - 5001:5000
     env_file:
       - ./apps/services/inbound-webhooks-api/.env.local
     volumes:
@@ -36,7 +37,16 @@ services:
       - ./apps/services/accounts-worker/.env.local
     volumes:
       - accounts-worker:/app
+  lavinmq:
+    image: cloudamqp/lavinmq:latest
+    container_name: lavinmq
+    hostname: lavinmq
+    ports:
+      - 15672:15672 # Management UI
+      - 5672:5672 # AMQP
+    restart: always
 volumes:
   inbound-webhooks-api:
   accounts-api:
   accounts-worker:
+  lavinmq:
