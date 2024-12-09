@@ -13,6 +13,8 @@ services:
       - ./apps/services/inbound-webhooks-api/.env.local
     volumes:
       - inbound-webhooks-api:/app
+    depends_on:
+      - lavinmq
   accounts-api:
     image: career-cue/accounts-api
     container_name: career-cue-accounts-api
@@ -25,6 +27,8 @@ services:
       - ./apps/services/accounts-api/.env.local
     volumes:
       - accounts-api:/app
+    depends_on:
+      - lavinmq
   accounts-worker:
     image: career-cue/accounts-worker
     container_name: career-cue-accounts-worker
@@ -37,6 +41,8 @@ services:
       - ./apps/services/accounts-worker/.env.local
     volumes:
       - accounts-worker:/app
+    depends_on:
+      - lavinmq
   lavinmq:
     image: cloudamqp/lavinmq:latest
     container_name: lavinmq
