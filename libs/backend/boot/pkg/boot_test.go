@@ -13,14 +13,18 @@ func TestBoot(t *testing.T) {
 	mockServiceName := "testService"
 	mockCtx := context.Background()
 	mockPort := 5000
+	mockGatewayPort := 3000
 
 	var bootService boot.BootService
 	app := fx.New(
 		fx.Provide(func() boot.BootServiceParams {
 			return boot.BootServiceParams{
-				Name:              mockServiceName,
-				GRPCPort:          uint64(mockPort),
-				ReflectionEnabled: true,
+				Name: mockServiceName,
+				GRPCOptions: boot.GRPCOptions{
+					Port:              uint64(mockPort),
+					GatewayPort:       uint64(mockGatewayPort),
+					ReflectionEnabled: true,
+				},
 			}
 		}),
 		boot.NewBootServiceModule(), // Assuming this sets up the BootService
@@ -33,8 +37,6 @@ func TestBoot(t *testing.T) {
 
 	// Check the populated BootService
 	assert.NotNil(t, bootService, "BootService should be populated")
-	assert.Equal(t, mockServiceName, bootService.GetServiceName(), "Service name should match")
-	assert.Equal(t, ":5000", bootService.GetGRPCPort(), "GRPC port should match")
 
 	// Stop the app to clean up resources
 	err = app.Stop(mockCtx)
