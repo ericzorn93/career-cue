@@ -49,20 +49,21 @@ func NewBootServiceModule() fx.Option {
 // holding the data for all service modules
 type BootService struct {
 	io.Closer
-	wg            *sync.WaitGroup
-	mu            *sync.RWMutex
-	name          string
-	log           *slog.Logger
-	gRPCOptions   GRPCOptions
-	bootCallbacks []BootCallback
+	wg             *sync.WaitGroup
+	name           string
+	log            *slog.Logger
+	gRPCOptions    GRPCOptions
+	lavinMQOptions LavinMQOptions
+	bootCallbacks  []BootCallback
 }
 
 // BootServiceParams are the incoming options
 // for the boot service construction
 type BootServiceParams struct {
-	Name          string
-	GRPCOptions   GRPCOptions
-	BootCallbacks []BootCallback
+	Name           string
+	GRPCOptions    GRPCOptions
+	LavinMQOptions LavinMQOptions
+	BootCallbacks  []BootCallback
 }
 
 // BootCallback are methods for when the service is booted
@@ -72,12 +73,12 @@ type BootCallback func() error
 // without any functionality or options
 func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
 	return BootService{
-		wg:            new(sync.WaitGroup),
-		mu:            new(sync.RWMutex),
-		name:          params.Name,
-		log:           log,
-		gRPCOptions:   params.GRPCOptions,
-		bootCallbacks: params.BootCallbacks,
+		wg:             new(sync.WaitGroup),
+		name:           params.Name,
+		log:            log,
+		gRPCOptions:    params.GRPCOptions,
+		lavinMQOptions: params.LavinMQOptions,
+		bootCallbacks:  params.BootCallbacks,
 	}
 }
 

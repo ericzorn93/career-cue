@@ -43,6 +43,7 @@ func main() {
 						},
 					},
 				},
+				LavinMQOptions: boot.LavinMQOptions{},
 				BootCallbacks: []boot.BootCallback{
 					func() error {
 						log.Info("Service booted successfully", "serviceName", serviceName)
