@@ -14,6 +14,8 @@ import (
 
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 	boot "libs/boot/pkg"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const serviceName = "inbound-webhooks-api"
@@ -43,7 +45,13 @@ func main() {
 						},
 					},
 				},
-				LavinMQOptions: boot.LavinMQOptions{},
+				LavinMQOptions: boot.LavinMQOptions{
+					ConnectionURI: "amqp://guest:guest@lavinmq:5672",
+					OnConnectionCallback: func(_ *amqp.Connection) error {
+						log.Info("LavinMQ connected successfully")
+						return nil
+					},
+				},
 				BootCallbacks: []boot.BootCallback{
 					func() error {
 						log.Info("Service booted successfully", "serviceName", serviceName)
@@ -61,35 +69,4 @@ func main() {
 		fx.StopTimeout(30*time.Second),
 	)
 	app.Run()
-
-	// // Concurrently start the gRPC Service
-	// go func() {
-	// 	server := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
-	// 	api.RegisterServer(server)
-
-	// 	l, err := net.Listen("tcp", ":5000")
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-
-	// 	// Enable server reflection
-	// 	reflection.Register(server)
-
-	// 	if err := server.Serve(l); err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }()
-
-	// Handle HTTP Restful requests as a proxy to gRPC Service
-	// mux := runtime.NewServeMux()
-	// opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	// err := pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, ":5000", opts)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// log.Println("Starting Inbound Webhooks Service")
-	// if err := http.ListenAndServe(":3000", mux); err != nil {
-	// 	log.Fatal(err)
-	// }
 }

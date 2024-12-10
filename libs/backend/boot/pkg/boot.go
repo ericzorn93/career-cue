@@ -5,8 +5,10 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strings"
 	"sync"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/fx"
 )
 
@@ -90,7 +92,7 @@ func (s BootService) Close() error {
 
 // Start spins up the service
 func (s BootService) Start(ctx context.Context) error {
-	s.wg.Add(2)
+	s.wg.Add(3)
 
 	// Start the gRPC Service
 	go func() {
@@ -106,6 +108,31 @@ func (s BootService) Start(ctx context.Context) error {
 		defer s.wg.Done()
 		if err := s.startGRPCGateway(ctx); err != nil {
 			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
+			os.Exit(1)
+		}
+	}()
+
+	// Establish a LavinMQ connection and pass the connection back to the caller
+	// if the caller prefers to use LavinMQ as a producer and/or consumer in their
+	// service
+	go func() {
+		defer s.wg.Done()
+
+		// Validate the conneciton URI to LavinMQ
+		if s.lavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(s.lavinMQOptions.ConnectionURI, "amqp://") {
+			s.log.Error("Cannot connect to LavinMQ with empty connection string")
+			return
+		}
+
+		conn, err := amqp.Dial(s.lavinMQOptions.ConnectionURI)
+		if err != nil {
+			s.log.Error("Cannot connect to LavinMQ", "error", err)
+			os.Exit(1)
+		}
+
+		// Start LavinMQ Connection
+		if err := s.lavinMQOptions.OnConnectionCallback(conn); err != nil {
+			s.log.Error("LavinMQ connection callback failed", "error", err)
 			os.Exit(1)
 		}
 	}()
