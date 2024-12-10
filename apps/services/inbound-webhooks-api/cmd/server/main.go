@@ -24,7 +24,8 @@ func main() {
 			return boot.BootServiceParams{
 				Name: serviceName,
 				GRPCOptions: boot.GRPCOptions{
-					Port: 5000,
+					Port:        3000,
+					GatewayPort: 5000,
 					TransportCredentials: []credentials.TransportCredentials{
 						insecure.NewCredentials(),
 					},

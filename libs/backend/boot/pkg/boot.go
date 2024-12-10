@@ -8,10 +8,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/fx"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
@@ -37,11 +37,13 @@ func NewBootServiceModule() fx.Option {
 			lc.Append(fx.Hook{
 				OnStart: func(_ context.Context) error {
 					log.Info("Service started", "serviceName", bs.name)
-					return bs.Start(context.Background())
+					go bs.Start(context.Background())
+					return nil
 				},
 				OnStop: func(_ context.Context) error {
 					log.Info("Service stopped", "serviceName", bs.name)
-					return bs.Stop(context.Background())
+					go bs.Stop(context.Background())
+					return nil
 				},
 			})
 		}),
@@ -54,6 +56,8 @@ func NewBootServiceModule() fx.Option {
 // holding the data for all service modules
 type BootService struct {
 	io.Closer
+	wg            *sync.WaitGroup
+	mu            *sync.RWMutex
 	name          string
 	log           *slog.Logger
 	gRPCOptions   GRPCOptions
@@ -92,6 +96,8 @@ type GRPCOptions struct {
 // without any functionality or options
 func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
 	return BootService{
+		wg:            new(sync.WaitGroup),
+		mu:            new(sync.RWMutex),
 		name:          params.Name,
 		log:           log,
 		gRPCOptions:   params.GRPCOptions,
@@ -99,103 +105,118 @@ func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
 	}
 }
 
+// startgRPCService will establish a TCP bound port and start the gRPC service
+func (s BootService) startgRPCService(ctx context.Context) error {
+	// Check if the gRPC Gatway should exist
+	if len(s.gRPCOptions.GRPCHandlers) == 0 {
+		s.log.Info("No gRPC handlers present")
+		return nil
+	}
+
+	// gRPC Server Listen
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", s.gRPCOptions.Port))
+	if err != nil {
+		return err
+	}
+
+	// Make Credentials
+	creds := make([]grpc.ServerOption, 0, len(s.gRPCOptions.TransportCredentials))
+	for _, cred := range s.gRPCOptions.TransportCredentials {
+		creds = append(creds, grpc.Creds(cred))
+	}
+
+	// Establish gRPC Server
+	server := grpc.NewServer(creds...)
+
+	// Register protobuf
+	for _, grpcHandler := range s.gRPCOptions.GRPCHandlers {
+		if err := grpcHandler(ctx, server); err != nil {
+			s.log.Error("Error occurred", "error", err)
+			return err
+		}
+	}
+
+	// Enable server reflection
+	if s.gRPCOptions.ReflectionEnabled {
+		reflection.Register(server)
+	}
+
+	// Start gRPC Server
+	if err := server.Serve(l); err != nil {
+		s.log.Error("Error occurred", "error", err)
+		return err
+	}
+
+	return nil
+}
+
+// startGRPCGateway will concurrently set up a proxy server to the underlying gRPC service
+func (s BootService) startGRPCGateway(ctx context.Context) error {
+	s.log.Info("starting gRPC gateway")
+
+	if len(s.gRPCOptions.GatewayHandlers) == 0 {
+		return nil
+	}
+
+	// Create server mux for HTTP requests
+	mux := runtime.NewServeMux()
+
+	// Convert transport credentials to dial options
+	dialOptions := make([]grpc.DialOption, 0, len(s.gRPCOptions.TransportCredentials))
+	for _, cred := range s.gRPCOptions.TransportCredentials {
+		dialOptions = append(dialOptions, grpc.WithTransportCredentials(cred))
+	}
+
+	// Attach gateway protobug handlers
+	for _, gatewayHandler := range s.gRPCOptions.GatewayHandlers {
+		err := gatewayHandler(ctx, mux, fmt.Sprintf(":%d", s.gRPCOptions.Port), dialOptions)
+		if err != nil {
+			s.log.Error("Error occurred", "error", err)
+			return err
+		}
+	}
+
+	// Start HTTP server for REST proxy requests
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", s.gRPCOptions.GatewayPort), mux); err != nil {
+		s.log.Error("Error occurred", "error", err)
+		os.Exit(1)
+	}
+
+	return nil
+}
+
 // Close supports the io.Closer interface and will shutdown the service
 // when the process is done or programatically
-func (s *BootService) Close() error {
+func (s BootService) Close() error {
 	return nil
 }
 
 // Start spins up the service
 func (s BootService) Start(ctx context.Context) error {
-	eg, ctx := errgroup.WithContext(ctx)
-	eg.SetLimit(10)
-	grpcStartCh := make(chan bool)
+	s.wg.Add(2)
 
-	// Spins up gRPC Service
-	eg.Go(func() error {
-		// Check if the gRPC Gatway should exist
-		if len(s.gRPCOptions.GRPCHandlers) == 0 {
-			s.log.Info("No gRPC handlers present")
-			return nil
+	// Start the gRPC Service
+	go func() {
+		defer s.wg.Done()
+		if err := s.startgRPCService(ctx); err != nil {
+			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
+			os.Exit(1)
 		}
+	}()
 
-		// gRPC Server Listen
-		l, err := net.Listen("tcp", fmt.Sprintf(":%d", s.gRPCOptions.Port))
-		if err != nil {
-			return err
+	// If gateway is present, spin up gRPC gateway proxies
+	go func() {
+		defer s.wg.Done()
+		if err := s.startGRPCGateway(ctx); err != nil {
+			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
+			os.Exit(1)
 		}
+	}()
 
-		// Make Credentials
-		creds := make([]grpc.ServerOption, 0, len(s.gRPCOptions.TransportCredentials))
-		for _, cred := range s.gRPCOptions.TransportCredentials {
-			creds = append(creds, grpc.Creds(cred))
-		}
+	// Wait for services to start
+	s.wg.Wait()
 
-		// Establish gRPC Server
-		server := grpc.NewServer(creds...)
-
-		// Register protobuf
-		for _, grpcHandler := range s.gRPCOptions.GRPCHandlers {
-			if err := grpcHandler(ctx, server); err != nil {
-				s.log.Error("Error occurred", "error", err)
-				return err
-			}
-		}
-
-		// Enable server reflection
-		if s.gRPCOptions.ReflectionEnabled {
-			reflection.Register(server)
-		}
-
-		// Start gRPC Server
-		if err := server.Serve(l); err != nil {
-			s.log.Error("Error occurred", "error", err)
-			return err
-		}
-
-		// Indicates that the gateway should be blocked before gRPC server starts
-		grpcStartCh <- true
-
-		return nil
-	})
-
-	// If gateways present, spin up gRPC gatway proxies
-	eg.Go(func() error {
-		if len(s.gRPCOptions.GatewayHandlers) == 0 {
-			return nil
-		}
-
-		// Create server mux for HTTP requests
-		mux := runtime.NewServeMux()
-
-		// Convert transport credentials to dial options
-		dialOptions := make([]grpc.DialOption, 0, len(s.gRPCOptions.TransportCredentials))
-		for _, cred := range s.gRPCOptions.TransportCredentials {
-			dialOptions = append(dialOptions, grpc.WithTransportCredentials(cred))
-		}
-
-		// Attach gateway protobug handlers
-		for _, gatewayHandler := range s.gRPCOptions.GatewayHandlers {
-			err := gatewayHandler(ctx, mux, fmt.Sprintf(":%d", s.gRPCOptions.Port), dialOptions)
-			if err != nil {
-				s.log.Error("Error occurred", "error", err)
-				return err
-			}
-		}
-
-		// Start HTTP server for REST proxy requests
-		<-grpcStartCh
-		go func() {
-			if err := http.ListenAndServe(fmt.Sprintf(":%d", s.gRPCOptions.GatewayPort), mux); err != nil {
-				s.log.Error("Error occurred", "error", err)
-				os.Exit(1)
-			}
-		}()
-
-		return nil
-	})
-
-	return eg.Wait()
+	return nil
 }
 
 // Stop proxies the call to the io.Closer method
