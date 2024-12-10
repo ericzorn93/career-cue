@@ -2,62 +2,158 @@ package boot
 
 import (
 	"context"
-	"fmt"
+	"io"
+	"log/slog"
+	"os"
+	"strings"
+	"sync"
 
-	"google.golang.org/grpc"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"go.uber.org/fx"
 )
 
-type Service struct {
-	Name              string
-	Ctx               context.Context
-	GRPCPort          *string
-	GRPCDialOptions   []grpc.DialOption
-	ReflectionEnabled bool
+const (
+	bootServiceModuleName = "bootService"
+)
+
+// NewBootServiceModule helps define the dependency injection that
+// can easily be connected within any microservice system
+func NewBootServiceModule() fx.Option {
+	module := fx.Module(
+		bootServiceModuleName,
+		fx.Provide(func() *slog.Logger {
+			logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+				AddSource: false,
+			}))
+			return logger
+		}),
+		fx.Provide(NewBootService),
+		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log *slog.Logger) {
+			lc.Append(fx.Hook{
+				OnStart: func(_ context.Context) error {
+					log.Info("Service started", "serviceName", bs.name)
+					go bs.Start(context.Background())
+					return nil
+				},
+				OnStop: func(_ context.Context) error {
+					log.Info("Service stopped", "serviceName", bs.name)
+					go bs.Stop(context.Background())
+					return nil
+				},
+			})
+		}),
+	)
+
+	return module
 }
 
-type ServiceOption func(*Service) error
+// BootService primary struct that defines
+// holding the data for all service modules
+type BootService struct {
+	io.Closer
+	wg             *sync.WaitGroup
+	name           string
+	log            *slog.Logger
+	gRPCOptions    GRPCOptions
+	lavinMQOptions LavinMQOptions
+	bootCallbacks  []BootCallback
+}
 
-func WithGRPC[P ~int](port P) ServiceOption {
-	return func(s *Service) error {
-		portStr := fmt.Sprintf(":%d", port)
-		s.GRPCPort = &portStr
-		return nil
+// BootServiceParams are the incoming options
+// for the boot service construction
+type BootServiceParams struct {
+	Name           string
+	GRPCOptions    GRPCOptions
+	LavinMQOptions LavinMQOptions
+	BootCallbacks  []BootCallback
+}
+
+// BootCallback are methods for when the service is booted
+type BootCallback func() error
+
+// NewBootService sets up constructor for the boot service
+// without any functionality or options
+func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
+	return BootService{
+		wg:             new(sync.WaitGroup),
+		name:           params.Name,
+		log:            log,
+		gRPCOptions:    params.GRPCOptions,
+		lavinMQOptions: params.LavinMQOptions,
+		bootCallbacks:  params.BootCallbacks,
 	}
 }
 
-func WithGRPCDialOpts(grpcDialOptions ...grpc.DialOption) ServiceOption {
-	return func(s *Service) error {
-		s.GRPCDialOptions = grpcDialOptions
-		return nil
-	}
+// Close supports the io.Closer interface and will shutdown the service
+// when the process is done or programatically
+func (s BootService) Close() error {
+	return nil
 }
 
-func WithReflection() ServiceOption {
-	return func(s *Service) error {
-		s.ReflectionEnabled = true
-		return nil
-	}
-}
+// Start spins up the service
+func (s BootService) Start(ctx context.Context) error {
+	s.wg.Add(3)
 
-func NewService(ctx context.Context, serviceName string, opts ...ServiceOption) (*Service, error) {
-	s := &Service{
-		Ctx:  ctx,
-		Name: serviceName,
-	}
+	// Start the gRPC Service
+	go func() {
+		defer s.wg.Done()
+		if err := s.startgRPCService(ctx); err != nil {
+			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
+			os.Exit(1)
+		}
+	}()
 
-	for _, opt := range opts {
-		if err := opt(s); err != nil {
-			return nil, err
+	// If gateway is present, spin up gRPC gateway proxies
+	go func() {
+		defer s.wg.Done()
+		if err := s.startGRPCGateway(ctx); err != nil {
+			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
+			os.Exit(1)
+		}
+	}()
+
+	// Establish a LavinMQ connection and pass the connection back to the caller
+	// if the caller prefers to use LavinMQ as a producer and/or consumer in their
+	// service
+	go func() {
+		defer s.wg.Done()
+
+		// Validate the conneciton URI to LavinMQ
+		if s.lavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(s.lavinMQOptions.ConnectionURI, "amqp://") {
+			s.log.Error("Cannot connect to LavinMQ with empty connection string")
+			return
+		}
+
+		conn, err := amqp.Dial(s.lavinMQOptions.ConnectionURI)
+		if err != nil {
+			s.log.Error("Cannot connect to LavinMQ", "error", err)
+			os.Exit(1)
+		}
+
+		// Start LavinMQ Connection
+		if err := s.lavinMQOptions.OnConnectionCallback(conn); err != nil {
+			s.log.Error("LavinMQ connection callback failed", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Wait for services to start
+	s.wg.Wait()
+
+	// Execute boot callbacks after service starts
+	for _, cb := range s.bootCallbacks {
+		if err := cb(); err != nil {
+			s.log.Error("failed to execute boot callback", "err", err)
+			os.Exit(1)
 		}
 	}
 
-	return s, nil
+	return nil
 }
 
-func (s Service) GetServiceName() string {
-	return s.Name
-}
-
-func (s Service) GetGRPCPort() *string {
-	return s.GRPCPort
+// Stop proxies the call to the io.Closer method
+// and will spin down the service
+func (s BootService) Stop(_ context.Context) error {
+	s.log.Info("Shutting down service")
+	return s.Close()
 }
