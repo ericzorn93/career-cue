@@ -3,6 +3,7 @@ package main
 import (
 	"apps/services/inbound-webhooks-api/internal/adapters/api"
 	"context"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/fx"
@@ -45,7 +46,11 @@ func main() {
 		boot.NewBootServiceModule(),
 	)
 
-	app := fx.New(service)
+	app := fx.New(
+		service,
+		fx.StartTimeout(30*time.Second),
+		fx.StopTimeout(30*time.Second),
+	)
 	app.Run()
 
 	// // Concurrently start the gRPC Service

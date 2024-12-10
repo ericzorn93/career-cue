@@ -35,13 +35,13 @@ func NewBootServiceModule() fx.Option {
 		fx.Provide(NewBootService),
 		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log *slog.Logger) {
 			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
+				OnStart: func(_ context.Context) error {
 					log.Info("Service started", "serviceName", bs.name)
-					return bs.Start(ctx)
+					return bs.Start(context.Background())
 				},
-				OnStop: func(ctx context.Context) error {
+				OnStop: func(_ context.Context) error {
 					log.Info("Service stopped", "serviceName", bs.name)
-					return bs.Stop(ctx)
+					return bs.Stop(context.Background())
 				},
 			})
 		}),
@@ -68,8 +68,13 @@ type BootServiceParams struct {
 	bootCallbacks []BootCallback
 }
 
-type BootCallback func(context.Context) error
+// BootCallback are methods for when the service is booted
+type BootCallback func() error
+
+// GRPCHandler is a type of callback used specifically for starting the gRPC handlers
 type GRPCHandler func(context.Context, *grpc.Server) error
+
+// GatewayHandler is called as a callback when the gRPC proxy server is established
 type GatewayHandler func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
 
 // GRPCOptions initializes how gRPC service gets started
@@ -104,6 +109,7 @@ func (s *BootService) Close() error {
 func (s BootService) Start(ctx context.Context) error {
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.SetLimit(10)
+	grpcStartCh := make(chan bool)
 
 	// Spins up gRPC Service
 	eg.Go(func() error {
@@ -147,6 +153,9 @@ func (s BootService) Start(ctx context.Context) error {
 			return err
 		}
 
+		// Indicates that the gateway should be blocked before gRPC server starts
+		grpcStartCh <- true
+
 		return nil
 	})
 
@@ -156,13 +165,16 @@ func (s BootService) Start(ctx context.Context) error {
 			return nil
 		}
 
+		// Create server mux for HTTP requests
 		mux := runtime.NewServeMux()
 
+		// Convert transport credentials to dial options
 		dialOptions := make([]grpc.DialOption, 0, len(s.gRPCOptions.TransportCredentials))
 		for _, cred := range s.gRPCOptions.TransportCredentials {
 			dialOptions = append(dialOptions, grpc.WithTransportCredentials(cred))
 		}
 
+		// Attach gateway protobug handlers
 		for _, gatewayHandler := range s.gRPCOptions.GatewayHandlers {
 			err := gatewayHandler(ctx, mux, fmt.Sprintf(":%d", s.gRPCOptions.Port), dialOptions)
 			if err != nil {
@@ -171,10 +183,14 @@ func (s BootService) Start(ctx context.Context) error {
 			}
 		}
 
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", s.gRPCOptions.GatewayPort), mux); err != nil {
-			s.log.Error("Error occurred", "error", err)
-			return err
-		}
+		// Start HTTP server for REST proxy requests
+		<-grpcStartCh
+		go func() {
+			if err := http.ListenAndServe(fmt.Sprintf(":%d", s.gRPCOptions.GatewayPort), mux); err != nil {
+				s.log.Error("Error occurred", "error", err)
+				os.Exit(1)
+			}
+		}()
 
 		return nil
 	})
@@ -184,7 +200,7 @@ func (s BootService) Start(ctx context.Context) error {
 
 // Stop proxies the call to the io.Closer method
 // and will spin down the service
-func (s BootService) Stop(ctx context.Context) error {
+func (s BootService) Stop(_ context.Context) error {
 	s.log.Info("Shutting down service")
 	return s.Close()
 }
