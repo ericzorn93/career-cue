@@ -62,7 +62,7 @@ type BootService struct {
 type BootServiceParams struct {
 	Name          string
 	GRPCOptions   GRPCOptions
-	bootCallbacks []BootCallback
+	BootCallbacks []BootCallback
 }
 
 // BootCallback are methods for when the service is booted
@@ -77,7 +77,7 @@ func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
 		name:          params.Name,
 		log:           log,
 		gRPCOptions:   params.GRPCOptions,
-		bootCallbacks: params.bootCallbacks,
+		bootCallbacks: params.BootCallbacks,
 	}
 }
 
@@ -111,6 +111,14 @@ func (s BootService) Start(ctx context.Context) error {
 
 	// Wait for services to start
 	s.wg.Wait()
+
+	// Execute boot callbacks after service starts
+	for _, cb := range s.bootCallbacks {
+		if err := cb(); err != nil {
+			s.log.Error("failed to execute boot callback", "err", err)
+			os.Exit(1)
+		}
+	}
 
 	return nil
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"apps/services/inbound-webhooks-api/internal/adapters/api"
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -20,7 +21,7 @@ const serviceName = "inbound-webhooks-api"
 func main() {
 	service := fx.Module(
 		serviceName,
-		fx.Provide(func() boot.BootServiceParams {
+		fx.Provide(func(log *slog.Logger) boot.BootServiceParams {
 			return boot.BootServiceParams{
 				Name: serviceName,
 				GRPCOptions: boot.GRPCOptions{
@@ -40,6 +41,12 @@ func main() {
 						func(ctx context.Context, mux *runtime.ServeMux, port string, dialOpts []grpc.DialOption) error {
 							return pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, port, dialOpts)
 						},
+					},
+				},
+				BootCallbacks: []boot.BootCallback{
+					func() error {
+						log.Info("Service booted successfully", "serviceName", serviceName)
+						return nil
 					},
 				},
 			}
