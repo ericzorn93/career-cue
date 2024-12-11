@@ -27,6 +27,27 @@ func NewBootServiceModule() fx.Option {
 			}))
 			return logger
 		}),
+		fx.Provide(func(bsParams BootServiceParams, log *slog.Logger) *amqp.Connection {
+			// Validate the conneciton URI to LavinMQ
+			if bsParams.LavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(bsParams.LavinMQOptions.ConnectionURI, "amqp://") {
+				log.Error("Cannot connect to LavinMQ with empty connection string")
+				return nil
+			}
+
+			conn, err := amqp.Dial(bsParams.LavinMQOptions.ConnectionURI)
+			if err != nil {
+				log.Error("Cannot connect to LavinMQ", slog.Any("error", err))
+				os.Exit(1)
+			}
+
+			// Start LavinMQ Connection
+			if err := bsParams.LavinMQOptions.OnConnectionCallback(conn); err != nil {
+				log.Error("LavinMQ connection callback failed", slog.Any("error", err))
+				os.Exit(1)
+			}
+
+			return conn
+		}),
 		fx.Provide(NewBootService),
 		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log *slog.Logger) {
 			lc.Append(fx.Hook{
@@ -52,6 +73,7 @@ func NewBootServiceModule() fx.Option {
 type BootService struct {
 	io.Closer
 	wg             *sync.WaitGroup
+	mu             *sync.Mutex
 	name           string
 	log            *slog.Logger
 	gRPCOptions    GRPCOptions
@@ -76,6 +98,7 @@ type BootCallback func() error
 func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
 	return BootService{
 		wg:             new(sync.WaitGroup),
+		mu:             new(sync.Mutex),
 		name:           params.Name,
 		log:            log,
 		gRPCOptions:    params.GRPCOptions,
@@ -118,23 +141,6 @@ func (s BootService) Start(ctx context.Context) error {
 	go func() {
 		defer s.wg.Done()
 
-		// Validate the conneciton URI to LavinMQ
-		if s.lavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(s.lavinMQOptions.ConnectionURI, "amqp://") {
-			s.log.Error("Cannot connect to LavinMQ with empty connection string")
-			return
-		}
-
-		conn, err := amqp.Dial(s.lavinMQOptions.ConnectionURI)
-		if err != nil {
-			s.log.Error("Cannot connect to LavinMQ", "error", err)
-			os.Exit(1)
-		}
-
-		// Start LavinMQ Connection
-		if err := s.lavinMQOptions.OnConnectionCallback(conn); err != nil {
-			s.log.Error("LavinMQ connection callback failed", "error", err)
-			os.Exit(1)
-		}
 	}()
 
 	// Wait for services to start
