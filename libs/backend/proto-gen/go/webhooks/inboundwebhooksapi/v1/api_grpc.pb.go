@@ -20,103 +20,104 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	InboundWebhooksAPI_UserRegistered_FullMethodName = "/webhooks.inboundwebhooksapi.v1.InboundWebhooksAPI/UserRegistered"
+	InboundWebhooksAuthAPI_UserRegistered_FullMethodName = "/webhooks.inboundwebhooksapi.v1.InboundWebhooksAuthAPI/UserRegistered"
 )
 
-// InboundWebhooksAPIClient is the client API for InboundWebhooksAPI service.
+// InboundWebhooksAuthAPIClient is the client API for InboundWebhooksAuthAPI service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type InboundWebhooksAPIClient interface {
+type InboundWebhooksAuthAPIClient interface {
 	// Auth0
 	UserRegistered(ctx context.Context, in *UserRegisteredRequest, opts ...grpc.CallOption) (*v1.Empty, error)
 }
 
-type inboundWebhooksAPIClient struct {
+type inboundWebhooksAuthAPIClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewInboundWebhooksAPIClient(cc grpc.ClientConnInterface) InboundWebhooksAPIClient {
-	return &inboundWebhooksAPIClient{cc}
+func NewInboundWebhooksAuthAPIClient(cc grpc.ClientConnInterface) InboundWebhooksAuthAPIClient {
+	return &inboundWebhooksAuthAPIClient{cc}
 }
 
-func (c *inboundWebhooksAPIClient) UserRegistered(ctx context.Context, in *UserRegisteredRequest, opts ...grpc.CallOption) (*v1.Empty, error) {
+func (c *inboundWebhooksAuthAPIClient) UserRegistered(ctx context.Context, in *UserRegisteredRequest, opts ...grpc.CallOption) (*v1.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.Empty)
-	err := c.cc.Invoke(ctx, InboundWebhooksAPI_UserRegistered_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, InboundWebhooksAuthAPI_UserRegistered_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// InboundWebhooksAPIServer is the server API for InboundWebhooksAPI service.
-// All implementations must embed UnimplementedInboundWebhooksAPIServer
+// InboundWebhooksAuthAPIServer is the server API for InboundWebhooksAuthAPI service.
+// All implementations must embed UnimplementedInboundWebhooksAuthAPIServer
 // for forward compatibility.
-type InboundWebhooksAPIServer interface {
+type InboundWebhooksAuthAPIServer interface {
 	// Auth0
 	UserRegistered(context.Context, *UserRegisteredRequest) (*v1.Empty, error)
-	mustEmbedUnimplementedInboundWebhooksAPIServer()
+	mustEmbedUnimplementedInboundWebhooksAuthAPIServer()
 }
 
-// UnimplementedInboundWebhooksAPIServer must be embedded to have
+// UnimplementedInboundWebhooksAuthAPIServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedInboundWebhooksAPIServer struct{}
+type UnimplementedInboundWebhooksAuthAPIServer struct{}
 
-func (UnimplementedInboundWebhooksAPIServer) UserRegistered(context.Context, *UserRegisteredRequest) (*v1.Empty, error) {
+func (UnimplementedInboundWebhooksAuthAPIServer) UserRegistered(context.Context, *UserRegisteredRequest) (*v1.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserRegistered not implemented")
 }
-func (UnimplementedInboundWebhooksAPIServer) mustEmbedUnimplementedInboundWebhooksAPIServer() {}
-func (UnimplementedInboundWebhooksAPIServer) testEmbeddedByValue()                            {}
+func (UnimplementedInboundWebhooksAuthAPIServer) mustEmbedUnimplementedInboundWebhooksAuthAPIServer() {
+}
+func (UnimplementedInboundWebhooksAuthAPIServer) testEmbeddedByValue() {}
 
-// UnsafeInboundWebhooksAPIServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to InboundWebhooksAPIServer will
+// UnsafeInboundWebhooksAuthAPIServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to InboundWebhooksAuthAPIServer will
 // result in compilation errors.
-type UnsafeInboundWebhooksAPIServer interface {
-	mustEmbedUnimplementedInboundWebhooksAPIServer()
+type UnsafeInboundWebhooksAuthAPIServer interface {
+	mustEmbedUnimplementedInboundWebhooksAuthAPIServer()
 }
 
-func RegisterInboundWebhooksAPIServer(s grpc.ServiceRegistrar, srv InboundWebhooksAPIServer) {
-	// If the following call pancis, it indicates UnimplementedInboundWebhooksAPIServer was
+func RegisterInboundWebhooksAuthAPIServer(s grpc.ServiceRegistrar, srv InboundWebhooksAuthAPIServer) {
+	// If the following call pancis, it indicates UnimplementedInboundWebhooksAuthAPIServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&InboundWebhooksAPI_ServiceDesc, srv)
+	s.RegisterService(&InboundWebhooksAuthAPI_ServiceDesc, srv)
 }
 
-func _InboundWebhooksAPI_UserRegistered_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _InboundWebhooksAuthAPI_UserRegistered_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserRegisteredRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(InboundWebhooksAPIServer).UserRegistered(ctx, in)
+		return srv.(InboundWebhooksAuthAPIServer).UserRegistered(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: InboundWebhooksAPI_UserRegistered_FullMethodName,
+		FullMethod: InboundWebhooksAuthAPI_UserRegistered_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(InboundWebhooksAPIServer).UserRegistered(ctx, req.(*UserRegisteredRequest))
+		return srv.(InboundWebhooksAuthAPIServer).UserRegistered(ctx, req.(*UserRegisteredRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// InboundWebhooksAPI_ServiceDesc is the grpc.ServiceDesc for InboundWebhooksAPI service.
+// InboundWebhooksAuthAPI_ServiceDesc is the grpc.ServiceDesc for InboundWebhooksAuthAPI service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var InboundWebhooksAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "webhooks.inboundwebhooksapi.v1.InboundWebhooksAPI",
-	HandlerType: (*InboundWebhooksAPIServer)(nil),
+var InboundWebhooksAuthAPI_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "webhooks.inboundwebhooksapi.v1.InboundWebhooksAuthAPI",
+	HandlerType: (*InboundWebhooksAuthAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "UserRegistered",
-			Handler:    _InboundWebhooksAPI_UserRegistered_Handler,
+			Handler:    _InboundWebhooksAuthAPI_UserRegistered_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
