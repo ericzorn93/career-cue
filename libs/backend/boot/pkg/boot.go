@@ -149,7 +149,7 @@ func (s BootService) Start(ctx context.Context) error {
 	// Execute boot callbacks after service starts
 	for _, cb := range s.bootCallbacks {
 		if err := cb(); err != nil {
-			s.log.Error("failed to execute boot callback", "err", err)
+			s.log.Error("failed to execute boot callback", slog.Any("error", err))
 			os.Exit(1)
 		}
 	}

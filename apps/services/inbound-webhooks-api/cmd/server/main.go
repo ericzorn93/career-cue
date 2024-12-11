@@ -1,9 +1,11 @@
 package main
 
 import (
-	"apps/services/inbound-webhooks-api/internal/adapters/api"
+	"apps/services/inbound-webhooks-api/internal/auth"
 	"context"
+	"log"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -20,10 +22,11 @@ import (
 
 const serviceName = "inbound-webhooks-api"
 
-func main() {
+func run() error {
 	service := fx.Module(
 		serviceName,
-		fx.Provide(func(log *slog.Logger) boot.BootServiceParams {
+		auth.NewAuthModule(),
+		fx.Provide(func(log *slog.Logger, authHandler *auth.InboundWebhooksAuthAPIServer) boot.BootServiceParams {
 			return boot.BootServiceParams{
 				Name: serviceName,
 				GRPCOptions: boot.GRPCOptions{
@@ -35,13 +38,13 @@ func main() {
 					ReflectionEnabled: true,
 					GRPCHandlers: []boot.GRPCHandler{
 						func(ctx context.Context, srv *grpc.Server) error {
-							api.RegisterServer(srv)
+							pb.RegisterInboundWebhooksAuthAPIServer(srv, authHandler)
 							return nil
 						},
 					},
 					GatewayHandlers: []boot.GatewayHandler{
 						func(ctx context.Context, mux *runtime.ServeMux, port string, dialOpts []grpc.DialOption) error {
-							return pb.RegisterInboundWebhooksAPIHandlerFromEndpoint(ctx, mux, port, dialOpts)
+							return pb.RegisterInboundWebhooksAuthAPIHandlerFromEndpoint(ctx, mux, port, dialOpts)
 						},
 					},
 				},
@@ -69,4 +72,13 @@ func main() {
 		fx.StopTimeout(30*time.Second),
 	)
 	app.Run()
+
+	return nil
+}
+
+func main() {
+	if err := run(); err != nil {
+		log.Printf("Cannot start service %s", serviceName)
+		os.Exit(1)
+	}
 }
