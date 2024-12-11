@@ -8,7 +8,7 @@ import "buf/validate/validate.proto";
 
 import "common/v1/empty.proto";
 
-service InboundWebhooksAPI {
+service InboundWebhooksAuthAPI {
     // Auth0
     rpc UserRegistered(UserRegisteredRequest) returns (common.v1.Empty) {
         option (google.api.http) = {
