@@ -9,8 +9,10 @@ import (
 func NewAuthModule() fx.Option {
 	authModule := fx.Module(
 		"auth",
-		fx.Provide(NewHandler),
-		fx.Provide(NewService),
+		fx.Provide(NewHandler), // Handler must be public for main module
+		fx.Provide(fx.Private, NewService),
+		fx.Provide(fx.Private, NewChannel),
+		fx.Provide(fx.Private, NewAuthQueue),
 	)
 
 	return authModule

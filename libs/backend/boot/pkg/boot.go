@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/fx"
@@ -27,21 +28,28 @@ func NewBootServiceModule() fx.Option {
 			}))
 			return logger
 		}),
-		fx.Provide(func(bsParams BootServiceParams, log *slog.Logger) *amqp.Connection {
+		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log *slog.Logger) *amqp.Connection {
 			// Validate the conneciton URI to LavinMQ
 			if bsParams.LavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(bsParams.LavinMQOptions.ConnectionURI, "amqp://") {
 				log.Error("Cannot connect to LavinMQ with empty connection string")
 				return nil
 			}
 
-			conn, err := amqp.Dial(bsParams.LavinMQOptions.ConnectionURI)
+			conn, err := amqp.DialConfig(bsParams.LavinMQOptions.ConnectionURI, amqp.Config{
+				Heartbeat: time.Second * 30,
+			})
 			if err != nil {
 				log.Error("Cannot connect to LavinMQ", slog.Any("error", err))
 				os.Exit(1)
 			}
 
+			// Stop the connection on close
+			lc.Append(fx.StopHook(func() error {
+				return conn.Close()
+			}))
+
 			// Start LavinMQ Connection
-			if err := bsParams.LavinMQOptions.OnConnectionCallback(conn); err != nil {
+			if err := bsParams.LavinMQOptions.OnConnectionCallback(); err != nil {
 				log.Error("LavinMQ connection callback failed", slog.Any("error", err))
 				os.Exit(1)
 			}

@@ -3,6 +3,7 @@ package auth
 import (
 	"apps/services/inbound-webhooks-api/internal/entities"
 	"context"
+	"log/slog"
 
 	commonv1 "libs/backend/proto-gen/go/common/v1"
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
@@ -13,19 +14,22 @@ import (
 // InboundWebhooksAuthAPIServer handles all gRPC endpoints for inbound webhooks
 type InboundWebhooksAuthAPIServer struct {
 	pb.UnimplementedInboundWebhooksAuthAPIServer
-	service AuthServicePort
+	Service AuthServicePort
+	Logger  *slog.Logger
 }
 
 // New is the constructor for the inbound webhooks API
 type NewHandlerParams struct {
 	fx.In
 	Service AuthServicePort
+	Logger  *slog.Logger
 }
 
 // NewHandler will return a pointer to the inbound webhooks API server
 func NewHandler(params NewHandlerParams) *InboundWebhooksAuthAPIServer {
 	return &InboundWebhooksAuthAPIServer{
-		service: params.Service,
+		Service: params.Service,
+		Logger:  params.Logger,
 	}
 }
 
@@ -35,6 +39,10 @@ func (s *InboundWebhooksAuthAPIServer) UserRegistered(
 	ctx context.Context,
 	req *pb.UserRegisteredRequest,
 ) (*commonv1.Empty, error) {
-	s.service.SendUserRegistered(ctx, entities.NewUser())
+	if err := s.Service.SendUserRegistered(ctx, entities.NewUser()); err != nil {
+		s.Logger.Error("cannot send user registered event", slog.Any("error", err))
+		return nil, err
+	}
+
 	return &commonv1.Empty{}, nil
 }

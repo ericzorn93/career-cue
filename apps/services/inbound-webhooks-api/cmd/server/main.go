@@ -16,8 +16,6 @@ import (
 
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 	boot "libs/boot/pkg"
-
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const serviceName = "inbound-webhooks-api"
@@ -50,7 +48,7 @@ func run() error {
 				},
 				LavinMQOptions: boot.LavinMQOptions{
 					ConnectionURI: "amqp://guest:guest@lavinmq:5672",
-					OnConnectionCallback: func(_ *amqp.Connection) error {
+					OnConnectionCallback: func() error {
 						log.Info("LavinMQ connected successfully")
 						return nil
 					},
