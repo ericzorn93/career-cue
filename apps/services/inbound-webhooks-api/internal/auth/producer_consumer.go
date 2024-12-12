@@ -7,19 +7,21 @@ import (
 	"go.uber.org/fx"
 )
 
-// NewChannelParams for registering the new channel
-type NewChannelParams struct {
+// EstablishQueuesParams will add new auth
+// queue dependencies to the constructor
+type EstablishQueuesParams struct {
 	fx.In
 	LC     fx.Lifecycle
 	Logger *slog.Logger
 	Conn   *amqp.Connection
 }
 
-// NewChannel registers the connection and channel with Fx
-func NewChannel(params NewChannelParams) (*amqp.Channel, error) {
+// EstablishQueues sets up auth queue
+func EstablishQueues(params EstablishQueuesParams) (amqp.Queue, error) {
+	// Create channel and closer function
 	channel, err := params.Conn.Channel()
 	if err != nil {
-		return &amqp.Channel{}, err
+		return amqp.Queue{}, err
 	}
 
 	params.LC.Append(fx.StopHook(func() error {
@@ -27,22 +29,9 @@ func NewChannel(params NewChannelParams) (*amqp.Channel, error) {
 		return channel.Close()
 	}))
 
-	return channel, nil
-}
-
-// NewAuthQueueParams will add new auth
-// queue dependencies to the constructor
-type NewAuthQueueParams struct {
-	fx.In
-	LC      fx.Lifecycle
-	Logger  *slog.Logger
-	Channel *amqp.Channel
-}
-
-// NewAuthQueue sets up auth queue
-func NewAuthQueue(params NewAuthQueueParams) (amqp.Queue, error) {
+	// Establish Auth Queue
 	const queueName = "authQueue"
-	queue, err := params.Channel.QueueDeclare(
+	queue, err := channel.QueueDeclare(
 		queueName,
 		true,
 		false,

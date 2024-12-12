@@ -123,8 +123,6 @@ func (s BootService) Close() error {
 
 // Start spins up the service
 func (s BootService) Start(ctx context.Context) error {
-	s.wg.Add(3)
-
 	// Start the gRPC Service
 	go func() {
 		defer s.wg.Done()
@@ -141,14 +139,6 @@ func (s BootService) Start(ctx context.Context) error {
 			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
 			os.Exit(1)
 		}
-	}()
-
-	// Establish a LavinMQ connection and pass the connection back to the caller
-	// if the caller prefers to use LavinMQ as a producer and/or consumer in their
-	// service
-	go func() {
-		defer s.wg.Done()
-
 	}()
 
 	// Wait for services to start
