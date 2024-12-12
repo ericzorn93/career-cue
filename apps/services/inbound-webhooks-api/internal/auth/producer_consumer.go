@@ -1,6 +1,7 @@
 package auth
 
 import (
+	boot "libs/boot/pkg"
 	"log/slog"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -11,15 +12,15 @@ import (
 // queue dependencies to the constructor
 type EstablishQueuesParams struct {
 	fx.In
-	LC     fx.Lifecycle
-	Logger *slog.Logger
-	Conn   *amqp.Connection
+	LC          fx.Lifecycle
+	Logger      *slog.Logger
+	LavinMQConn boot.LavinMQ
 }
 
 // EstablishQueues sets up auth queue
 func EstablishQueues(params EstablishQueuesParams) (amqp.Queue, error) {
 	// Create channel and closer function
-	channel, err := params.Conn.Channel()
+	channel, err := params.LavinMQConn.Connection.Channel()
 	if err != nil {
 		return amqp.Queue{}, err
 	}

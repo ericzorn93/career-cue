@@ -2,6 +2,7 @@ package boot
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"os"
@@ -28,11 +29,11 @@ func NewBootServiceModule() fx.Option {
 			}))
 			return logger
 		}),
-		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log *slog.Logger) *amqp.Connection {
+		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log *slog.Logger) (LavinMQ, error) {
 			// Validate the conneciton URI to LavinMQ
 			if bsParams.LavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(bsParams.LavinMQOptions.ConnectionURI, "amqp://") {
 				log.Error("Cannot connect to LavinMQ with empty connection string")
-				return nil
+				return LavinMQ{}, errors.New("cannot connect with invalid LavinMQ String")
 			}
 
 			conn, err := amqp.DialConfig(bsParams.LavinMQOptions.ConnectionURI, amqp.Config{
@@ -40,7 +41,7 @@ func NewBootServiceModule() fx.Option {
 			})
 			if err != nil {
 				log.Error("Cannot connect to LavinMQ", slog.Any("error", err))
-				os.Exit(1)
+				return LavinMQ{}, errors.New("LavinMQ connection failed")
 			}
 
 			// Stop the connection on close
@@ -51,10 +52,10 @@ func NewBootServiceModule() fx.Option {
 			// Start LavinMQ Connection
 			if err := bsParams.LavinMQOptions.OnConnectionCallback(); err != nil {
 				log.Error("LavinMQ connection callback failed", slog.Any("error", err))
-				os.Exit(1)
+				return LavinMQ{}, errors.New("LavinMQ callback failed")
 			}
 
-			return conn
+			return LavinMQ{Connection: conn}, nil
 		}),
 		fx.Provide(NewBootService),
 		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log *slog.Logger) {
