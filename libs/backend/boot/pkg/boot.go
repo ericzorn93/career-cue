@@ -46,6 +46,7 @@ func NewBootServiceModule() fx.Option {
 
 			// Stop the connection on close
 			lc.Append(fx.StopHook(func() error {
+				log.Info("Closing the LavinMQ connection")
 				return conn.Close()
 			}))
 

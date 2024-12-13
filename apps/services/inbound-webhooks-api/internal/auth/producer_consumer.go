@@ -12,15 +12,15 @@ import (
 // queue dependencies to the constructor
 type EstablishQueuesParams struct {
 	fx.In
-	LC          fx.Lifecycle
-	Logger      *slog.Logger
-	LavinMQConn boot.LavinMQ
+	LC      fx.Lifecycle
+	Logger  *slog.Logger
+	LavinMQ boot.LavinMQ
 }
 
 // EstablishQueues sets up auth queue
 func EstablishQueues(params EstablishQueuesParams) (amqp.Queue, error) {
 	// Create channel and closer function
-	channel, err := params.LavinMQConn.Connection.Channel()
+	channel, err := params.LavinMQ.Connection.Channel()
 	if err != nil {
 		return amqp.Queue{}, err
 	}
