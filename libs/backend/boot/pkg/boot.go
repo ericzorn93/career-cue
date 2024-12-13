@@ -2,15 +2,11 @@ package boot
 
 import (
 	"context"
-	"errors"
 	"io"
 	"log/slog"
 	"os"
-	"strings"
 	"sync"
-	"time"
 
-	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/fx"
 )
 
@@ -29,35 +25,7 @@ func NewBootServiceModule() fx.Option {
 			}))
 			return logger
 		}),
-		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log *slog.Logger) (LavinMQ, error) {
-			// Validate the conneciton URI to LavinMQ
-			if bsParams.LavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(bsParams.LavinMQOptions.ConnectionURI, "amqp://") {
-				log.Error("Cannot connect to LavinMQ with empty connection string")
-				return LavinMQ{}, errors.New("cannot connect with invalid LavinMQ String")
-			}
-
-			conn, err := amqp.DialConfig(bsParams.LavinMQOptions.ConnectionURI, amqp.Config{
-				Heartbeat: time.Second * 30,
-			})
-			if err != nil {
-				log.Error("Cannot connect to LavinMQ", slog.Any("error", err))
-				return LavinMQ{}, errors.New("LavinMQ connection failed")
-			}
-
-			// Stop the connection on close
-			lc.Append(fx.StopHook(func() error {
-				log.Info("Closing the LavinMQ connection")
-				return conn.Close()
-			}))
-
-			// Start LavinMQ Connection
-			if err := bsParams.LavinMQOptions.OnConnectionCallback(); err != nil {
-				log.Error("LavinMQ connection callback failed", slog.Any("error", err))
-				return LavinMQ{}, errors.New("LavinMQ callback failed")
-			}
-
-			return LavinMQ{Connection: conn}, nil
-		}),
+		NewLavinMQModule(),
 		fx.Provide(NewBootService),
 		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log *slog.Logger) {
 			lc.Append(fx.Hook{
@@ -83,7 +51,6 @@ func NewBootServiceModule() fx.Option {
 type BootService struct {
 	io.Closer
 	wg             *sync.WaitGroup
-	mu             *sync.Mutex
 	name           string
 	log            *slog.Logger
 	gRPCOptions    GRPCOptions
@@ -108,7 +75,6 @@ type BootCallback func() error
 func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
 	return BootService{
 		wg:             new(sync.WaitGroup),
-		mu:             new(sync.Mutex),
 		name:           params.Name,
 		log:            log,
 		gRPCOptions:    params.GRPCOptions,
