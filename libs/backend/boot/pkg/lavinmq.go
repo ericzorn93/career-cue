@@ -26,7 +26,7 @@ type LavinMQOutput struct {
 func NewLavinMQModule() fx.Option {
 	return fx.Module(
 		lavinMQModuleName,
-		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log *slog.Logger) (LavinMQOutput, error) {
+		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log Logger) (LavinMQOutput, error) {
 			// Validate the conneciton URI to LavinMQ
 			if bsParams.LavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(bsParams.LavinMQOptions.ConnectionURI, "amqp://") {
 				log.Error("Cannot connect to LavinMQ with empty connection string")
@@ -66,7 +66,7 @@ func NewLavinMQModule() fx.Option {
 
 			return LavinMQOutput{Conn: conn, Channel: ch}, nil
 		}),
-		fx.Invoke(func(_ *amqp.Connection, _ *amqp.Channel, log *slog.Logger) {
+		fx.Invoke(func(_ *amqp.Connection, _ *amqp.Channel, log Logger) {
 			log.Info("LavinMQ connection and channel are ready for use")
 		}),
 	)

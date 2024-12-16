@@ -15,12 +15,22 @@ const (
 func NewLoggerModule() fx.Option {
 	return fx.Module(
 		loggerModuleName,
-		fx.Provide(NewLogger),
+		fx.Provide(fx.Annotate(
+			NewSlogger,
+		)),
 	)
 }
 
-// NewLogger creates Slog Logger in JSON format
-func NewLogger() *slog.Logger {
+// Logger Interface for Application Logger
+type Logger interface {
+	Info(string, ...any)
+	Debug(string, ...any)
+	Warn(string, ...any)
+	Error(string, ...any)
+}
+
+// NewSlogger creates Slog Logger in JSON format
+func NewSlogger() Logger {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
 	}))

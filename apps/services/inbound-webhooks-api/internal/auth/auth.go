@@ -11,7 +11,7 @@ func NewAuthModule() fx.Option {
 		"authModule",
 		fx.Provide(
 			fx.Annotate(NewAuthQueue, fx.ResultTags(`name:"authQueue"`)),
-			fx.Annotate(NewService, fx.As(new(AuthServicePort))),
+			fx.Annotate(NewService, fx.As(new(AuthServicePort)), fx.ResultTags(`name:"authService"`)),
 			NewHandler,
 		),
 	)

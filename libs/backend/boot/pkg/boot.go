@@ -22,7 +22,7 @@ func NewBootServiceModule() fx.Option {
 		NewLoggerModule(),
 		NewLavinMQModule(),
 		fx.Provide(NewBootService),
-		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log *slog.Logger) {
+		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log Logger) {
 			lc.Append(fx.Hook{
 				OnStart: func(_ context.Context) error {
 					log.Info("Service started", "serviceName", bs.name)
@@ -47,7 +47,7 @@ type BootService struct {
 	io.Closer
 	wg             *sync.WaitGroup
 	name           string
-	log            *slog.Logger
+	log            Logger
 	gRPCOptions    GRPCOptions
 	lavinMQOptions LavinMQOptions
 	bootCallbacks  []BootCallback
@@ -67,7 +67,7 @@ type BootCallback func() error
 
 // NewBootService sets up constructor for the boot service
 // without any functionality or options
-func NewBootService(params BootServiceParams, log *slog.Logger) BootService {
+func NewBootService(params BootServiceParams, log Logger) BootService {
 	return BootService{
 		wg:             new(sync.WaitGroup),
 		name:           params.Name,
@@ -86,11 +86,14 @@ func (s BootService) Close() error {
 
 // Start spins up the service
 func (s BootService) Start(ctx context.Context) error {
+	// Control Go Routines
+	s.wg.Add(2)
+
 	// Start the gRPC Service
 	go func() {
 		defer s.wg.Done()
 		if err := s.startgRPCService(ctx); err != nil {
-			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
+			s.log.Error("cannot properly start gRPC Service")
 			os.Exit(1)
 		}
 	}()
@@ -99,7 +102,7 @@ func (s BootService) Start(ctx context.Context) error {
 	go func() {
 		defer s.wg.Done()
 		if err := s.startGRPCGateway(ctx); err != nil {
-			s.log.ErrorContext(ctx, "cannot properly start gRPC Service")
+			s.log.Error("cannot properly start gRPC Service")
 			os.Exit(1)
 		}
 	}()

@@ -7,6 +7,7 @@ import (
 
 	commonv1 "libs/backend/proto-gen/go/common/v1"
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	boot "libs/boot/pkg"
 
 	"go.uber.org/fx"
 )
@@ -16,15 +17,15 @@ type InboundWebhooksAuthAPIServer struct {
 	pb.UnimplementedInboundWebhooksAuthAPIServer
 
 	Service AuthServicePort
-	Logger  *slog.Logger
+	Logger  boot.Logger
 }
 
 // New is the constructor for the inbound webhooks API
 type NewHandlerParams struct {
 	fx.In
 
-	Service AuthServicePort
-	Logger  *slog.Logger
+	Service AuthServicePort `name:"authService"`
+	Logger  boot.Logger
 }
 
 // NewHandler will return a pointer to the inbound webhooks API server
@@ -42,7 +43,7 @@ func (s *InboundWebhooksAuthAPIServer) UserRegistered(
 	req *pb.UserRegisteredRequest,
 ) (*commonv1.Empty, error) {
 	if err := s.Service.SendUserRegistered(ctx, entities.NewUser()); err != nil {
-		s.Logger.Error("cannot send user registered event", slog.Any("error", err))
+		s.Logger.Info("cannot send user registered event", slog.Any("error", err))
 		return nil, err
 	}
 

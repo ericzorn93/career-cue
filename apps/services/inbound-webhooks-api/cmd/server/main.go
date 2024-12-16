@@ -4,7 +4,6 @@ import (
 	"apps/services/inbound-webhooks-api/internal/auth"
 	"context"
 	"log"
-	"log/slog"
 	"os"
 	"time"
 
@@ -24,7 +23,7 @@ func run() error {
 	service := fx.Module(
 		serviceName,
 		auth.NewAuthModule(),
-		fx.Provide(func(log *slog.Logger, authHandler *auth.InboundWebhooksAuthAPIServer) boot.BootServiceParams {
+		fx.Provide(func(log boot.Logger, authHandler *auth.InboundWebhooksAuthAPIServer) boot.BootServiceParams {
 			return boot.BootServiceParams{
 				Name: serviceName,
 				GRPCOptions: boot.GRPCOptions{
