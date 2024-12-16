@@ -13,7 +13,6 @@ func TestBoot(t *testing.T) {
 	mockServiceName := "testService"
 	mockCtx := context.Background()
 	mockPort := 5000
-	mockGatewayPort := 3000
 
 	var bootService boot.BootService
 	app := fx.New(
@@ -21,9 +20,7 @@ func TestBoot(t *testing.T) {
 			return boot.BootServiceParams{
 				Name: mockServiceName,
 				GRPCOptions: boot.GRPCOptions{
-					Port:              uint64(mockPort),
-					GatewayPort:       uint64(mockGatewayPort),
-					ReflectionEnabled: true,
+					Port: uint64(mockPort),
 				},
 			}
 		}),

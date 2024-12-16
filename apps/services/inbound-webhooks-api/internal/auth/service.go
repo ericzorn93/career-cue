@@ -19,6 +19,7 @@ type AuthServiceParams struct {
 	fx.In
 
 	Logger boot.Logger
+	// AuthPublisher func([]byte) error `name:"authPublisher"`
 }
 
 // NewService is bound to the dependency injection framework and will initialize the

@@ -87,21 +87,12 @@ func (s BootService) Close() error {
 // Start spins up the service
 func (s BootService) Start(ctx context.Context) error {
 	// Control Go Routines
-	s.wg.Add(2)
+	s.wg.Add(1)
 
 	// Start the gRPC Service
 	go func() {
 		defer s.wg.Done()
 		if err := s.startgRPCService(ctx); err != nil {
-			s.log.Error("cannot properly start gRPC Service")
-			os.Exit(1)
-		}
-	}()
-
-	// If gateway is present, spin up gRPC gateway proxies
-	go func() {
-		defer s.wg.Done()
-		if err := s.startGRPCGateway(ctx); err != nil {
 			s.log.Error("cannot properly start gRPC Service")
 			os.Exit(1)
 		}

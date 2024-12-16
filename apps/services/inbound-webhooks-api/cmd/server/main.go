@@ -4,16 +4,16 @@ import (
 	"apps/services/inbound-webhooks-api/internal/auth"
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"connectrpc.com/grpcreflect"
 	"go.uber.org/fx"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
 	boot "libs/boot/pkg"
 )
 
@@ -28,21 +28,23 @@ func run() error {
 				return boot.BootServiceParams{
 					Name: serviceName,
 					GRPCOptions: boot.GRPCOptions{
-						Port:        3000,
-						GatewayPort: 5000,
+						Port: 3000,
 						TransportCredentials: []credentials.TransportCredentials{
 							insecure.NewCredentials(),
 						},
-						ReflectionEnabled: true,
 						GRPCHandlers: []boot.GRPCHandler{
-							func(ctx context.Context, srv *grpc.Server) error {
-								pb.RegisterInboundWebhooksAuthAPIServer(srv, authHandler.(pb.InboundWebhooksAuthAPIServer))
+							func(ctx context.Context, mux *http.ServeMux) error {
+								path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
+								mux.Handle(path, handler)
 								return nil
 							},
-						},
-						GatewayHandlers: []boot.GatewayHandler{
-							func(ctx context.Context, mux *runtime.ServeMux, port string, dialOpts []grpc.DialOption) error {
-								return pb.RegisterInboundWebhooksAuthAPIHandlerFromEndpoint(ctx, mux, port, dialOpts)
+							func(ctx context.Context, mux *http.ServeMux) error {
+								reflector := grpcreflect.NewStaticReflector(
+									inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
+								)
+								mux.Handle(grpcreflect.NewHandlerV1(reflector))
+								mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+								return nil
 							},
 						},
 					},
