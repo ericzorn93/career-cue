@@ -2,8 +2,8 @@ package auth
 
 import (
 	boot "libs/boot/pkg"
+	"os"
 
-	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/fx"
 )
 
@@ -11,23 +11,20 @@ import (
 type NewAuthQueueParams struct {
 	fx.In
 
-	Channel *amqp.Channel
-	Log     boot.Logger
+	Registerer boot.AmqpRegisterer
+	Log        boot.Logger
 }
 
-// NewAuthPublisher constructs Auth Queue from AMQP Channel
-func NewAuthPublisher(params NewAuthQueueParams) (func([]byte) error, error) {
-	const authExchangeName = "authExchange"
-	const authQueueName = "authQueue"
-
-	err := params.Channel.ExchangeDeclare(authExchangeName, "topic", true, false, false, false, nil)
+// RegisterAuthEvents constructs Auth Queue from AMQP Channel
+func RegisterAuthEvents(params NewAuthQueueParams) {
+	err := params.Registerer.ExchangeDeclare(AuthExchangeName, "topic", true, false, false, false, nil)
 	if err != nil {
 		params.Log.Error("Cannot create exchange")
-		return nil, err
+		os.Exit(1)
 	}
 
-	authQueue, err := params.Channel.QueueDeclare(
-		authQueueName,
+	authQueue, err := params.Registerer.QueueDeclare(
+		AuthQueueName,
 		true,
 		false,
 		false,
@@ -36,15 +33,13 @@ func NewAuthPublisher(params NewAuthQueueParams) (func([]byte) error, error) {
 	)
 	if err != nil {
 		params.Log.Error("Cannot create queue")
-		return nil, err
+		os.Exit(1)
 	}
 	params.Log.Info("Created auth queue")
 
-	if err = params.Channel.QueueBind(authQueue.Name, "", authExchangeName, false, nil); err != nil {
-		return nil, err
+	if err = params.Registerer.QueueBind(authQueue.Name, "", AuthExchangeName, false, nil); err != nil {
+		params.Log.Error("Cannot bind auth queue")
+		os.Exit(1)
+		return
 	}
-
-	return func(msg []byte) error {
-		return params.Channel.Publish(authExchangeName, authQueue.Name, false, false, amqp.Publishing{Body: msg})
-	}, nil
 }

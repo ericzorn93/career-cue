@@ -18,8 +18,8 @@ type AuthService struct {
 type AuthServiceParams struct {
 	fx.In
 
-	Logger boot.Logger
-	// AuthPublisher func([]byte) error `name:"authPublisher"`
+	Logger    boot.Logger
+	Publisher boot.AmqpPublisher
 }
 
 // NewService is bound to the dependency injection framework and will initialize the
@@ -34,6 +34,16 @@ func NewService(params AuthServiceParams) AuthServicePort {
 // to the message broker
 func (s AuthService) SendUserRegistered(ctx context.Context, user entities.User) error {
 	s.Logger.Info("Calling the auth service SendUserRegistered event")
+
+	// b, err := json.Marshal(user)
+	// if err != nil {
+	// 	s.Logger.Error("Trouble marshalling user")
+	// 	return err
+	// }
+	// publisher.Publish(AuthExchangeName, "", false, false, amqp.Publishing{
+	// 	ContentType: "application/json",
+	// 	Body:        b,
+	// })
 
 	return nil
 }
