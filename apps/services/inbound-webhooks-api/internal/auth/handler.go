@@ -14,6 +14,7 @@ import (
 // InboundWebhooksAuthAPIServer handles all gRPC endpoints for inbound webhooks
 type InboundWebhooksAuthAPIServer struct {
 	pb.UnimplementedInboundWebhooksAuthAPIServer
+
 	Service AuthServicePort
 	Logger  *slog.Logger
 }
@@ -21,6 +22,7 @@ type InboundWebhooksAuthAPIServer struct {
 // New is the constructor for the inbound webhooks API
 type NewHandlerParams struct {
 	fx.In
+
 	Service AuthServicePort
 	Logger  *slog.Logger
 }

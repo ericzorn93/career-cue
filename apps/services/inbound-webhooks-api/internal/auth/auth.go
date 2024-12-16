@@ -8,10 +8,12 @@ import (
 // the application
 func NewAuthModule() fx.Option {
 	authModule := fx.Module(
-		"auth",
-		fx.Provide(NewHandler), // Handler must be public for main module
-		fx.Provide(fx.Private, NewService),
-		fx.Provide(fx.Private, EstablishQueues),
+		"authModule",
+		fx.Provide(
+			fx.Annotate(NewAuthQueue, fx.ResultTags(`name:"authQueue"`)),
+			fx.Annotate(NewService, fx.As(new(AuthServicePort))),
+			NewHandler,
+		),
 	)
 
 	return authModule

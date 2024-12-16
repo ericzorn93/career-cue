@@ -7,6 +7,7 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.uber.org/fx"
 )
 
 // AuthService defines the core business logic
@@ -16,13 +17,21 @@ type AuthService struct {
 	AuthQueue amqp.Queue
 }
 
+// AuthService params defines what the service can accept
+type AuthServiceParams struct {
+	fx.In
+
+	Logger *slog.Logger
+
+	// TODO: Add back
+	// AuthQueue amqp.Queue `name:"authQueue"`
+}
+
 // NewService is bound to the dependency injection framework and will initialize the
 // auth service
-func NewService(logger *slog.Logger, authQueue amqp.Queue) AuthServicePort {
+func NewService(params AuthServiceParams) AuthServicePort {
 	return AuthService{
-		Logger: logger,
-		// TODO: Fix this dependency injection error
-		AuthQueue: authQueue,
+		Logger: params.Logger,
 	}
 }
 
@@ -30,7 +39,7 @@ func NewService(logger *slog.Logger, authQueue amqp.Queue) AuthServicePort {
 // to the message broker
 func (s AuthService) SendUserRegistered(ctx context.Context, user entities.User) error {
 	time.Sleep(time.Millisecond * 800)
-	s.Logger.Info("Calling the auth service SendUserRegistered event")
+	s.Logger.Info("Calling the auth service SendUserRegistered event", slog.String("queueName", s.AuthQueue.Name))
 
 	return nil
 }

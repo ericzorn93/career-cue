@@ -12,17 +12,25 @@ import (
 )
 
 const (
-	moduleName = "lavinMQ"
+	lavinMQModuleName = "lavinMQ"
 )
+
+// LavinMQOutput will output each individual property
+type LavinMQOutput struct {
+	fx.Out
+
+	Conn    *amqp.Connection
+	Channel *amqp.Channel
+}
 
 func NewLavinMQModule() fx.Option {
 	return fx.Module(
-		moduleName,
-		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log *slog.Logger) (*amqp.Connection, error) {
+		lavinMQModuleName,
+		fx.Provide(func(lc fx.Lifecycle, bsParams BootServiceParams, log *slog.Logger) (LavinMQOutput, error) {
 			// Validate the conneciton URI to LavinMQ
 			if bsParams.LavinMQOptions.ConnectionURI == "" || !strings.HasPrefix(bsParams.LavinMQOptions.ConnectionURI, "amqp://") {
 				log.Error("Cannot connect to LavinMQ with empty connection string")
-				return nil, errors.New("cannot connect with invalid LavinMQ String")
+				return LavinMQOutput{}, errors.New("cannot connect with invalid LavinMQ String")
 			}
 
 			conn, err := amqp.DialConfig(bsParams.LavinMQOptions.ConnectionURI, amqp.Config{
@@ -30,36 +38,36 @@ func NewLavinMQModule() fx.Option {
 			})
 			if err != nil {
 				log.Error("Cannot connect to LavinMQ", slog.Any("error", err))
-				return conn, errors.New("LavinMQ connection failed")
+				return LavinMQOutput{}, errors.New("LavinMQ connection failed")
 			}
 
-			// Stop the connection on close
+			// Start/Stop the connection on close
 			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if err := bsParams.LavinMQOptions.OnConnectionCallback(); err != nil {
+						log.Error("LavinMQ connection callback failed", slog.Any("error", err))
+						return err
+					}
+
+					return nil
+				},
 				OnStop: func(_ context.Context) error {
 					log.Info("Closing the LavinMQ connection")
 					return conn.Close()
 				},
 			})
 
-			// Start LavinMQ Connection
-			if err := bsParams.LavinMQOptions.OnConnectionCallback(); err != nil {
-				log.Error("LavinMQ connection callback failed", slog.Any("error", err))
-				return nil, errors.New("LavinMQ callback failed")
-			}
-
-			return conn, nil
-		}),
-		fx.Invoke(func(conn *amqp.Connection, log *slog.Logger) {
-			log.Info("LavinMQ connection is ready for use")
-			// Test the connection
+			// Create Channel
 			ch, err := conn.Channel()
 			if err != nil {
-				log.Error("Failed to open a channel", slog.Any("error", err))
-				return
+				log.Error("Cannot create channel")
+				return LavinMQOutput{}, err
 			}
-			defer ch.Close()
 
-			log.Info("Successfully opened a channel")
+			return LavinMQOutput{Conn: conn, Channel: ch}, nil
+		}),
+		fx.Invoke(func(_ *amqp.Connection, _ *amqp.Channel, log *slog.Logger) {
+			log.Info("LavinMQ connection and channel are ready for use")
 		}),
 	)
 }
@@ -69,10 +77,4 @@ func NewLavinMQModule() fx.Option {
 type LavinMQOptions struct {
 	ConnectionURI        string
 	OnConnectionCallback func() error
-}
-
-// LavinMQ is the parent struct that wraps
-// the lavinMQ connection pointer
-type LavinMQ struct {
-	Connection *amqp.Connection
 }

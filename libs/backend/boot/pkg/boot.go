@@ -19,12 +19,7 @@ const (
 func NewBootServiceModule() fx.Option {
 	module := fx.Module(
 		bootServiceModuleName,
-		fx.Provide(func() *slog.Logger {
-			logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-				AddSource: false,
-			}))
-			return logger
-		}),
+		NewLoggerModule(),
 		NewLavinMQModule(),
 		fx.Provide(NewBootService),
 		fx.Invoke(func(lc fx.Lifecycle, bs BootService, log *slog.Logger) {
