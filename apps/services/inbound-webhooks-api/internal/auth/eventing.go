@@ -15,8 +15,8 @@ type NewAuthQueueParams struct {
 	Log     boot.Logger
 }
 
-// NewAuthQueue constructs Auth Queue from AMQP Channel
-func NewAuthQueue(params NewAuthQueueParams) (func(message []byte) error, error) {
+// NewAuthPublisher constructs Auth Queue from AMQP Channel
+func NewAuthPublisher(params NewAuthQueueParams) (func([]byte) error, error) {
 	const authExchangeName = "authExchange"
 	const authQueueName = "authQueue"
 
@@ -26,7 +26,7 @@ func NewAuthQueue(params NewAuthQueueParams) (func(message []byte) error, error)
 		return nil, err
 	}
 
-	q, err := params.Channel.QueueDeclare(
+	authQueue, err := params.Channel.QueueDeclare(
 		authQueueName,
 		true,
 		false,
@@ -40,11 +40,11 @@ func NewAuthQueue(params NewAuthQueueParams) (func(message []byte) error, error)
 	}
 	params.Log.Info("Created auth queue")
 
-	if err = params.Channel.QueueBind(q.Name, "", authExchangeName, false, nil); err != nil {
+	if err = params.Channel.QueueBind(authQueue.Name, "", authExchangeName, false, nil); err != nil {
 		return nil, err
 	}
 
-	return func(message []byte) error {
-		return params.Channel.Publish(authExchangeName, "", false, false, amqp.Publishing{Body: message})
+	return func(msg []byte) error {
+		return params.Channel.Publish(authExchangeName, authQueue.Name, false, false, amqp.Publishing{Body: msg})
 	}, nil
 }

@@ -23,43 +23,46 @@ func run() error {
 	service := fx.Module(
 		serviceName,
 		auth.NewAuthModule(),
-		fx.Provide(func(log boot.Logger, authHandler *auth.InboundWebhooksAuthAPIServer) boot.BootServiceParams {
-			return boot.BootServiceParams{
-				Name: serviceName,
-				GRPCOptions: boot.GRPCOptions{
-					Port:        3000,
-					GatewayPort: 5000,
-					TransportCredentials: []credentials.TransportCredentials{
-						insecure.NewCredentials(),
+		fx.Provide(fx.Annotate(
+			func(log boot.Logger, authHandler auth.AuthHandler) boot.BootServiceParams {
+				return boot.BootServiceParams{
+					Name: serviceName,
+					GRPCOptions: boot.GRPCOptions{
+						Port:        3000,
+						GatewayPort: 5000,
+						TransportCredentials: []credentials.TransportCredentials{
+							insecure.NewCredentials(),
+						},
+						ReflectionEnabled: true,
+						GRPCHandlers: []boot.GRPCHandler{
+							func(ctx context.Context, srv *grpc.Server) error {
+								pb.RegisterInboundWebhooksAuthAPIServer(srv, authHandler.(pb.InboundWebhooksAuthAPIServer))
+								return nil
+							},
+						},
+						GatewayHandlers: []boot.GatewayHandler{
+							func(ctx context.Context, mux *runtime.ServeMux, port string, dialOpts []grpc.DialOption) error {
+								return pb.RegisterInboundWebhooksAuthAPIHandlerFromEndpoint(ctx, mux, port, dialOpts)
+							},
+						},
 					},
-					ReflectionEnabled: true,
-					GRPCHandlers: []boot.GRPCHandler{
-						func(ctx context.Context, srv *grpc.Server) error {
-							pb.RegisterInboundWebhooksAuthAPIServer(srv, authHandler)
+					LavinMQOptions: boot.LavinMQOptions{
+						ConnectionURI: "amqp://guest:guest@lavinmq:5672",
+						OnConnectionCallback: func() error {
+							log.Info("LavinMQ connected successfully")
 							return nil
 						},
 					},
-					GatewayHandlers: []boot.GatewayHandler{
-						func(ctx context.Context, mux *runtime.ServeMux, port string, dialOpts []grpc.DialOption) error {
-							return pb.RegisterInboundWebhooksAuthAPIHandlerFromEndpoint(ctx, mux, port, dialOpts)
+					BootCallbacks: []boot.BootCallback{
+						func() error {
+							log.Info("Service booted successfully", "serviceName", serviceName)
+							return nil
 						},
 					},
-				},
-				LavinMQOptions: boot.LavinMQOptions{
-					ConnectionURI: "amqp://guest:guest@lavinmq:5672",
-					OnConnectionCallback: func() error {
-						log.Info("LavinMQ connected successfully")
-						return nil
-					},
-				},
-				BootCallbacks: []boot.BootCallback{
-					func() error {
-						log.Info("Service booted successfully", "serviceName", serviceName)
-						return nil
-					},
-				},
-			}
-		}),
+				}
+			},
+			fx.ParamTags(``, `name:"authHandler"`),
+		)),
 		boot.NewBootServiceModule(),
 	)
 
