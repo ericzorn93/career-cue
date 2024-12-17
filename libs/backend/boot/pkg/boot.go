@@ -11,8 +11,6 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-
-	"github.com/rabbitmq/amqp091-go"
 )
 
 // BootService primary struct that defines
@@ -23,8 +21,7 @@ type BootService struct {
 	name           string
 	logger         logger.Logger
 	gRPCOptions    grpc.Options
-	amqpConnection *amqp091.Connection
-	amqpChannel    *amqp091.Channel
+	amqpController amqp.Controller
 	bootCallbacks  []BootCallback
 }
 
@@ -83,15 +80,14 @@ func (s *BootService) SetGRPCOptions(opts grpc.Options) {
 // and happens on boot service construction/initialization
 func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) {
 	// Establish connection to AMQP broker
-	amqpConnection, amqpChannel, err := amqp.EstablishAMQPConnection(s.logger, opts)
+	amqpController, err := amqp.EstablishAMQPConnection(s.logger, opts)
 	if err != nil {
 		s.logger.Error("Cannot establish connection to AMQP broker", slog.Any("error", err))
 		return
 	}
 
 	// Assign Connections
-	s.amqpConnection = amqpConnection
-	s.amqpChannel = amqpChannel
+	s.amqpController = amqpController
 }
 
 // Start spins up the service
@@ -149,7 +145,7 @@ func (s BootService) GetLogger() logger.Logger {
 	return s.logger
 }
 
-// GetAMQPChannel will return the the channel associated with the AMQP broker connection
-func (s BootService) GetAMQPChannel() *amqp091.Channel {
-	return s.amqpChannel
+// GetAMQPController will return the the channel associated with the AMQP broker connection
+func (s BootService) GetAMQPController() amqp.Controller {
+	return s.amqpController
 }

@@ -3,22 +3,23 @@ package application
 import (
 	"apps/services/inbound-webhooks-api/internal/constants"
 	"apps/services/inbound-webhooks-api/internal/domain"
+	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/logger"
 
-	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 // AuthServiceImpl handles all application auth interactions
 type AuthServiceImpl struct {
-	Logger  logger.Logger
-	Channel *amqp.Channel
+	Logger             logger.Logger
+	AuthEventPublisher amqp.Publisher
 }
 
 // NewAuthServiceImpl will construct the auth service
-func NewAuthServiceImpl(logger logger.Logger, channel *amqp.Channel) AuthServiceImpl {
+func NewAuthServiceImpl(logger logger.Logger, contoller amqp.Publisher) AuthServiceImpl {
 	return AuthServiceImpl{
-		Logger:  logger,
-		Channel: channel,
+		Logger:             logger,
+		AuthEventPublisher: contoller,
 	}
 }
 
@@ -26,7 +27,7 @@ func NewAuthServiceImpl(logger logger.Logger, channel *amqp.Channel) AuthService
 // webhooks
 func (s AuthServiceImpl) RegisterUser(user domain.User) {
 	s.Logger.Info("Publishing userRegistered Event")
-	s.Channel.Publish(constants.AuthExchangeName, constants.AuthQueueName, false, false, amqp.Publishing{
+	s.AuthEventPublisher.Publish(constants.AuthExchangeName, constants.AuthQueueName, false, false, amqp091.Publishing{
 		ContentType: "text/plain",
 		Body:        []byte("hello world"),
 	})

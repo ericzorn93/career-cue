@@ -66,9 +66,9 @@ func run() error {
 		GRPCHandlers: []grpc.Handler{
 			func(ctx context.Context, mux *http.ServeMux) error {
 				logger := bootService.GetLogger()
-				amqpChannel := bootService.GetAMQPChannel()
+				amqpController := bootService.GetAMQPController()
 
-				authService := application.NewAuthServiceImpl(logger, amqpChannel)
+				authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)
 				authHandler := grpcAdapters.NewAuthHandler(logger, authService)
 				path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
 				mux.Handle(path, handler)
