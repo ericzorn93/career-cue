@@ -3,6 +3,7 @@ package main
 import (
 	grpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/grpc"
 	"apps/services/inbound-webhooks-api/internal/application"
+	"apps/services/inbound-webhooks-api/internal/config"
 	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
 	"log"
@@ -19,18 +20,25 @@ import (
 	"libs/boot/pkg/grpc"
 )
 
+// serviceName is the name of the microservice
 const serviceName = "inbound-webhooks-api"
 
 func run() error {
 	// Application Context
 	ctx := context.Background()
 
+	// Construct config
+	config, err := config.NewConfig()
+	if err != nil {
+		os.Exit(1)
+	}
+
 	// Initialize the gRPC Options
 	bootService, err := boot.NewBootService(
 		boot.BootServiceParams{
 			Name: serviceName,
 			AMQPOptions: amqp.Options{
-				ConnectionURI: "amqp://guest:guest@lavinmq:5672",
+				ConnectionURI: config.AMQPUrl,
 				OnConnectionCallback: func(params amqp.CallBackParams) error {
 					params.Logger.Info("AMQP connected successfully")
 
@@ -57,15 +65,16 @@ func run() error {
 		return err
 	}
 
+	logger := bootService.GetLogger()
+
 	// Assign gRPC Options
 	bootService.SetGRPCOptions(grpc.Options{
-		Port: 3000,
+		Port: config.GRPCPort,
 		TransportCredentials: []credentials.TransportCredentials{
 			insecure.NewCredentials(),
 		},
 		GRPCHandlers: []grpc.Handler{
 			func(ctx context.Context, mux *http.ServeMux) error {
-				logger := bootService.GetLogger()
 				amqpController := bootService.GetAMQPController()
 
 				authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)

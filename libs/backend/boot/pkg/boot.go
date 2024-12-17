@@ -11,6 +11,8 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/joho/godotenv"
 )
 
 // BootService primary struct that defines
@@ -44,6 +46,12 @@ type BootCallback func(BootCallbackParams) error
 func NewBootService(params BootServiceParams) (BootService, error) {
 	// Setup logger
 	logger := logger.NewSlogger()
+
+	// Load environment variables
+	if err := godotenv.Load(); err != nil {
+		logger.Error("Trouble loading environment variables")
+		return BootService{}, err
+	}
 
 	// Create BootService instance
 	bs := BootService{
