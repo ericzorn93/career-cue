@@ -1,7 +1,8 @@
 package main
 
 import (
-	"apps/services/inbound-webhooks-api/internal/auth"
+	grpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/grpc"
+	"apps/services/inbound-webhooks-api/internal/application"
 	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
 	"log"
@@ -64,7 +65,11 @@ func run() error {
 		},
 		GRPCHandlers: []grpc.Handler{
 			func(ctx context.Context, mux *http.ServeMux) error {
-				authHandler := auth.NewHandler(bootService.GetLogger())
+				logger := bootService.GetLogger()
+				amqpChannel := bootService.GetAMQPChannel()
+
+				authService := application.NewAuthServiceImpl(logger, amqpChannel)
+				authHandler := grpcAdapters.NewAuthHandler(logger, authService)
 				path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
 				mux.Handle(path, handler)
 
