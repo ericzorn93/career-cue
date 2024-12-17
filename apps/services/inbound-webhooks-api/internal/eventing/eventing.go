@@ -1,7 +1,7 @@
 package eventing
 
 import (
-	"apps/services/inbound-webhooks-api/internal/constants"
+	"libs/backend/eventing"
 	"libs/boot/pkg/logger"
 	"os"
 
@@ -16,14 +16,14 @@ type NewAuthQueueParams struct {
 
 // RegisterAuthEvents constructs Auth Queue from AMQP Channel
 func RegisterAuthEvents(params NewAuthQueueParams) {
-	err := params.Channel.ExchangeDeclare(constants.AuthExchangeName, "topic", true, false, false, false, nil)
+	err := params.Channel.ExchangeDeclare(eventing.AuthExchange.String(), "topic", true, false, false, false, nil)
 	if err != nil {
 		params.Log.Error("Cannot create exchange")
 		os.Exit(1)
 	}
 
 	authQueue, err := params.Channel.QueueDeclare(
-		constants.AuthQueueName,
+		eventing.RegistrationQueue.String(),
 		true,
 		false,
 		false,
@@ -36,7 +36,7 @@ func RegisterAuthEvents(params NewAuthQueueParams) {
 	}
 	params.Log.Info("Created auth queue")
 
-	if err = params.Channel.QueueBind(authQueue.Name, constants.UserRegistered.String(), constants.AuthExchangeName, false, nil); err != nil {
+	if err = params.Channel.QueueBind(authQueue.Name, eventing.RegistrationQueue.String(), eventing.AuthExchange.String(), false, nil); err != nil {
 		params.Log.Error("Cannot bind auth queue")
 		os.Exit(1)
 		return

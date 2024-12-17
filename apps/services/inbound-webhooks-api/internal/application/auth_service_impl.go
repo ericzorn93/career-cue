@@ -1,8 +1,8 @@
 package application
 
 import (
-	"apps/services/inbound-webhooks-api/internal/constants"
 	"apps/services/inbound-webhooks-api/internal/domain"
+	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/logger"
@@ -59,7 +59,7 @@ func (s AuthServiceImpl) RegisterUser(user domain.User) {
 		s.Logger.Error("Cannot marshal user registered event")
 	}
 
-	s.AuthEventPublisher.Publish(constants.AuthExchangeName, constants.UserRegistered.String(), false, false, amqp091.Publishing{
+	s.AuthEventPublisher.Publish(eventing.AuthExchange.String(), eventing.EventNameUserRegistered.String(), false, false, amqp091.Publishing{
 		ContentType: "application/x-protobuf",
 		Body:        b,
 	})
