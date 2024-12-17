@@ -3,10 +3,14 @@ package application
 import (
 	"apps/services/inbound-webhooks-api/internal/constants"
 	"apps/services/inbound-webhooks-api/internal/domain"
+	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/logger"
 
 	"github.com/rabbitmq/amqp091-go"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // AuthServiceImpl handles all application auth interactions
@@ -27,8 +31,36 @@ func NewAuthServiceImpl(logger logger.Logger, contoller amqp.Publisher) AuthServ
 // webhooks
 func (s AuthServiceImpl) RegisterUser(user domain.User) {
 	s.Logger.Info("Publishing userRegistered Event")
-	s.AuthEventPublisher.Publish(constants.AuthExchangeName, constants.AuthQueueName, false, false, amqp091.Publishing{
-		ContentType: "text/plain",
-		Body:        []byte("hello world"),
+
+	metadata := make(map[string]*anypb.Any)
+	for key, val := range user.Metadata {
+		if convertedVal, err := anypb.New(structpb.NewStringValue(val.(string))); err != nil {
+			s.Logger.Debug("Cannnot convert value in struct")
+		} else {
+			metadata[key] = convertedVal
+		}
+	}
+
+	// Create and send event
+	userRegisteredEvent := &accountseventsv1.UserRegistered{
+		FirstName:            user.FirstName,
+		LastName:             user.LastName,
+		Nickname:             user.Nickname,
+		Username:             user.Username,
+		EmailAddress:         user.EmailAddress,
+		EmailAddressVerified: user.EmailAddressVerified,
+		PhoneNumber:          user.PhoneNumber,
+		PhoneNumberVerified:  user.PhoneNumberVerified,
+		Strategy:             user.Strategy,
+		UserMetadata:         metadata,
+	}
+	b, err := proto.Marshal(userRegisteredEvent)
+	if err != nil {
+		s.Logger.Error("Cannot marshal user registered event")
+	}
+
+	s.AuthEventPublisher.Publish(constants.AuthExchangeName, constants.UserRegistered.String(), false, false, amqp091.Publishing{
+		ContentType: "application/x-protobuf",
+		Body:        b,
 	})
 }

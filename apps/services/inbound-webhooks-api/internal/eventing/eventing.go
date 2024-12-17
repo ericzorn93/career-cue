@@ -36,7 +36,7 @@ func RegisterAuthEvents(params NewAuthQueueParams) {
 	}
 	params.Log.Info("Created auth queue")
 
-	if err = params.Channel.QueueBind(authQueue.Name, "", constants.AuthExchangeName, false, nil); err != nil {
+	if err = params.Channel.QueueBind(authQueue.Name, constants.UserRegistered.String(), constants.AuthExchangeName, false, nil); err != nil {
 		params.Log.Error("Cannot bind auth queue")
 		os.Exit(1)
 		return
