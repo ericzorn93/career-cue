@@ -31,6 +31,7 @@ type BootService struct {
 // for the boot service construction
 type BootServiceParams struct {
 	Name          string
+	Logger        logger.Logger
 	AMQPOptions   amqp.Options
 	BootCallbacks []BootCallback
 }
@@ -44,12 +45,9 @@ type BootCallback func(BootCallbackParams) error
 // NewBootService sets up constructor for the boot service
 // without any functionality or options
 func NewBootService(params BootServiceParams) (BootService, error) {
-	// Setup logger
-	logger := logger.NewSlogger()
-
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
-		logger.Error("Trouble loading environment variables")
+		params.Logger.Error("Trouble loading environment variables")
 		return BootService{}, err
 	}
 
@@ -57,7 +55,7 @@ func NewBootService(params BootServiceParams) (BootService, error) {
 	bs := BootService{
 		wg:            new(sync.WaitGroup),
 		name:          params.Name,
-		logger:        logger,
+		logger:        params.Logger,
 		bootCallbacks: params.BootCallbacks,
 	}
 
@@ -70,9 +68,9 @@ func NewBootService(params BootServiceParams) (BootService, error) {
 		signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
 		<-exitCh
 
-		logger.Info("Closing the LavinMQ connection")
+		params.Logger.Info("Closing the LavinMQ connection")
 		if err := bs.Stop(context.TODO()); err != nil {
-			logger.Error("Trouble closing the boot service")
+			params.Logger.Error("Trouble closing the boot service")
 		}
 	}()
 

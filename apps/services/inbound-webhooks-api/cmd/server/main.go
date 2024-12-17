@@ -18,6 +18,7 @@ import (
 	boot "libs/boot/pkg"
 	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/grpc"
+	"libs/boot/pkg/logger"
 )
 
 // serviceName is the name of the microservice
@@ -27,16 +28,21 @@ func run() error {
 	// Application Context
 	ctx := context.Background()
 
+	// Create logger
+	logger := logger.NewSlogger()
+
 	// Construct config
 	config, err := config.NewConfig()
 	if err != nil {
+		logger.Error("Trouble constructing config")
 		os.Exit(1)
 	}
 
 	// Initialize the gRPC Options
 	bootService, err := boot.NewBootService(
 		boot.BootServiceParams{
-			Name: serviceName,
+			Name:   serviceName,
+			Logger: logger,
 			AMQPOptions: amqp.Options{
 				ConnectionURI: config.AMQPUrl,
 				OnConnectionCallback: func(params amqp.CallBackParams) error {
@@ -64,8 +70,6 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
-	logger := bootService.GetLogger()
 
 	// Assign gRPC Options
 	bootService.SetGRPCOptions(grpc.Options{
