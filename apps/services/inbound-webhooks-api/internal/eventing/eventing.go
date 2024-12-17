@@ -1,30 +1,29 @@
-package auth
+package eventing
 
 import (
-	boot "libs/boot/pkg"
+	"apps/services/inbound-webhooks-api/internal/constants"
+	"libs/boot/pkg/logger"
 	"os"
 
-	"go.uber.org/fx"
+	"github.com/rabbitmq/amqp091-go"
 )
 
 // NewAuthQueueParams are params for the auth queue constructor
 type NewAuthQueueParams struct {
-	fx.In
-
-	Registerer boot.AmqpRegisterer
-	Log        boot.Logger
+	Channel *amqp091.Channel
+	Log     logger.Logger
 }
 
 // RegisterAuthEvents constructs Auth Queue from AMQP Channel
 func RegisterAuthEvents(params NewAuthQueueParams) {
-	err := params.Registerer.ExchangeDeclare(AuthExchangeName, "topic", true, false, false, false, nil)
+	err := params.Channel.ExchangeDeclare(constants.AuthExchangeName, "topic", true, false, false, false, nil)
 	if err != nil {
 		params.Log.Error("Cannot create exchange")
 		os.Exit(1)
 	}
 
-	authQueue, err := params.Registerer.QueueDeclare(
-		AuthQueueName,
+	authQueue, err := params.Channel.QueueDeclare(
+		constants.AuthQueueName,
 		true,
 		false,
 		false,
@@ -37,7 +36,7 @@ func RegisterAuthEvents(params NewAuthQueueParams) {
 	}
 	params.Log.Info("Created auth queue")
 
-	if err = params.Registerer.QueueBind(authQueue.Name, "", AuthExchangeName, false, nil); err != nil {
+	if err = params.Channel.QueueBind(authQueue.Name, "", constants.AuthExchangeName, false, nil); err != nil {
 		params.Log.Error("Cannot bind auth queue")
 		os.Exit(1)
 		return

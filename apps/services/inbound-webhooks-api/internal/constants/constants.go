@@ -1,4 +1,4 @@
-package auth
+package constants
 
 // Event Producer/Consumer
 const (

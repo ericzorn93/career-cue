@@ -1,25 +1,9 @@
-package boot
+package logger
 
 import (
 	"log/slog"
 	"os"
-
-	"go.uber.org/fx"
 )
-
-const (
-	loggerModuleName = "logger"
-)
-
-// NewLoggerModule returns logger
-func NewLoggerModule() fx.Option {
-	return fx.Module(
-		loggerModuleName,
-		fx.Provide(fx.Annotate(
-			NewSlogger,
-		)),
-	)
-}
 
 // Logger Interface for Application Logger
 type Logger interface {

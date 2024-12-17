@@ -2,80 +2,83 @@ package main
 
 import (
 	"apps/services/inbound-webhooks-api/internal/auth"
+	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"connectrpc.com/grpcreflect"
-	"go.uber.org/fx"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
 	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
 	boot "libs/boot/pkg"
+	"libs/boot/pkg/amqp"
+	"libs/boot/pkg/grpc"
 )
 
 const serviceName = "inbound-webhooks-api"
 
 func run() error {
-	service := fx.Module(
-		serviceName,
-		auth.NewAuthModule(),
-		fx.Provide(fx.Annotate(
-			func(log boot.Logger, authHandler auth.AuthHandler) boot.BootServiceParams {
-				return boot.BootServiceParams{
-					Name: serviceName,
-					GRPCOptions: boot.GRPCOptions{
-						Port: 3000,
-						TransportCredentials: []credentials.TransportCredentials{
-							insecure.NewCredentials(),
-						},
-						GRPCHandlers: []boot.GRPCHandler{
-							func(ctx context.Context, mux *http.ServeMux) error {
-								path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
-								mux.Handle(path, handler)
-								return nil
-							},
-							func(ctx context.Context, mux *http.ServeMux) error {
-								reflector := grpcreflect.NewStaticReflector(
-									inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
-								)
-								mux.Handle(grpcreflect.NewHandlerV1(reflector))
-								mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
-								return nil
-							},
-						},
-					},
-					LavinMQOptions: boot.LavinMQOptions{
-						ConnectionURI: "amqp://guest:guest@lavinmq:5672",
-						OnConnectionCallback: func() error {
-							log.Info("LavinMQ connected successfully")
-							return nil
-						},
-					},
-					BootCallbacks: []boot.BootCallback{
-						func() error {
-							log.Info("Service booted successfully", "serviceName", serviceName)
-							return nil
-						},
-					},
-				}
+	// Application Context
+	ctx := context.Background()
+
+	// Initialize the gRPC Options
+	bootService, err := boot.NewBootService(
+		boot.BootServiceParams{
+			Name: serviceName,
+			AMQPOptions: amqp.Options{
+				ConnectionURI: "amqp://guest:guest@lavinmq:5672",
+				OnConnectionCallback: func(params amqp.CallBackParams) error {
+					params.Logger.Info("AMQP connected successfully")
+
+					// Set Up Auth Events
+					eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
+						Log:     params.Logger,
+						Channel: params.Channel,
+					})
+
+					params.Logger.Info("Set up all AMQP queues and exchanges")
+
+					return nil
+				},
 			},
-			fx.ParamTags(``, `name:"authHandler"`),
-		)),
-		boot.NewBootServiceModule(),
+			BootCallbacks: []boot.BootCallback{
+				func(params boot.BootCallbackParams) error {
+					params.Logger.Info("Service booted successfully", "serviceName", serviceName)
+					return nil
+				},
+			},
+		},
 	)
+	if err != nil {
+		return err
+	}
 
-	app := fx.New(
-		service,
-		fx.StartTimeout(30*time.Second),
-		fx.StopTimeout(30*time.Second),
-	)
-	app.Run()
+	// Assign gRPC Options
+	bootService.SetGRPCOptions(grpc.Options{
+		Port: 3000,
+		TransportCredentials: []credentials.TransportCredentials{
+			insecure.NewCredentials(),
+		},
+		GRPCHandlers: []grpc.Handler{
+			func(ctx context.Context, mux *http.ServeMux) error {
+				authHandler := auth.NewHandler(bootService.GetLogger())
+				path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
+				mux.Handle(path, handler)
 
-	return nil
+				reflector := grpcreflect.NewStaticReflector(
+					inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
+				)
+				mux.Handle(grpcreflect.NewHandlerV1(reflector))
+				mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+				return nil
+			},
+		},
+	})
+
+	return bootService.Start(ctx)
 }
 
 func main() {
