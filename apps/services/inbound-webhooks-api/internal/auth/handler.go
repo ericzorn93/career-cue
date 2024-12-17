@@ -1,31 +1,24 @@
 package auth
 
 import (
-	"apps/services/inbound-webhooks-api/internal/entities"
 	"context"
 
 	commonv1 "libs/backend/proto-gen/go/common/v1"
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	"libs/boot/pkg/logger"
 
-	"go.uber.org/fx"
+	"connectrpc.com/connect"
 )
 
 // InboundWebhooksAuthAPIServer handles all gRPC endpoints for inbound webhooks
 type InboundWebhooksAuthAPIServer struct {
-	pb.UnimplementedInboundWebhooksAuthAPIServer
-	service AuthServicePort
-}
-
-// New is the constructor for the inbound webhooks API
-type NewHandlerParams struct {
-	fx.In
-	Service AuthServicePort
+	Logger logger.Logger
 }
 
 // NewHandler will return a pointer to the inbound webhooks API server
-func NewHandler(params NewHandlerParams) *InboundWebhooksAuthAPIServer {
+func NewHandler(logger logger.Logger) *InboundWebhooksAuthAPIServer {
 	return &InboundWebhooksAuthAPIServer{
-		service: params.Service,
+		Logger: logger,
 	}
 }
 
@@ -33,8 +26,7 @@ func NewHandler(params NewHandlerParams) *InboundWebhooksAuthAPIServer {
 // to an exchange within the message broker
 func (s *InboundWebhooksAuthAPIServer) UserRegistered(
 	ctx context.Context,
-	req *pb.UserRegisteredRequest,
-) (*commonv1.Empty, error) {
-	s.service.SendUserRegistered(ctx, entities.NewUser())
-	return &commonv1.Empty{}, nil
+	req *connect.Request[pb.UserRegisteredRequest],
+) (*connect.Response[commonv1.Empty], error) {
+	return connect.NewResponse(&commonv1.Empty{}), nil
 }

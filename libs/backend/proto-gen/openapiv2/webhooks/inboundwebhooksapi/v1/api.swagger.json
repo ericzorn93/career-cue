@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "InboundWebhooksAuthAPI"
+      "name": "InboundWebhooksAuthService"
     }
   ],
   "consumes": [
@@ -19,7 +19,7 @@
     "/v1/webhooks/inbound/auth/user/registered": {
       "post": {
         "summary": "Auth0",
-        "operationId": "InboundWebhooksAuthAPI_UserRegistered",
+        "operationId": "InboundWebhooksAuthService_UserRegistered",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -45,7 +45,7 @@
           }
         ],
         "tags": [
-          "InboundWebhooksAuthAPI"
+          "InboundWebhooksAuthService"
         ]
       }
     }
