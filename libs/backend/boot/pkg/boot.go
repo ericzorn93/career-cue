@@ -46,10 +46,7 @@ type BootCallback func(BootCallbackParams) error
 // without any functionality or options
 func NewBootService(params BootServiceParams) (BootService, error) {
 	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		params.Logger.Error("Trouble loading environment variables")
-		return BootService{}, err
-	}
+	godotenv.Load()
 
 	// Create BootService instance
 	bs := BootService{
