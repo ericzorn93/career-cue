@@ -3,7 +3,6 @@ module libs/boot
 go 1.23
 
 require (
-	github.com/joho/godotenv v1.5.1
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.29.0
