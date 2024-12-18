@@ -1,6 +1,6 @@
 {
   "name": "@career-cue/source",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "MIT",
   "scripts": {
     "proto:update": "buf dep update",
