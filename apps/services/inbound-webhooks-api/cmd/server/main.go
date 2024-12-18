@@ -7,6 +7,7 @@ import (
 	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -39,62 +40,54 @@ func run() error {
 	}
 
 	// Initialize the gRPC Options
-	bootService, err := boot.NewBootService(
-		boot.BootServiceParams{
-			Name:   serviceName,
-			Logger: logger,
-			AMQPOptions: amqp.Options{
-				ConnectionURI: config.AMQPUrl,
-				OnConnectionCallback: func(params amqp.CallBackParams) error {
-					params.Logger.Info("AMQP connected successfully")
+	bootService := boot.
+		NewBuildServiceBuilder().
+		SetServiceName(serviceName).
+		SetLogger(logger).
+		SetAMQPOptions(amqp.Options{
+			ConnectionURI: config.AMQPUrl,
+			OnConnectionCallback: func(params amqp.CallBackParams) error {
+				params.Logger.Info("AMQP connected successfully")
 
-					// Set Up Auth Events
-					eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
-						Log:     params.Logger,
-						Channel: params.Channel,
-					})
+				// Set Up Auth Events
+				eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
+					Log:     params.Logger,
+					Channel: params.Channel,
+				})
 
-					params.Logger.Info("Set up all AMQP queues and exchanges")
+				params.Logger.Info("Set up all AMQP queues and exchanges")
 
-					return nil
-				},
-			},
-			BootCallbacks: []boot.BootCallback{
-				func(params boot.BootCallbackParams) error {
-					params.Logger.Info("Service booted successfully", "serviceName", serviceName)
-					return nil
-				},
-			},
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	// Assign gRPC Options
-	bootService.SetGRPCOptions(grpc.Options{
-		Port: config.GRPCPort,
-		TransportCredentials: []credentials.TransportCredentials{
-			insecure.NewCredentials(),
-		},
-		GRPCHandlers: []grpc.Handler{
-			func(ctx context.Context, mux *http.ServeMux) error {
-				amqpController := bootService.GetAMQPController()
-
-				authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)
-				authHandler := grpcAdapters.NewAuthHandler(logger, authService)
-				path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
-				mux.Handle(path, handler)
-
-				reflector := grpcreflect.NewStaticReflector(
-					inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
-				)
-				mux.Handle(grpcreflect.NewHandlerV1(reflector))
-				mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 				return nil
 			},
-		},
-	})
+		}).
+		SetGRPCOptions(grpc.Options{
+			Port: config.GRPCPort,
+			TransportCredentials: []credentials.TransportCredentials{
+				insecure.NewCredentials(),
+			},
+			GRPCHandlers: []grpc.Handler{
+				func(ctx context.Context, mux *http.ServeMux, amqpController amqp.Controller) error {
+					authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)
+					authHandler := grpcAdapters.NewAuthHandler(logger, authService)
+					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
+					mux.Handle(path, handler)
+
+					reflector := grpcreflect.NewStaticReflector(
+						inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
+					)
+					mux.Handle(grpcreflect.NewHandlerV1(reflector))
+					mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+					return nil
+				},
+			},
+		}).
+		SetBootCallbacks([]boot.BootCallback{
+			func(params boot.BootCallbackParams) error {
+				params.Logger.Info("Service booted successfully", slog.String("serviceName", serviceName))
+				return nil
+			},
+		}).
+		Build()
 
 	return bootService.Start(ctx)
 }

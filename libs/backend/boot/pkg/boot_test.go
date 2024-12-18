@@ -11,11 +11,9 @@ import (
 func TestBoot(t *testing.T) {
 	mockServiceName := "testService"
 
-	bootService, err := boot.NewBootService(boot.BootServiceParams{
-		Logger: logger.NewSlogger(),
-		Name:   mockServiceName,
-	})
+	bootService := boot.NewBuildServiceBuilder().
+		SetServiceName(mockServiceName).
+		SetLogger(logger.NewSlogger()).Build()
 
-	assert.NoError(t, err)
 	assert.Equal(t, mockServiceName, bootService.GetServiceName())
 }

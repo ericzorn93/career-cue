@@ -11,9 +11,55 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-
-	"github.com/joho/godotenv"
 )
+
+// BootServiceBuilder is a builder struct for the BootService Instance
+type BootServiceBuilder struct {
+	bootService *BootService
+}
+
+// NewBuilServiceBuilder is a constructor to eventually build a boot service
+func NewBuildServiceBuilder() *BootServiceBuilder {
+	wg := &sync.WaitGroup{}
+	bootService := &BootService{wg: wg}
+	return &BootServiceBuilder{bootService: bootService}
+}
+
+// SetServiceName sets the name of the microservice on the BootService
+func (bsb *BootServiceBuilder) SetServiceName(serviceName string) *BootServiceBuilder {
+	bsb.bootService.name = serviceName
+	return bsb
+}
+
+// SetLogger sets the logger on the BootService
+func (bsb *BootServiceBuilder) SetLogger(logger logger.Logger) *BootServiceBuilder {
+	bsb.bootService.logger = logger
+	return bsb
+}
+
+// SetGRPCOptions sets the gRPC options for connection on the BootService
+func (bsb *BootServiceBuilder) SetGRPCOptions(grpcOptions grpc.Options) *BootServiceBuilder {
+	bsb.bootService.gRPCOptions = grpcOptions
+	return bsb
+}
+
+// SetAMQPOptions sets the AMQP broker options for connection on the BootService
+func (bsb *BootServiceBuilder) SetAMQPOptions(amqpOptions amqp.Options) *BootServiceBuilder {
+	bsb.bootService.amqpOptions = amqpOptions
+	return bsb
+}
+
+// SetBootCallbacks sets the boot callback for connection on the BootService
+func (bsb *BootServiceBuilder) SetBootCallbacks(bootCallbacks []BootCallback) *BootServiceBuilder {
+	bsb.bootService.bootCallbacks = bootCallbacks
+	return bsb
+}
+
+// Build will eventually build the entire boot service struct in a complete format
+func (bsb *BootServiceBuilder) Build() BootService {
+	bsb.bootService.startAMQPBrokerConnection(bsb.bootService.amqpOptions)
+	return *bsb.bootService
+}
 
 // BootService primary struct that defines
 // holding the data for all service modules
@@ -23,6 +69,7 @@ type BootService struct {
 	name           string
 	logger         logger.Logger
 	gRPCOptions    grpc.Options
+	amqpOptions    amqp.Options
 	amqpController amqp.Controller
 	bootCallbacks  []BootCallback
 }
@@ -42,38 +89,6 @@ type BootCallbackParams struct {
 }
 type BootCallback func(BootCallbackParams) error
 
-// NewBootService sets up constructor for the boot service
-// without any functionality or options
-func NewBootService(params BootServiceParams) (BootService, error) {
-	// Load environment variables
-	godotenv.Load()
-
-	// Create BootService instance
-	bs := BootService{
-		wg:            new(sync.WaitGroup),
-		name:          params.Name,
-		logger:        params.Logger,
-		bootCallbacks: params.BootCallbacks,
-	}
-
-	// Start connection to AMQP Broker
-	bs.startAMQPBrokerConnection(params.AMQPOptions)
-
-	// Handle Shutdown of the service
-	go func() {
-		exitCh := make(chan os.Signal, 1)
-		signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
-		<-exitCh
-
-		params.Logger.Info("Closing the LavinMQ connection")
-		if err := bs.Stop(context.TODO()); err != nil {
-			params.Logger.Error("Trouble closing the boot service")
-		}
-	}()
-
-	return bs, nil
-}
-
 // SetGRPCOptions will assign the gRPC options to the Boot Service
 func (s *BootService) SetGRPCOptions(opts grpc.Options) {
 	s.gRPCOptions = opts
@@ -81,30 +96,49 @@ func (s *BootService) SetGRPCOptions(opts grpc.Options) {
 
 // startAMQPBrokerConnection will assign the AMQP broker options to the Boot Service
 // and happens on boot service construction/initialization
-func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) {
+func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) error {
 	// Establish connection to AMQP broker
 	amqpController, err := amqp.EstablishAMQPConnection(s.logger, opts)
 	if err != nil {
-		s.logger.Error("Cannot establish connection to AMQP broker", slog.Any("error", err))
-		return
+		return err
 	}
 
 	// Assign Connections
 	s.amqpController = amqpController
+	return nil
 }
 
 // Start spins up the service
 func (s BootService) Start(ctx context.Context) error {
 	s.logger.Info("Service started", "serviceName", s.name)
 
+	// Handle Shutdown of the service
+	go func() {
+		exitCh := make(chan os.Signal, 1)
+		signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
+		<-exitCh
+
+		s.logger.Info("Closing the LavinMQ connection")
+		if err := s.Stop(context.TODO()); err != nil {
+			s.logger.Error("Trouble closing the boot service")
+		}
+	}()
+
 	// Control Go Routines
 	s.wg.Add(1)
+
+	// Start the connection to AMQP broker
+	if err := s.startAMQPBrokerConnection(s.amqpOptions); err != nil {
+		s.logger.Error("Cannot establish connection to AMQP broker", slog.Any("error", err))
+		os.Exit(1)
+	}
 
 	// Start the gRPC Service
 	go func() {
 		defer s.wg.Done()
-		if err := grpc.StartgRPCService(ctx, s.name, s.logger, s.gRPCOptions); err != nil {
-			s.logger.Error("cannot properly start gRPC Service")
+
+		if err := grpc.StartgRPCService(ctx, s.name, s.logger, s.amqpController, s.gRPCOptions); err != nil {
+			s.logger.Error("Cannot properly start gRPC Service")
 			os.Exit(1)
 		}
 	}()
