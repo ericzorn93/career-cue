@@ -1,4 +1,4 @@
-package grpc
+package connectrpc
 
 import (
 	"context"
@@ -20,14 +20,14 @@ type Handler func(context.Context, *http.ServeMux, amqp.Controller) error
 type Options struct {
 	Port                 uint64
 	TransportCredentials []credentials.TransportCredentials
-	GRPCHandlers         []Handler
+	Handlers             []Handler
 	GatewayEnabled       bool
 }
 
-// startgRPCService will establish a TCP bound port and start the gRPC service
-func StartgRPCService(ctx context.Context, serviceName string, logger logger.Logger, amqpController amqp.Controller, opts Options) error {
+// startConnectRPCService will establish a TCP bound port and start the gRPC service
+func StartConnectRPCService(ctx context.Context, serviceName string, logger logger.Logger, amqpController amqp.Controller, opts Options) error {
 	// Check if the gRPC Gatway should exist
-	if len(opts.GRPCHandlers) == 0 {
+	if len(opts.Handlers) == 0 {
 		logger.Info("No gRPC handlers present")
 		return nil
 	}
@@ -36,7 +36,7 @@ func StartgRPCService(ctx context.Context, serviceName string, logger logger.Log
 	mux := http.NewServeMux()
 
 	// Register protobuf
-	for _, grpcHandler := range opts.GRPCHandlers {
+	for _, grpcHandler := range opts.Handlers {
 		if err := grpcHandler(ctx, mux, amqpController); err != nil {
 			logger.Error("Error occurred", "error", err)
 			return err

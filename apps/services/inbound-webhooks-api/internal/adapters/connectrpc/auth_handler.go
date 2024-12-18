@@ -1,4 +1,4 @@
-package grpc
+package connectrpc
 
 import (
 	"apps/services/inbound-webhooks-api/internal/application"

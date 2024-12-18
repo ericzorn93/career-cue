@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/grpc"
+	"libs/boot/pkg/connectrpc"
 	"libs/boot/pkg/logger"
 	"log/slog"
 	"os"
@@ -37,9 +37,9 @@ func (bsb *BootServiceBuilder) SetLogger(logger logger.Logger) *BootServiceBuild
 	return bsb
 }
 
-// SetGRPCOptions sets the gRPC options for connection on the BootService
-func (bsb *BootServiceBuilder) SetGRPCOptions(grpcOptions grpc.Options) *BootServiceBuilder {
-	bsb.bootService.gRPCOptions = grpcOptions
+// SetConnectRPCOptions sets the connectRPC Options for connection on the BootService
+func (bsb *BootServiceBuilder) SetConnectRPCOptions(connectRPCOptions connectrpc.Options) *BootServiceBuilder {
+	bsb.bootService.connectRPCOptions = connectRPCOptions
 	return bsb
 }
 
@@ -65,13 +65,13 @@ func (bsb *BootServiceBuilder) Build() BootService {
 // holding the data for all service modules
 type BootService struct {
 	io.Closer
-	wg             *sync.WaitGroup
-	name           string
-	logger         logger.Logger
-	gRPCOptions    grpc.Options
-	amqpOptions    amqp.Options
-	amqpController amqp.Controller
-	bootCallbacks  []BootCallback
+	wg                *sync.WaitGroup
+	name              string
+	logger            logger.Logger
+	connectRPCOptions connectrpc.Options
+	amqpOptions       amqp.Options
+	amqpController    amqp.Controller
+	bootCallbacks     []BootCallback
 }
 
 // BootServiceParams are the incoming options
@@ -88,11 +88,6 @@ type BootCallbackParams struct {
 	Logger logger.Logger
 }
 type BootCallback func(BootCallbackParams) error
-
-// SetGRPCOptions will assign the gRPC options to the Boot Service
-func (s *BootService) SetGRPCOptions(opts grpc.Options) {
-	s.gRPCOptions = opts
-}
 
 // startAMQPBrokerConnection will assign the AMQP broker options to the Boot Service
 // and happens on boot service construction/initialization
@@ -133,12 +128,12 @@ func (s BootService) Start(ctx context.Context) error {
 		os.Exit(1)
 	}
 
-	// Start the gRPC Service
+	// Start the connectRPC Service
 	go func() {
 		defer s.wg.Done()
 
-		if err := grpc.StartgRPCService(ctx, s.name, s.logger, s.amqpController, s.gRPCOptions); err != nil {
-			s.logger.Error("Cannot properly start gRPC Service")
+		if err := connectrpc.StartConnectRPCService(ctx, s.name, s.logger, s.amqpController, s.connectRPCOptions); err != nil {
+			s.logger.Error("Cannot properly start connectRPC Service")
 			os.Exit(1)
 		}
 	}()

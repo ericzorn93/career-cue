@@ -1,7 +1,7 @@
 package main
 
 import (
-	grpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/grpc"
+	connectrpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/connectrpc"
 	"apps/services/inbound-webhooks-api/internal/application"
 	"apps/services/inbound-webhooks-api/internal/config"
 	"apps/services/inbound-webhooks-api/internal/eventing"
@@ -18,7 +18,7 @@ import (
 	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
 	boot "libs/boot/pkg"
 	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/grpc"
+	"libs/boot/pkg/connectrpc"
 	"libs/boot/pkg/logger"
 )
 
@@ -60,15 +60,15 @@ func run() error {
 				return nil
 			},
 		}).
-		SetGRPCOptions(grpc.Options{
-			Port: config.GRPCPort,
+		SetConnectRPCOptions(connectrpc.Options{
+			Port: config.RPCPort,
 			TransportCredentials: []credentials.TransportCredentials{
 				insecure.NewCredentials(),
 			},
-			GRPCHandlers: []grpc.Handler{
+			Handlers: []connectrpc.Handler{
 				func(ctx context.Context, mux *http.ServeMux, amqpController amqp.Controller) error {
 					authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)
-					authHandler := grpcAdapters.NewAuthHandler(logger, authService)
+					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
 					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
 					mux.Handle(path, handler)
 
