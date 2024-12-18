@@ -8,7 +8,6 @@ services:
       dockerfile: ./apps/services/inbound-webhooks-api/Dockerfile
     ports:
       - 3000:3000
-      - 5001:5000
     env_file:
       - ./apps/services/inbound-webhooks-api/.env.local
     volumes:

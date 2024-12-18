@@ -1,10 +1,13 @@
 package main
 
 import (
-	"apps/services/inbound-webhooks-api/internal/auth"
+	connectrpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/connectrpc"
+	"apps/services/inbound-webhooks-api/internal/application"
+	"apps/services/inbound-webhooks-api/internal/config"
 	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -15,68 +18,76 @@ import (
 	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
 	boot "libs/boot/pkg"
 	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/grpc"
+	"libs/boot/pkg/connectrpc"
+	"libs/boot/pkg/logger"
 )
 
+// serviceName is the name of the microservice
 const serviceName = "inbound-webhooks-api"
 
 func run() error {
 	// Application Context
 	ctx := context.Background()
 
-	// Initialize the gRPC Options
-	bootService, err := boot.NewBootService(
-		boot.BootServiceParams{
-			Name: serviceName,
-			AMQPOptions: amqp.Options{
-				ConnectionURI: "amqp://guest:guest@lavinmq:5672",
-				OnConnectionCallback: func(params amqp.CallBackParams) error {
-					params.Logger.Info("AMQP connected successfully")
+	// Create logger
+	logger := logger.NewSlogger()
 
-					// Set Up Auth Events
-					eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
-						Log:     params.Logger,
-						Channel: params.Channel,
-					})
-
-					params.Logger.Info("Set up all AMQP queues and exchanges")
-
-					return nil
-				},
-			},
-			BootCallbacks: []boot.BootCallback{
-				func(params boot.BootCallbackParams) error {
-					params.Logger.Info("Service booted successfully", "serviceName", serviceName)
-					return nil
-				},
-			},
-		},
-	)
+	// Construct config
+	config, err := config.NewConfig()
 	if err != nil {
-		return err
+		logger.Error("Trouble constructing config")
+		os.Exit(1)
 	}
 
-	// Assign gRPC Options
-	bootService.SetGRPCOptions(grpc.Options{
-		Port: 3000,
-		TransportCredentials: []credentials.TransportCredentials{
-			insecure.NewCredentials(),
-		},
-		GRPCHandlers: []grpc.Handler{
-			func(ctx context.Context, mux *http.ServeMux) error {
-				authHandler := auth.NewHandler(bootService.GetLogger())
-				path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
-				mux.Handle(path, handler)
+	// Initialize the gRPC Options
+	bootService := boot.
+		NewBuildServiceBuilder().
+		SetServiceName(serviceName).
+		SetLogger(logger).
+		SetAMQPOptions(amqp.Options{
+			ConnectionURI: config.AMQPUrl,
+			OnConnectionCallback: func(params amqp.CallBackParams) error {
+				params.Logger.Info("AMQP connected successfully")
 
-				reflector := grpcreflect.NewStaticReflector(
-					inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
-				)
-				mux.Handle(grpcreflect.NewHandlerV1(reflector))
-				mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+				// Set Up Auth Events
+				eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
+					Log:     params.Logger,
+					Channel: params.Channel,
+				})
+
+				params.Logger.Info("Set up all AMQP queues and exchanges")
+
 				return nil
 			},
-		},
-	})
+		}).
+		SetConnectRPCOptions(connectrpc.Options{
+			Port: config.RPCPort,
+			TransportCredentials: []credentials.TransportCredentials{
+				insecure.NewCredentials(),
+			},
+			Handlers: []connectrpc.Handler{
+				func(ctx context.Context, mux *http.ServeMux, amqpController amqp.Controller) error {
+					authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)
+					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
+					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
+					mux.Handle(path, handler)
+
+					reflector := grpcreflect.NewStaticReflector(
+						inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
+					)
+					mux.Handle(grpcreflect.NewHandlerV1(reflector))
+					mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+					return nil
+				},
+			},
+		}).
+		SetBootCallbacks([]boot.BootCallback{
+			func(params boot.BootCallbackParams) error {
+				params.Logger.Info("Service booted successfully", slog.String("serviceName", serviceName))
+				return nil
+			},
+		}).
+		Build()
 
 	return bootService.Start(ctx)
 }

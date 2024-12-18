@@ -2,6 +2,7 @@ package boot_test
 
 import (
 	boot "libs/boot/pkg"
+	"libs/boot/pkg/logger"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,10 +11,9 @@ import (
 func TestBoot(t *testing.T) {
 	mockServiceName := "testService"
 
-	bootService, err := boot.NewBootService(boot.BootServiceParams{
-		Name: mockServiceName,
-	})
+	bootService := boot.NewBuildServiceBuilder().
+		SetServiceName(mockServiceName).
+		SetLogger(logger.NewSlogger()).Build()
 
-	assert.NoError(t, err)
 	assert.Equal(t, mockServiceName, bootService.GetServiceName())
 }

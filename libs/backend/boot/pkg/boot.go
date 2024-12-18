@@ -4,34 +4,81 @@ import (
 	"context"
 	"io"
 	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/grpc"
+	"libs/boot/pkg/connectrpc"
 	"libs/boot/pkg/logger"
 	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
-
-	"github.com/rabbitmq/amqp091-go"
 )
+
+// BootServiceBuilder is a builder struct for the BootService Instance
+type BootServiceBuilder struct {
+	bootService *BootService
+}
+
+// NewBuilServiceBuilder is a constructor to eventually build a boot service
+func NewBuildServiceBuilder() *BootServiceBuilder {
+	wg := &sync.WaitGroup{}
+	bootService := &BootService{wg: wg}
+	return &BootServiceBuilder{bootService: bootService}
+}
+
+// SetServiceName sets the name of the microservice on the BootService
+func (bsb *BootServiceBuilder) SetServiceName(serviceName string) *BootServiceBuilder {
+	bsb.bootService.name = serviceName
+	return bsb
+}
+
+// SetLogger sets the logger on the BootService
+func (bsb *BootServiceBuilder) SetLogger(logger logger.Logger) *BootServiceBuilder {
+	bsb.bootService.logger = logger
+	return bsb
+}
+
+// SetConnectRPCOptions sets the connectRPC Options for connection on the BootService
+func (bsb *BootServiceBuilder) SetConnectRPCOptions(connectRPCOptions connectrpc.Options) *BootServiceBuilder {
+	bsb.bootService.connectRPCOptions = connectRPCOptions
+	return bsb
+}
+
+// SetAMQPOptions sets the AMQP broker options for connection on the BootService
+func (bsb *BootServiceBuilder) SetAMQPOptions(amqpOptions amqp.Options) *BootServiceBuilder {
+	bsb.bootService.amqpOptions = amqpOptions
+	return bsb
+}
+
+// SetBootCallbacks sets the boot callback for connection on the BootService
+func (bsb *BootServiceBuilder) SetBootCallbacks(bootCallbacks []BootCallback) *BootServiceBuilder {
+	bsb.bootService.bootCallbacks = bootCallbacks
+	return bsb
+}
+
+// Build will eventually build the entire boot service struct in a complete format
+func (bsb *BootServiceBuilder) Build() BootService {
+	bsb.bootService.startAMQPBrokerConnection(bsb.bootService.amqpOptions)
+	return *bsb.bootService
+}
 
 // BootService primary struct that defines
 // holding the data for all service modules
 type BootService struct {
 	io.Closer
-	wg             *sync.WaitGroup
-	name           string
-	logger         logger.Logger
-	gRPCOptions    grpc.Options
-	amqpConnection *amqp091.Connection
-	amqpChannel    *amqp091.Channel
-	bootCallbacks  []BootCallback
+	wg                *sync.WaitGroup
+	name              string
+	logger            logger.Logger
+	connectRPCOptions connectrpc.Options
+	amqpOptions       amqp.Options
+	amqpController    amqp.Controller
+	bootCallbacks     []BootCallback
 }
 
 // BootServiceParams are the incoming options
 // for the boot service construction
 type BootServiceParams struct {
 	Name          string
+	Logger        logger.Logger
 	AMQPOptions   amqp.Options
 	BootCallbacks []BootCallback
 }
@@ -42,22 +89,23 @@ type BootCallbackParams struct {
 }
 type BootCallback func(BootCallbackParams) error
 
-// NewBootService sets up constructor for the boot service
-// without any functionality or options
-func NewBootService(params BootServiceParams) (BootService, error) {
-	// Setup logger
-	logger := logger.NewSlogger()
-
-	// Create BootService instance
-	bs := BootService{
-		wg:            new(sync.WaitGroup),
-		name:          params.Name,
-		logger:        logger,
-		bootCallbacks: params.BootCallbacks,
+// startAMQPBrokerConnection will assign the AMQP broker options to the Boot Service
+// and happens on boot service construction/initialization
+func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) error {
+	// Establish connection to AMQP broker
+	amqpController, err := amqp.EstablishAMQPConnection(s.logger, opts)
+	if err != nil {
+		return err
 	}
 
-	// Start connection to AMQP Broker
-	bs.startAMQPBrokerConnection(params.AMQPOptions)
+	// Assign Connections
+	s.amqpController = amqpController
+	return nil
+}
+
+// Start spins up the service
+func (s BootService) Start(ctx context.Context) error {
+	s.logger.Info("Service started", "serviceName", s.name)
 
 	// Handle Shutdown of the service
 	go func() {
@@ -65,47 +113,27 @@ func NewBootService(params BootServiceParams) (BootService, error) {
 		signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
 		<-exitCh
 
-		logger.Info("Closing the LavinMQ connection")
-		if err := bs.Stop(context.TODO()); err != nil {
-			logger.Error("Trouble closing the boot service")
+		s.logger.Info("Closing the LavinMQ connection")
+		if err := s.Stop(context.TODO()); err != nil {
+			s.logger.Error("Trouble closing the boot service")
 		}
 	}()
-
-	return bs, nil
-}
-
-// SetGRPCOptions will assign the gRPC options to the Boot Service
-func (s *BootService) SetGRPCOptions(opts grpc.Options) {
-	s.gRPCOptions = opts
-}
-
-// startAMQPBrokerConnection will assign the AMQP broker options to the Boot Service
-// and happens on boot service construction/initialization
-func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) {
-	// Establish connection to AMQP broker
-	amqpConnection, amqpChannel, err := amqp.EstablishAMQPConnection(s.logger, opts)
-	if err != nil {
-		s.logger.Error("Cannot establish connection to AMQP broker", slog.Any("error", err))
-		return
-	}
-
-	// Assign Connections
-	s.amqpConnection = amqpConnection
-	s.amqpChannel = amqpChannel
-}
-
-// Start spins up the service
-func (s BootService) Start(ctx context.Context) error {
-	s.logger.Info("Service started", "serviceName", s.name)
 
 	// Control Go Routines
 	s.wg.Add(1)
 
-	// Start the gRPC Service
+	// Start the connection to AMQP broker
+	if err := s.startAMQPBrokerConnection(s.amqpOptions); err != nil {
+		s.logger.Error("Cannot establish connection to AMQP broker", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	// Start the connectRPC Service
 	go func() {
 		defer s.wg.Done()
-		if err := grpc.StartgRPCService(ctx, s.name, s.logger, s.gRPCOptions); err != nil {
-			s.logger.Error("cannot properly start gRPC Service")
+
+		if err := connectrpc.StartConnectRPCService(ctx, s.name, s.logger, s.amqpController, s.connectRPCOptions); err != nil {
+			s.logger.Error("Cannot properly start connectRPC Service")
 			os.Exit(1)
 		}
 	}()
@@ -149,7 +177,7 @@ func (s BootService) GetLogger() logger.Logger {
 	return s.logger
 }
 
-// GetAMQPChannel will return the the channel associated with the AMQP broker connection
-func (s BootService) GetAMQPChannel() *amqp091.Channel {
-	return s.amqpChannel
+// GetAMQPController will return the the channel associated with the AMQP broker connection
+func (s BootService) GetAMQPController() amqp.Controller {
+	return s.amqpController
 }
