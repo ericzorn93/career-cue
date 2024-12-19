@@ -11,11 +11,11 @@ export async function createBackendServiceGenerator(
   tree: Tree,
   options: CreateBackendServiceGeneratorSchema
 ) {
-  const projectRoot = `libs/${options.name}`;
-  addProjectConfiguration(tree, options.name, {
+  const projectRoot = `apps/services/${options.serviceName}`;
+  addProjectConfiguration(tree, options.serviceName, {
     root: projectRoot,
-    projectType: 'library',
-    sourceRoot: `${projectRoot}/src`,
+    projectType: 'application',
+    sourceRoot: projectRoot,
     targets: {},
   });
   generateFiles(tree, path.join(__dirname, 'files'), projectRoot, options);

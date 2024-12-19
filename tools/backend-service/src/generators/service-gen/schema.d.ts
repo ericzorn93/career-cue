@@ -1,3 +1,3 @@
 export interface CreateBackendServiceGeneratorSchema {
-  name: string;
+  serviceName: string;
 }
