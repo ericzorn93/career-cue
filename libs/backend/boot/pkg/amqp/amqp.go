@@ -38,6 +38,9 @@ func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error
 	hasPrefix := false
 	for _, prefix := range connectionPrefixes {
 		hasPrefix = strings.HasPrefix(opts.ConnectionURI, prefix)
+		if hasPrefix {
+			break
+		}
 	}
 
 	if opts.ConnectionURI == "" || !hasPrefix {
