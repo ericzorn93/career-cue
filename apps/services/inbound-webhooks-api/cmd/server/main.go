@@ -10,7 +10,9 @@ import (
 	"log/slog"
 	"os"
 
+	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
+	"connectrpc.com/validate"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -37,6 +39,16 @@ func run() error {
 	if err != nil {
 		logger.Error("Trouble constructing config")
 		os.Exit(1)
+	}
+
+	// Interceptors
+	validationInterceptor, err := validate.NewInterceptor()
+	if err != nil {
+		logger.Error("Cannot set up validation interceptor", slog.Any("error", err))
+		return err
+	}
+	options := []connect.HandlerOption{
+		connect.WithInterceptors(validationInterceptor),
 	}
 
 	// Initialize the gRPC Options
@@ -76,11 +88,15 @@ func run() error {
 						return errors.New(errMsg)
 					}
 
+					// Set up auth service routes and handlers
 					authService := application.NewAuthServiceImpl(logger, params.AMQPController.Publisher)
 					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
-					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
-					params.Mux.Handle(path, handler)
 
+					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(
+						authHandler,
+						options...,
+					)
+					params.Mux.Handle(path, handler)
 					reflector := grpcreflect.NewStaticReflector(
 						inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
 					)
