@@ -1,4 +1,4 @@
-module apps/services/"<%= serviceName %>"
+module apps/services/<%= serviceName %>
 
 go 1.23
 
