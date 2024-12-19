@@ -4,7 +4,6 @@ import (
 	connectrpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/connectrpc"
 	"apps/services/inbound-webhooks-api/internal/application"
 	"apps/services/inbound-webhooks-api/internal/config"
-	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
 	"errors"
 	"log"
@@ -15,6 +14,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"libs/backend/eventing"
 	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
 	boot "libs/boot/pkg"
 	"libs/boot/pkg/amqp"
@@ -50,10 +50,13 @@ func run() error {
 				params.Logger.Info("AMQP connected successfully")
 
 				// Set Up Auth Events
-				eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
+				if err := eventing.RegisterAuth(eventing.RegisterAuthParams{
 					Log:        params.Logger,
 					Registerer: params.Controller.Registerer,
-				})
+					QueueName:  config.RegistrationQueueName,
+				}); err != nil {
+					params.Logger.Error("Trouble setting up auth events")
+				}
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")
 
@@ -73,7 +76,6 @@ func run() error {
 						return errors.New(errMsg)
 					}
 
-					logger.Info("AMQP connected")
 					authService := application.NewAuthServiceImpl(logger, params.AMQPController.Publisher)
 					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
 					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)

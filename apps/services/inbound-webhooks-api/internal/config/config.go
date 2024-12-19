@@ -7,8 +7,9 @@ import (
 
 // Config for the application
 type Config struct {
-	AMQPUrl string
-	RPCPort uint64
+	AMQPUrl               string
+	RPCPort               uint64
+	RegistrationQueueName string
 }
 
 // NewConfig constructs the config
@@ -19,8 +20,9 @@ func NewConfig() (Config, error) {
 	}
 
 	config := Config{
-		AMQPUrl: os.Getenv("AMQP_CONNECTION_URI"),
-		RPCPort: uint64(port),
+		AMQPUrl:               os.Getenv("AMQP_CONNECTION_URI"),
+		RPCPort:               uint64(port),
+		RegistrationQueueName: os.Getenv("AUTH_REGISTRATION_QUEUE_NAME"),
 	}
 
 	return config, nil
