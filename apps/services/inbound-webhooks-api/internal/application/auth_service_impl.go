@@ -29,7 +29,7 @@ func NewAuthServiceImpl(logger logger.Logger, contoller amqp.Publisher) AuthServ
 
 // RegisterUser is an application interface method to handle user registration
 // webhooks
-func (s AuthServiceImpl) RegisterUser(user domain.User) {
+func (s AuthServiceImpl) RegisterUser(user domain.User) error {
 	s.Logger.Info("Publishing userRegistered Event")
 
 	metadata := make(map[string]*anypb.Any)
@@ -57,10 +57,13 @@ func (s AuthServiceImpl) RegisterUser(user domain.User) {
 	b, err := proto.Marshal(userRegisteredEvent)
 	if err != nil {
 		s.Logger.Error("Cannot marshal user registered event")
+		return err
 	}
 
 	s.AuthEventPublisher.Publish(eventing.AuthExchange, eventing.EventNameUserRegistered.String(), false, false, amqp091.Publishing{
 		ContentType: "application/x-protobuf",
 		Body:        b,
 	})
+
+	return nil
 }
