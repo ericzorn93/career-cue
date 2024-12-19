@@ -34,7 +34,13 @@ func (o Options) IsZero() bool {
 // EstablishAMQPConnection will create a connection to the AMQP broker
 func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error) {
 	// Validate the conneciton URI to AMQP
-	if opts.ConnectionURI == "" || !strings.HasPrefix(opts.ConnectionURI, "amqp://") {
+	connectionPrefixes := [2]string{"amqp://", "amqps://"}
+	hasPrefix := false
+	for _, prefix := range connectionPrefixes {
+		hasPrefix = strings.HasPrefix(opts.ConnectionURI, prefix)
+	}
+
+	if opts.ConnectionURI == "" || !hasPrefix {
 		log.Error("Cannot connect to AMQP with empty connection string")
 		return Controller{}, errors.New("cannot connect with invalid AMQP String")
 	}

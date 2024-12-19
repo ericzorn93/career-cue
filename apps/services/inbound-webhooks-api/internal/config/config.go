@@ -12,7 +12,6 @@ type Config struct {
 
 // NewConfig constructs the config
 func NewConfig() (Config, error) {
-
 	config := Config{
 		AMQPUrl:               os.Getenv("AMQP_CONNECTION_URI"),
 		RegistrationQueueName: os.Getenv("AUTH_REGISTRATION_QUEUE_NAME"),
