@@ -1,0 +1,41 @@
+{
+  "name": "backend-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/backend-service/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/tools/backend-service",
+        "main": "tools/backend-service/src/index.ts",
+        "tsConfig": "tools/backend-service/tsconfig.lib.json",
+        "assets": [
+          "tools/backend-service/*.md",
+          {
+            "input": "./tools/backend-service/src",
+            "glob": "**/!(*.ts)",
+            "output": "./src"
+          },
+          {
+            "input": "./tools/backend-service/src",
+            "glob": "**/*.d.ts",
+            "output": "./src"
+          },
+          {
+            "input": "./tools/backend-service",
+            "glob": "generators.json",
+            "output": "."
+          },
+          {
+            "input": "./tools/backend-service",
+            "glob": "executors.json",
+            "output": "."
+          }
+        ]
+      }
+    }
+  }
+}
