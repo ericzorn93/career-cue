@@ -41,7 +41,7 @@ func run() error {
 		os.Exit(1)
 	}
 
-	// Interceptors
+	// Connect Interceptors
 	validationInterceptor, err := validate.NewInterceptor()
 	if err != nil {
 		logger.Error("Cannot set up validation interceptor", slog.Any("error", err))
