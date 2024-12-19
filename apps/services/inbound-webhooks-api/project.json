@@ -36,7 +36,12 @@
     "deploy": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "flyctl deploy -c apps/services/inbound-webhooks-api/fly.toml -y"
+        "commands": [
+          "flyctl deploy -c apps/services/inbound-webhooks-api/fly.toml -y",
+          "flyctl scale count 1 ewr -y",
+          "flyctl scale count 1 lax -y",
+          "buf push"
+        ]
       }
     }
   }
