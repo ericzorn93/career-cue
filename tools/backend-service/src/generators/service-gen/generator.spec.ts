@@ -4,7 +4,7 @@ import { Tree, readProjectConfiguration } from '@nx/devkit';
 import { createBackendServiceGenerator } from './generator';
 import { CreateBackendServiceGeneratorSchema } from './schema';
 
-describe('create-backend-service generator', () => {
+describe('service-gen generator', () => {
   let tree: Tree;
   const options: CreateBackendServiceGeneratorSchema = { name: 'test' };
 

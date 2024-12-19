@@ -1,9 +1,9 @@
 {
   "generators": {
-    "create-backend-service": {
+    "service-gen": {
       "factory": "./src/generators/service-gen/generator",
       "schema": "./src/generators/service-gen/schema.json",
-      "description": "create-backend-service generator"
+      "description": "service-gen generator"
     }
   }
 }
