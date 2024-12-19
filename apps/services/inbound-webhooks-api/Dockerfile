@@ -14,5 +14,4 @@ RUN apk update --no-cache bash curl
 WORKDIR /app
 COPY --from=builder /bin/inbound-webhooks-api /bin/inbound-webhooks-api
 EXPOSE 3000
-EXPOSE 5000
 CMD [ "/bin/inbound-webhooks-api" ]
