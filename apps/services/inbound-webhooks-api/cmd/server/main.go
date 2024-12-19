@@ -76,7 +76,7 @@ func run() error {
 			},
 		}).
 		SetConnectRPCOptions(connectrpc.Options{
-			Port: config.RPCPort,
+			Port: 3000,
 			TransportCredentials: []credentials.TransportCredentials{
 				insecure.NewCredentials(),
 			},
