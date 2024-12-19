@@ -32,6 +32,8 @@ func (h *AuthHandler) UserRegistered(
 	ctx context.Context,
 	req *connect.Request[pb.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
-	h.AuthService.RegisterUser(domain.NewUser(domain.WithUserFirstName(req.Msg.FirstName), domain.WithUserLastName(req.Msg.LastName)))
+	if err := h.AuthService.RegisterUser(domain.NewUser(domain.WithUserFirstName(req.Msg.FirstName), domain.WithUserLastName(req.Msg.LastName))); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
 	return connect.NewResponse(&commonv1.Empty{}), nil
 }

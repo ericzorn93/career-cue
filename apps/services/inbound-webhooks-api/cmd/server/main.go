@@ -4,22 +4,24 @@ import (
 	connectrpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/connectrpc"
 	"apps/services/inbound-webhooks-api/internal/application"
 	"apps/services/inbound-webhooks-api/internal/config"
-	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
+	"errors"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
 
+	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
+	"connectrpc.com/validate"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"libs/backend/eventing"
 	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
 	boot "libs/boot/pkg"
 	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/connectrpc"
-	"libs/boot/pkg/logger"
+	bootLogger "libs/boot/pkg/logger"
 )
 
 // serviceName is the name of the microservice
@@ -30,13 +32,23 @@ func run() error {
 	ctx := context.Background()
 
 	// Create logger
-	logger := logger.NewSlogger()
+	logger := bootLogger.NewSlogger()
 
 	// Construct config
 	config, err := config.NewConfig()
 	if err != nil {
 		logger.Error("Trouble constructing config")
 		os.Exit(1)
+	}
+
+	// Connect Interceptors
+	validationInterceptor, err := validate.NewInterceptor()
+	if err != nil {
+		logger.Error("Cannot set up validation interceptor", slog.Any("error", err))
+		return err
+	}
+	options := []connect.HandlerOption{
+		connect.WithInterceptors(validationInterceptor),
 	}
 
 	// Initialize the gRPC Options
@@ -50,10 +62,13 @@ func run() error {
 				params.Logger.Info("AMQP connected successfully")
 
 				// Set Up Auth Events
-				eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
-					Log:     params.Logger,
-					Channel: params.Channel,
-				})
+				if err := eventing.RegisterAuth(eventing.RegisterAuthParams{
+					Log:        params.Logger,
+					Registerer: params.Controller.Registerer,
+					QueueName:  config.RegistrationQueueName,
+				}); err != nil {
+					params.Logger.Error("Trouble setting up auth events")
+				}
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")
 
@@ -61,22 +76,32 @@ func run() error {
 			},
 		}).
 		SetConnectRPCOptions(connectrpc.Options{
-			Port: config.RPCPort,
+			Port: 3000,
 			TransportCredentials: []credentials.TransportCredentials{
 				insecure.NewCredentials(),
 			},
 			Handlers: []connectrpc.Handler{
-				func(ctx context.Context, mux *http.ServeMux, amqpController amqp.Controller) error {
-					authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)
-					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
-					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
-					mux.Handle(path, handler)
+				func(params connectrpc.HandlerParams) error {
+					if !params.AMQPController.IsConnected() {
+						errMsg := "AMQP not conntected"
+						logger.Error(errMsg)
+						return errors.New(errMsg)
+					}
 
+					// Set up auth service routes and handlers
+					authService := application.NewAuthServiceImpl(logger, params.AMQPController.Publisher)
+					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
+
+					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(
+						authHandler,
+						options...,
+					)
+					params.Mux.Handle(path, handler)
 					reflector := grpcreflect.NewStaticReflector(
 						inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
 					)
-					mux.Handle(grpcreflect.NewHandlerV1(reflector))
-					mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
+					params.Mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 					return nil
 				},
 			},

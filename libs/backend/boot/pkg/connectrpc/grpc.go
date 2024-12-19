@@ -13,8 +13,16 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+// HandlerParams will be passed to the handler registered
+type HandlerParams struct {
+	Context        context.Context
+	Logger         logger.Logger
+	Mux            *http.ServeMux
+	AMQPController amqp.Controller
+}
+
 // Handler is a type of callback used specifically for starting the gRPC handlers
-type Handler func(context.Context, *http.ServeMux, amqp.Controller) error
+type Handler func(HandlerParams) error
 
 // Options initializes how gRPC service gets started
 type Options struct {
@@ -37,7 +45,12 @@ func StartConnectRPCService(ctx context.Context, serviceName string, logger logg
 
 	// Register protobuf
 	for _, grpcHandler := range opts.Handlers {
-		if err := grpcHandler(ctx, mux, amqpController); err != nil {
+		if err := grpcHandler(HandlerParams{
+			Context:        ctx,
+			Logger:         logger,
+			Mux:            mux,
+			AMQPController: amqpController,
+		}); err != nil {
 			logger.Error("Error occurred", "error", err)
 			return err
 		}
