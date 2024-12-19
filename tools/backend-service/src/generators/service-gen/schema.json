@@ -4,15 +4,15 @@
   "title": "",
   "type": "object",
   "properties": {
-    "name": {
+    "serviceName": {
       "type": "string",
       "description": "",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What service name would you like to use?"
     }
   },
-  "required": ["name"]
+  "required": ["serviceName"]
 }
