@@ -57,7 +57,6 @@ func (bsb *BootServiceBuilder) SetBootCallbacks(bootCallbacks []BootCallback) *B
 
 // Build will eventually build the entire boot service struct in a complete format
 func (bsb *BootServiceBuilder) Build() BootService {
-	bsb.bootService.startAMQPBrokerConnection(bsb.bootService.amqpOptions)
 	return *bsb.bootService
 }
 
@@ -74,15 +73,6 @@ type BootService struct {
 	bootCallbacks     []BootCallback
 }
 
-// BootServiceParams are the incoming options
-// for the boot service construction
-type BootServiceParams struct {
-	Name          string
-	Logger        logger.Logger
-	AMQPOptions   amqp.Options
-	BootCallbacks []BootCallback
-}
-
 // BootCallback are methods for when the service is booted
 type BootCallbackParams struct {
 	Logger logger.Logger
@@ -92,6 +82,12 @@ type BootCallback func(BootCallbackParams) error
 // startAMQPBrokerConnection will assign the AMQP broker options to the Boot Service
 // and happens on boot service construction/initialization
 func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) error {
+	// Check if options are empty
+	if opts.IsZero() {
+		s.logger.Warn("AMQP will not be used with empty config")
+		return nil
+	}
+
 	// Establish connection to AMQP broker
 	amqpController, err := amqp.EstablishAMQPConnection(s.logger, opts)
 	if err != nil {
@@ -105,7 +101,7 @@ func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) error {
 
 // Start spins up the service
 func (s BootService) Start(ctx context.Context) error {
-	s.logger.Info("Service started", "serviceName", s.name)
+	s.logger.Info("Service started", slog.String("serviceName", s.name))
 
 	// Handle Shutdown of the service
 	go func() {
@@ -113,7 +109,7 @@ func (s BootService) Start(ctx context.Context) error {
 		signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
 		<-exitCh
 
-		s.logger.Info("Closing the LavinMQ connection")
+		s.logger.Info("Shutting down the service")
 		if err := s.Stop(context.TODO()); err != nil {
 			s.logger.Error("Trouble closing the boot service")
 		}

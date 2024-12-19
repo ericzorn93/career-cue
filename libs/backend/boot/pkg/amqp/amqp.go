@@ -17,8 +17,7 @@ import (
 // CallBackParams returns the logger and callback and channel to the caller
 type CallBackParams struct {
 	Logger     logger.Logger
-	Connection *amqp.Connection
-	Channel    *amqp.Channel
+	Controller Controller
 }
 
 // Options configuration to start
@@ -26,6 +25,10 @@ type CallBackParams struct {
 type Options struct {
 	ConnectionURI        string
 	OnConnectionCallback func(CallBackParams) error
+}
+
+func (o Options) IsZero() bool {
+	return o.ConnectionURI == "" && o.OnConnectionCallback == nil
 }
 
 // EstablishAMQPConnection will create a connection to the AMQP broker
@@ -36,6 +39,7 @@ func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error
 		return Controller{}, errors.New("cannot connect with invalid AMQP String")
 	}
 
+	// Connect to AMQP broker and poll every 10 seconds god health
 	conn, err := amqp.DialConfig(opts.ConnectionURI, amqp.Config{
 		Heartbeat: time.Second * 10,
 	})
@@ -63,17 +67,19 @@ func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error
 		return Controller{}, err
 	}
 
+	// AMQP controller wrapper
+	controller := NewController(ch)
+
 	// Start/Stop the connection on close
 	if err := opts.OnConnectionCallback(CallBackParams{
 		Logger:     log,
-		Connection: conn,
-		Channel:    ch,
+		Controller: controller,
 	}); err != nil {
 		log.Error("AMQP connection callback failed", slog.Any("error", err))
-		return Controller{}, err
+		return controller, err
 	}
 
-	return NewController(ch), err
+	return controller, nil
 }
 
 // Publisher defines the AMQP publish methods
@@ -96,8 +102,9 @@ type Registerer interface {
 	QueueBind(name, key, exchange string, noWait bool, args amqp.Table) error
 }
 
-// COntroller returns an interface for publishing, consuming and registering
+// Controller returns an interface for publishing, consuming and registering
 type Controller struct {
+	channel    *amqp.Channel
 	Publisher  Publisher
 	Consumer   Consumer
 	Registerer Registerer
@@ -110,4 +117,9 @@ func NewController(channel *amqp.Channel) Controller {
 		Consumer:   channel,
 		Registerer: channel,
 	}
+}
+
+// IsConnected will let the caller know if the controller has established an AMQP broker connection
+func (c Controller) IsConnected() bool {
+	return c.channel == nil || c.channel.IsClosed()
 }

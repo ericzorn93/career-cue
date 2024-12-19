@@ -6,9 +6,9 @@ import (
 	"apps/services/inbound-webhooks-api/internal/config"
 	"apps/services/inbound-webhooks-api/internal/eventing"
 	"context"
+	"errors"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
 
 	"connectrpc.com/grpcreflect"
@@ -19,7 +19,7 @@ import (
 	boot "libs/boot/pkg"
 	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/connectrpc"
-	"libs/boot/pkg/logger"
+	bootLogger "libs/boot/pkg/logger"
 )
 
 // serviceName is the name of the microservice
@@ -30,7 +30,7 @@ func run() error {
 	ctx := context.Background()
 
 	// Create logger
-	logger := logger.NewSlogger()
+	logger := bootLogger.NewSlogger()
 
 	// Construct config
 	config, err := config.NewConfig()
@@ -51,8 +51,8 @@ func run() error {
 
 				// Set Up Auth Events
 				eventing.RegisterAuthEvents(eventing.NewAuthQueueParams{
-					Log:     params.Logger,
-					Channel: params.Channel,
+					Log:        params.Logger,
+					Registerer: params.Controller.Registerer,
 				})
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")
@@ -66,17 +66,24 @@ func run() error {
 				insecure.NewCredentials(),
 			},
 			Handlers: []connectrpc.Handler{
-				func(ctx context.Context, mux *http.ServeMux, amqpController amqp.Controller) error {
-					authService := application.NewAuthServiceImpl(logger, amqpController.Publisher)
+				func(params connectrpc.HandlerParams) error {
+					if !params.AMQPController.IsConnected() {
+						errMsg := "AMQP not conntected"
+						logger.Error(errMsg)
+						return errors.New(errMsg)
+					}
+
+					logger.Info("AMQP connected")
+					authService := application.NewAuthServiceImpl(logger, params.AMQPController.Publisher)
 					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
 					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(authHandler)
-					mux.Handle(path, handler)
+					params.Mux.Handle(path, handler)
 
 					reflector := grpcreflect.NewStaticReflector(
 						inboundwebhooksapiv1connect.InboundWebhooksAuthServiceName,
 					)
-					mux.Handle(grpcreflect.NewHandlerV1(reflector))
-					mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
+					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
+					params.Mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 					return nil
 				},
 			},
