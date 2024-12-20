@@ -32,7 +32,20 @@ func (h *AuthHandler) UserRegistered(
 	ctx context.Context,
 	req *connect.Request[pb.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
-	if err := h.AuthService.RegisterUser(domain.NewUser(domain.WithUserFirstName(req.Msg.FirstName), domain.WithUserLastName(req.Msg.LastName))); err != nil {
+	if err := h.AuthService.RegisterUser(
+		domain.NewUser(
+			domain.WithUserFirstName(req.Msg.FirstName),
+			domain.WithUserLastName(req.Msg.LastName),
+			domain.WithUserNickname(req.Msg.Nickname),
+			domain.WithUserUsername(req.Msg.Username),
+			domain.WithEmailAddress(req.Msg.EmailAddress),
+			domain.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
+			domain.WithPhoneNumber(req.Msg.PhoneNumber),
+			domain.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
+			domain.WithStrategy(req.Msg.Strategy),
+			domain.WithMetadata(make(map[string]any, 0)),
+		),
+	); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(&commonv1.Empty{}), nil

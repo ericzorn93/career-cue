@@ -34,19 +34,20 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AccountsAPIGetPersonProcedure is the fully-qualified name of the AccountsAPI's GetPerson RPC.
-	AccountsAPIGetPersonProcedure = "/accounts.accountsapi.v1.AccountsAPI/GetPerson"
+	// AccountsAPICreateAccountProcedure is the fully-qualified name of the AccountsAPI's CreateAccount
+	// RPC.
+	AccountsAPICreateAccountProcedure = "/accounts.accountsapi.v1.AccountsAPI/CreateAccount"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	accountsAPIServiceDescriptor         = v1.File_accounts_accountsapi_v1_api_proto.Services().ByName("AccountsAPI")
-	accountsAPIGetPersonMethodDescriptor = accountsAPIServiceDescriptor.Methods().ByName("GetPerson")
+	accountsAPIServiceDescriptor             = v1.File_accounts_accountsapi_v1_api_proto.Services().ByName("AccountsAPI")
+	accountsAPICreateAccountMethodDescriptor = accountsAPIServiceDescriptor.Methods().ByName("CreateAccount")
 )
 
 // AccountsAPIClient is a client for the accounts.accountsapi.v1.AccountsAPI service.
 type AccountsAPIClient interface {
-	GetPerson(context.Context, *connect.Request[v11.Empty]) (*connect.Response[v1.Person], error)
+	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error)
 }
 
 // NewAccountsAPIClient constructs a client for the accounts.accountsapi.v1.AccountsAPI service. By
@@ -59,10 +60,10 @@ type AccountsAPIClient interface {
 func NewAccountsAPIClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AccountsAPIClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &accountsAPIClient{
-		getPerson: connect.NewClient[v11.Empty, v1.Person](
+		createAccount: connect.NewClient[v1.CreateAccountRequest, v11.Empty](
 			httpClient,
-			baseURL+AccountsAPIGetPersonProcedure,
-			connect.WithSchema(accountsAPIGetPersonMethodDescriptor),
+			baseURL+AccountsAPICreateAccountProcedure,
+			connect.WithSchema(accountsAPICreateAccountMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -70,17 +71,17 @@ func NewAccountsAPIClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // accountsAPIClient implements AccountsAPIClient.
 type accountsAPIClient struct {
-	getPerson *connect.Client[v11.Empty, v1.Person]
+	createAccount *connect.Client[v1.CreateAccountRequest, v11.Empty]
 }
 
-// GetPerson calls accounts.accountsapi.v1.AccountsAPI.GetPerson.
-func (c *accountsAPIClient) GetPerson(ctx context.Context, req *connect.Request[v11.Empty]) (*connect.Response[v1.Person], error) {
-	return c.getPerson.CallUnary(ctx, req)
+// CreateAccount calls accounts.accountsapi.v1.AccountsAPI.CreateAccount.
+func (c *accountsAPIClient) CreateAccount(ctx context.Context, req *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error) {
+	return c.createAccount.CallUnary(ctx, req)
 }
 
 // AccountsAPIHandler is an implementation of the accounts.accountsapi.v1.AccountsAPI service.
 type AccountsAPIHandler interface {
-	GetPerson(context.Context, *connect.Request[v11.Empty]) (*connect.Response[v1.Person], error)
+	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error)
 }
 
 // NewAccountsAPIHandler builds an HTTP handler from the service implementation. It returns the path
@@ -89,16 +90,16 @@ type AccountsAPIHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewAccountsAPIHandler(svc AccountsAPIHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	accountsAPIGetPersonHandler := connect.NewUnaryHandler(
-		AccountsAPIGetPersonProcedure,
-		svc.GetPerson,
-		connect.WithSchema(accountsAPIGetPersonMethodDescriptor),
+	accountsAPICreateAccountHandler := connect.NewUnaryHandler(
+		AccountsAPICreateAccountProcedure,
+		svc.CreateAccount,
+		connect.WithSchema(accountsAPICreateAccountMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/accounts.accountsapi.v1.AccountsAPI/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AccountsAPIGetPersonProcedure:
-			accountsAPIGetPersonHandler.ServeHTTP(w, r)
+		case AccountsAPICreateAccountProcedure:
+			accountsAPICreateAccountHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -108,6 +109,6 @@ func NewAccountsAPIHandler(svc AccountsAPIHandler, opts ...connect.HandlerOption
 // UnimplementedAccountsAPIHandler returns CodeUnimplemented from all methods.
 type UnimplementedAccountsAPIHandler struct{}
 
-func (UnimplementedAccountsAPIHandler) GetPerson(context.Context, *connect.Request[v11.Empty]) (*connect.Response[v1.Person], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.AccountsAPI.GetPerson is not implemented"))
+func (UnimplementedAccountsAPIHandler) CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.AccountsAPI.CreateAccount is not implemented"))
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -20,11 +21,19 @@ type CallBackParams struct {
 	Controller Controller
 }
 
+type HandlerParams struct {
+	Logger         logger.Logger
+	AMQPController Controller
+}
+
+type Handler func(HandlerParams) error
+
 // Options configuration to start
 // the LavinMQ connections to queues and exchanges
 type Options struct {
 	ConnectionURI        string
 	OnConnectionCallback func(CallBackParams) error
+	Handlers             []Handler
 }
 
 func (o Options) IsZero() bool {
@@ -80,12 +89,37 @@ func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error
 	controller := NewController(ch)
 
 	// Start/Stop the connection on close
-	if err := opts.OnConnectionCallback(CallBackParams{
+	callbackParams := CallBackParams{
 		Logger:     log,
 		Controller: controller,
-	}); err != nil {
+	}
+	if err := opts.OnConnectionCallback(callbackParams); err != nil {
 		log.Error("AMQP connection callback failed", slog.Any("error", err))
 		return controller, err
+	}
+
+	// Register All Handlers
+	var wg sync.WaitGroup
+	if len(opts.Handlers) == 0 {
+		log.Warn("No AMQP handlers present")
+	} else {
+		handlerParams := HandlerParams{
+			Logger:         log,
+			AMQPController: controller,
+		}
+		wg.Add(len(opts.Handlers))
+		for _, handler := range opts.Handlers {
+			go func() {
+				defer wg.Done()
+				forever := make(chan bool)
+				if err := handler(handlerParams); err != nil {
+					log.Error("Cannot register AMQP handler", slog.Any("error", err))
+					close(forever)
+				}
+				<-forever
+			}()
+		}
+		wg.Wait()
 	}
 
 	return controller, nil
@@ -131,4 +165,9 @@ func NewController(channel *amqp.Channel) Controller {
 // IsConnected will let the caller know if the controller has established an AMQP broker connection
 func (c Controller) IsConnected() bool {
 	return c.channel == nil || c.channel.IsClosed()
+}
+
+// Close will close the AMQP connection
+func (c Controller) Close() error {
+	return c.channel.Close()
 }

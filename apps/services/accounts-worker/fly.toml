@@ -1,9 +1,6 @@
-# fly.toml app configuration file generated for accounts-worker-prod on 2024-12-04T12:00:15-05:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'accounts-worker-prod'
+
+[[services]]
 primary_region = 'ewr'
 
 [build]

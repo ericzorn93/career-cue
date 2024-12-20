@@ -42,7 +42,7 @@ func run() error {
 		logger.Error("Cannot set up validation interceptor", slog.Any("error", err))
 		return err
 	}
-	options := []connect.HandlerOption{
+	_ = []connect.HandlerOption{
 		connect.WithInterceptors(validationInterceptor),
 	}
 
