@@ -60,7 +60,7 @@ func (s AuthServiceImpl) RegisterUser(user domain.User) error {
 		return err
 	}
 
-	s.AuthEventPublisher.Publish(eventing.AuthExchange, eventing.EventNameUserRegistered.String(), false, false, amqp091.Publishing{
+	s.AuthEventPublisher.Publish(eventing.AuthExchange, eventing.GetUserRegisteredRoutingKey(), false, false, amqp091.Publishing{
 		ContentType: "application/x-protobuf",
 		Body:        b,
 	})

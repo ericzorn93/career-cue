@@ -19,14 +19,20 @@ var (
 
 // Routing Keys
 var (
-	authRoutingKey = GetRoutingKeyPrefix(AuthDomain) + ".*"
+	defaultAuthRoutingKey = GetRoutingKeyPrefix(AuthDomain) + ".*"
 )
+
+// GetUserRegisteredRoutingKey returns the routing key for user registered event
+func GetUserRegisteredRoutingKey() string {
+	return EventNameUserRegistered.String()
+}
 
 // RegisterAuthParams are params for the auth queue constructor
 type RegisterAuthParams struct {
 	Registerer amqp.Registerer
 	Log        logger.Logger
 	QueueName  string
+	RoutingKey string
 }
 
 // RegisterAuth constructs Auth Queue from AMQP Channel
@@ -59,7 +65,14 @@ func RegisterAuth(params RegisterAuthParams) error {
 	params.Log.Info("Created auth queue", slog.String("queueName", authQueue.Name))
 
 	// Bind Queue to Exchange
-	if err = params.Registerer.QueueBind(authQueue.Name, authRoutingKey, AuthExchange, false, nil); err != nil {
+	var chosenRoutingKey string
+	if params.RoutingKey == "" {
+		chosenRoutingKey = defaultAuthRoutingKey
+	} else {
+		chosenRoutingKey = params.RoutingKey
+	}
+
+	if err = params.Registerer.QueueBind(authQueue.Name, chosenRoutingKey, AuthExchange, false, nil); err != nil {
 		params.Log.Error(
 			"Cannot bind queue to exchange",
 			slog.String("queueName", authQueue.Name),

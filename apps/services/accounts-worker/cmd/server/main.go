@@ -21,9 +21,6 @@ import (
 	bootLogger "libs/boot/pkg/logger"
 )
 
-// serviceName is the name of the microservice
-const serviceName = "accounts-worker"
-
 func run() error {
 	// Application Context
 	ctx := context.Background()
@@ -51,7 +48,7 @@ func run() error {
 	// Initialize the gRPC Options
 	bootService := boot.
 		NewBuildServiceBuilder().
-		SetServiceName(serviceName).
+		SetServiceName(config.ServiceName).
 		SetLogger(logger).
 		SetAMQPOptions(amqp.Options{
 			ConnectionURI: config.AMQPUrl,
@@ -62,7 +59,8 @@ func run() error {
 				eventing.RegisterAuth(eventing.RegisterAuthParams{
 					Registerer: params.Controller.Registerer,
 					Log:        params.Logger,
-					QueueName:  config.RegistrationQueueName,
+					RoutingKey: eventing.GetUserRegisteredRoutingKey(),
+					QueueName:  config.UserRegistrationQueueName,
 				})
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")
@@ -72,13 +70,13 @@ func run() error {
 			Handlers: []amqp.Handler{
 				func(hp amqp.HandlerParams) error {
 					msgs, err := hp.AMQPController.Consumer.Consume(
-						config.RegistrationQueueName, // queue
-						"",                           // consumer
-						true,                         // auto-ack
-						false,                        // exclusive
-						false,                        // no-local
-						false,                        // no-wait
-						nil,                          // args
+						config.UserRegistrationQueueName, // queue
+						"",                               // consumer
+						true,                             // auto-ack
+						false,                            // exclusive
+						false,                            // no-local
+						false,                            // no-wait
+						nil,                              // args
 					)
 					if err != nil {
 						hp.Logger.Error("Cannot consume messages", slog.Any("error", err))
@@ -104,7 +102,7 @@ func run() error {
 		}).
 		SetBootCallbacks([]boot.BootCallback{
 			func(params boot.BootCallbackParams) error {
-				params.Logger.Info("Service booted successfully", slog.String("serviceName", serviceName))
+				params.Logger.Info("Service booted successfully", slog.String("serviceName", config.ServiceName))
 				return nil
 			},
 		}).
@@ -115,7 +113,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		log.Printf("Cannot start service %s", serviceName)
+		log.Printf("Cannot start service")
 		os.Exit(1)
 	}
 }
