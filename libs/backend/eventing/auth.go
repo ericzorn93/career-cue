@@ -9,17 +9,17 @@ import (
 // Event Producer/Consumer
 const (
 	AuthExchange = "authExchange"
-	authDomain   = "auth"
+	AuthDomain   = "auth"
 )
 
 // Event Names
 var (
-	EventNameUserRegistered EventName = EventName(GetEventName(authDomain, "userRegistered"))
+	EventNameUserRegistered EventName = EventName(GetEventName(AuthDomain, "userRegistered"))
 )
 
 // Routing Keys
 var (
-	authRoutingKey = GetRoutingKeyPrefix(authDomain) + ".*"
+	authRoutingKey = GetRoutingKeyPrefix(AuthDomain) + ".*"
 )
 
 // RegisterAuthParams are params for the auth queue constructor
