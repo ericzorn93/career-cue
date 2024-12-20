@@ -6,7 +6,7 @@ import {
 } from '@nx/devkit';
 import * as path from 'path';
 import { CreateBackendServiceGeneratorSchema } from './schema';
-import { spawn } from 'child_process';
+import { execSync } from 'child_process';
 
 export async function createBackendServiceGenerator(
   tree: Tree,
@@ -21,7 +21,7 @@ export async function createBackendServiceGenerator(
   });
   generateFiles(tree, path.join(__dirname, 'files'), projectRoot, options);
   await formatFiles(tree);
-  await spawn('pnpm go:tidy');
+  await execSync('pnpm go:tidy');
 }
 
 export default createBackendServiceGenerator;

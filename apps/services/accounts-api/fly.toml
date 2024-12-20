@@ -1,42 +1,20 @@
-# app = 'accounts-api-prod'
-# primary_region = 'ewr'
+app = 'accounts-api'
 
-# [build]
-# dockerfile = 'Dockerfile'
-
-# [http_service]
-# internal_port = 3000
-# force_https = true
-# auto_stop_machines = 'stop'
-# auto_start_machines = true
-# min_machines_running = 0
-# processes = ['app']
-
-# [[vm]]
-# memory = '1gb'
-# cpu_kind = 'shared'
-# cpus = 1
-
-# Used for gRPC
-app = "accounts-api-prod"
-primary_region = "ewr"
+[[services]]
+primary_region = 'ewr'
 
 [build]
 dockerfile = "Dockerfile"
 
-[[services]]
-protocol = "tcp"
+[http_service]
 internal_port = 3000
-
-[services.ports]
-handlers = []
-port = 3000
-
-[services.tcp_checks]
-interval = "10s"
-timeout = "2s"
+force_https = true
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 0
+processes = ['app']
 
 [[vm]]
-memory = "1gb"
-cpu_kind = "shared"
+memory = '1gb'
+cpu_kind = 'shared'
 cpus = 1
