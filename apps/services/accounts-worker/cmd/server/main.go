@@ -3,7 +3,6 @@ package main
 import (
 	"apps/services/accounts-worker/internal/config"
 	"context"
-	"errors"
 	"log"
 	"log/slog"
 	"os"
@@ -68,17 +67,7 @@ func run() error {
 			TransportCredentials: []credentials.TransportCredentials{
 				insecure.NewCredentials(),
 			},
-			Handlers: []connectrpc.Handler{
-				func(params connectrpc.HandlerParams) error {
-					if !params.AMQPController.IsConnected() {
-						errMsg := "AMQP not conntected"
-						logger.Error(errMsg)
-						return errors.New(errMsg)
-					}
-
-					return nil
-				},
-			},
+			Handlers: []connectrpc.Handler{},
 		}).
 		SetBootCallbacks([]boot.BootCallback{
 			func(params boot.BootCallbackParams) error {

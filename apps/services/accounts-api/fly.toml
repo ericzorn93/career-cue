@@ -1,4 +1,4 @@
-app = 'accounts-api'
+app = 'accounts-api-prod'
 
 [[services]]
 primary_region = 'ewr'

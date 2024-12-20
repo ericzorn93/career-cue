@@ -1,4 +1,4 @@
-app = '<%= serviceName %>'
+app = '<%= serviceName %>-prod'
 
 [[services]]
 primary_region = 'ewr'

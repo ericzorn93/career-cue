@@ -20,11 +20,19 @@ type CallBackParams struct {
 	Controller Controller
 }
 
+type HandlerParams struct {
+	Logger         logger.Logger
+	AMQPController Controller
+}
+
+type Handler func(HandlerParams) error
+
 // Options configuration to start
 // the LavinMQ connections to queues and exchanges
 type Options struct {
 	ConnectionURI        string
 	OnConnectionCallback func(CallBackParams) error
+	Handlers             []Handler
 }
 
 func (o Options) IsZero() bool {
@@ -79,11 +87,28 @@ func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error
 	// AMQP controller wrapper
 	controller := NewController(ch)
 
+	// Register All Handlers
+	if len(opts.Handlers) == 0 {
+		log.Warn("No AMQP handlers present")
+	} else {
+		handlerParams := HandlerParams{
+			Logger:         log,
+			AMQPController: controller,
+		}
+		for _, handler := range opts.Handlers {
+			if err := handler(handlerParams); err != nil {
+				log.Error("Cannot register AMQP handler", slog.Any("error", err))
+				continue
+			}
+		}
+	}
+
 	// Start/Stop the connection on close
-	if err := opts.OnConnectionCallback(CallBackParams{
+	callbackParams := CallBackParams{
 		Logger:     log,
 		Controller: controller,
-	}); err != nil {
+	}
+	if err := opts.OnConnectionCallback(callbackParams); err != nil {
 		log.Error("AMQP connection callback failed", slog.Any("error", err))
 		return controller, err
 	}
