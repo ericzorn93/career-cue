@@ -35,8 +35,8 @@ type RegisterAuthParams struct {
 	RoutingKey string
 }
 
-// RegisterAuth constructs Auth Queue from AMQP Channel
-func RegisterAuth(params RegisterAuthParams) error {
+// CreateUserRegisterationAuthEventInfrastructure constructs Auth Queue from AMQP Channel
+func CreateUserRegisterationAuthEventInfrastructure(params RegisterAuthParams) error {
 	// Initialize Auth Exchange - topic
 	err := params.Registerer.ExchangeDeclare(AuthExchange, "topic", true, false, false, false, nil)
 	if err != nil {

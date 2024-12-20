@@ -56,7 +56,7 @@ func run() error {
 				params.Logger.Info("AMQP connected successfully")
 
 				// Set up all AMQP queues and exchanges
-				eventing.RegisterAuth(eventing.RegisterAuthParams{
+				eventing.CreateUserRegisterationAuthEventInfrastructure(eventing.RegisterAuthParams{
 					Registerer: params.Controller.Registerer,
 					Log:        params.Logger,
 					RoutingKey: eventing.GetUserRegisteredRoutingKey(),
