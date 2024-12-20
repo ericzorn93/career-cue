@@ -65,7 +65,6 @@ func run() error {
 				if err := eventing.RegisterAuth(eventing.RegisterAuthParams{
 					Log:        params.Logger,
 					Registerer: params.Controller.Registerer,
-					QueueName:  config.RegistrationQueueName,
 				}); err != nil {
 					params.Logger.Error("Trouble setting up auth events")
 				}

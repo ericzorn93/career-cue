@@ -39,6 +39,11 @@ func RegisterAuth(params RegisterAuthParams) error {
 	}
 
 	// Create a queue for the service
+	if params.QueueName == "" {
+		params.Log.Warn("Auth queue name is empty")
+		return nil
+	}
+
 	authQueue, err := params.Registerer.QueueDeclare(
 		params.QueueName,
 		true,

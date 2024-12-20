@@ -9,9 +9,12 @@ import (
 
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"libs/backend/eventing"
+	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 	boot "libs/boot/pkg"
 	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/connectrpc"
@@ -56,10 +59,40 @@ func run() error {
 				params.Logger.Info("AMQP connected successfully")
 
 				// Set up all AMQP queues and exchanges
+				eventing.RegisterAuth(eventing.RegisterAuthParams{
+					Registerer: params.Controller.Registerer,
+					Log:        params.Logger,
+					QueueName:  config.RegistrationQueueName,
+				})
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")
 
 				return nil
+			},
+			Handlers: []amqp.Handler{
+				func(hp amqp.HandlerParams) error {
+					msgs, err := hp.AMQPController.Consumer.Consume(
+						config.RegistrationQueueName, // queue
+						"",                           // consumer
+						true,                         // auto-ack
+						false,                        // exclusive
+						false,                        // no-local
+						false,                        // no-wait
+						nil,                          // args
+					)
+					if err != nil {
+						hp.Logger.Error("Cannot consume messages", slog.Any("error", err))
+						return err
+					}
+
+					for msg := range msgs {
+						var userRegisteredEvent accountseventsv1.UserRegistered
+						proto.Unmarshal(msg.Body, &userRegisteredEvent)
+						hp.Logger.Info("Received message", slog.Any("msg", userRegisteredEvent))
+					}
+
+					return nil
+				},
 			},
 		}).
 		SetConnectRPCOptions(connectrpc.Options{
