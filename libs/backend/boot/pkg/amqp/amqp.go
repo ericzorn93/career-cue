@@ -5,11 +5,8 @@ import (
 	"errors"
 	"libs/boot/pkg/logger"
 	"log/slog"
-	"os"
-	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -66,17 +63,17 @@ func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error
 		return Controller{}, errors.New("AMQP connection failed")
 	}
 
-	// Handler server close
-	go func() {
-		exitCh := make(chan os.Signal, 1)
-		signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
-		<-exitCh
+	// // Handler server close
+	// go func() {
+	// 	exitCh := make(chan os.Signal, 1)
+	// 	signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
+	// 	<-exitCh
 
-		log.Info("Closing the AMQP connection")
-		if err := conn.Close(); err != nil {
-			log.Error("Trouble closing the AMQP Connection")
-		}
-	}()
+	// 	log.Info("Closing the AMQP connection")
+	// 	if err := conn.Close(); err != nil {
+	// 		log.Error("Trouble closing the AMQP Connection")
+	// 	}
+	// }()
 
 	// Create Channel
 	ch, err := conn.Channel()
@@ -109,13 +106,14 @@ func EstablishAMQPConnection(log logger.Logger, opts Options) (Controller, error
 		}
 		wg.Add(len(opts.Handlers))
 		for _, handler := range opts.Handlers {
+			handler := handler
 			go func() {
-				defer wg.Done()
-				forever := make(chan bool)
+				forever := make(chan struct{})
 				if err := handler(handlerParams); err != nil {
 					log.Error("Cannot register AMQP handler", slog.Any("error", err))
 					close(forever)
 				}
+				wg.Done()
 				<-forever
 			}()
 		}
