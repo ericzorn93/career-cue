@@ -49,7 +49,12 @@ export async function createBackendServiceGenerator(
       deploy: {
         executor: 'nx:run-commands',
         options: {
-          command: `flyctl deploy -c apps/services/${options.serviceName}/fly.toml -y`,
+          commands: [
+            `flyctl deploy -c apps/services/${options.serviceName}/fly.toml -y`,
+            `flyctl scale count 1 -r ewr -c apps/services/${options.serviceName}/fly.toml -y`,
+            `flyctl scale count 1 -r lax -c apps/services/${options.serviceName}/fly.toml -y`,
+            `flyctl scale count 1 -r ord -c apps/services/${options.serviceName}/fly.toml -y`,
+          ],
         },
       },
     },
