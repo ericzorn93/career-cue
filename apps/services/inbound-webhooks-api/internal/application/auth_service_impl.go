@@ -19,10 +19,10 @@ type AuthServiceImpl struct {
 }
 
 // NewAuthServiceImpl will construct the auth service
-func NewAuthServiceImpl(logger boot.Logger, contoller boot.AMQPPublisher) AuthServiceImpl {
+func NewAuthServiceImpl(logger boot.Logger, amqpPublisher boot.AMQPPublisher) AuthServiceImpl {
 	return AuthServiceImpl{
 		Logger:             logger,
-		AuthEventPublisher: contoller,
+		AuthEventPublisher: amqpPublisher,
 	}
 }
 

@@ -15,14 +15,14 @@ import (
 // AuthHandler handles all gRPC endpoints for inbound webhooks
 type AuthHandler struct {
 	Logger      boot.Logger
-	AuthService application.AuthService
+	Application application.Application
 }
 
 // NewAuthHandler will return a pointer to the inbound webhooks API server
-func NewAuthHandler(logger boot.Logger, authService application.AuthService) *AuthHandler {
+func NewAuthHandler(logger boot.Logger, application application.Application) *AuthHandler {
 	return &AuthHandler{
 		Logger:      logger,
-		AuthService: authService,
+		Application: application,
 	}
 }
 
@@ -32,7 +32,7 @@ func (h *AuthHandler) UserRegistered(
 	ctx context.Context,
 	req *connect.Request[pb.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
-	if err := h.AuthService.RegisterUser(
+	if err := h.Application.AuthService.RegisterUser(
 		domain.NewUser(
 			domain.WithUserFirstName(req.Msg.FirstName),
 			domain.WithUserLastName(req.Msg.LastName),

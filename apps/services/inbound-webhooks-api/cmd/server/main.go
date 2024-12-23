@@ -84,10 +84,12 @@ func run() error {
 						return errors.New(errMsg)
 					}
 
-					// Set up auth service routes and handlers
+					// Construct application
 					authService := application.NewAuthServiceImpl(logger, params.AMQPController.Publisher)
-					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
+					application := application.NewApplication(authService)
+					authHandler := connectrpcAdapters.NewAuthHandler(logger, application)
 
+					// Set up auth service routes and handlers
 					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(
 						authHandler,
 						options...,
