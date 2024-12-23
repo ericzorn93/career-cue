@@ -7,19 +7,19 @@ import (
 
 	commonv1 "libs/backend/proto-gen/go/common/v1"
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
-	"libs/boot/pkg/logger"
+	boot "libs/boot"
 
 	"connectrpc.com/connect"
 )
 
 // AuthHandler handles all gRPC endpoints for inbound webhooks
 type AuthHandler struct {
-	Logger      logger.Logger
+	Logger      boot.Logger
 	AuthService application.AuthService
 }
 
 // NewAuthHandler will return a pointer to the inbound webhooks API server
-func NewAuthHandler(logger logger.Logger, authService application.AuthService) *AuthHandler {
+func NewAuthHandler(logger boot.Logger, authService application.AuthService) *AuthHandler {
 	return &AuthHandler{
 		Logger:      logger,
 		AuthService: authService,

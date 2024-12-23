@@ -1,10 +1,8 @@
-package connectrpc
+package boot
 
 import (
 	"context"
 	"fmt"
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/logger"
 	"log/slog"
 	"net/http"
 
@@ -13,27 +11,27 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// HandlerParams will be passed to the handler registered
-type HandlerParams struct {
+// ConnectRPCHandlerParams will be passed to the handler registered
+type ConnectRPCHandlerParams struct {
 	Context        context.Context
-	Logger         logger.Logger
+	Logger         Logger
 	Mux            *http.ServeMux
-	AMQPController amqp.Controller
+	AMQPController AMQPController
 }
 
-// Handler is a type of callback used specifically for starting the gRPC handlers
-type Handler func(HandlerParams) error
+// ConnectRPCHandler is a type of callback used specifically for starting the gRPC handlers
+type ConnectRPCHandler func(ConnectRPCHandlerParams) error
 
-// Options initializes how gRPC service gets started
-type Options struct {
+// ConnectRPCOptions initializes how gRPC service gets started
+type ConnectRPCOptions struct {
 	Port                 uint64
 	TransportCredentials []credentials.TransportCredentials
-	Handlers             []Handler
+	Handlers             []ConnectRPCHandler
 	GatewayEnabled       bool
 }
 
 // startConnectRPCService will establish a TCP bound port and start the gRPC service
-func StartConnectRPCService(ctx context.Context, serviceName string, logger logger.Logger, amqpController amqp.Controller, opts Options) error {
+func StartConnectRPCService(ctx context.Context, serviceName string, logger Logger, amqpController AMQPController, opts ConnectRPCOptions) error {
 	// Check if the gRPC Gatway should exist
 	if len(opts.Handlers) == 0 {
 		logger.Info("No gRPC handlers present")
@@ -45,15 +43,12 @@ func StartConnectRPCService(ctx context.Context, serviceName string, logger logg
 
 	// Register protobuf
 	for _, grpcHandler := range opts.Handlers {
-		if err := grpcHandler(HandlerParams{
+		grpcHandler(ConnectRPCHandlerParams{
 			Context:        ctx,
 			Logger:         logger,
 			Mux:            mux,
 			AMQPController: amqpController,
-		}); err != nil {
-			logger.Error("Error occurred", "error", err)
-			return err
-		}
+		})
 	}
 
 	// Start Connect/gRPC Server

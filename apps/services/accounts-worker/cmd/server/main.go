@@ -15,10 +15,7 @@ import (
 
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
-	boot "libs/boot/pkg"
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/connectrpc"
-	bootLogger "libs/boot/pkg/logger"
+	boot "libs/boot"
 )
 
 func run() error {
@@ -26,7 +23,7 @@ func run() error {
 	ctx := context.Background()
 
 	// Create logger
-	logger := bootLogger.NewSlogger()
+	logger := boot.NewSlogger()
 
 	// Construct config
 	config, err := config.NewConfig()
@@ -50,25 +47,27 @@ func run() error {
 		NewBuildServiceBuilder().
 		SetServiceName(config.ServiceName).
 		SetLogger(logger).
-		SetAMQPOptions(amqp.Options{
+		SetAMQPOptions(boot.AMQPOptions{
 			ConnectionURI: config.AMQPUrl,
-			OnConnectionCallback: func(params amqp.CallBackParams) error {
+			OnConnectionCallback: func(params boot.AMQPCallBackParams) error {
 				params.Logger.Info("AMQP connected successfully")
 
 				// Set up all AMQP queues and exchanges
-				eventing.CreateUserRegisterationAuthEventInfrastructure(eventing.RegisterAuthParams{
+				if err := eventing.CreateUserRegisterationAuthEventInfrastructure(eventing.RegisterAuthParams{
 					Registerer: params.Controller.Registerer,
 					Log:        params.Logger,
 					RoutingKey: eventing.GetUserRegisteredRoutingKey(),
 					QueueName:  config.UserRegistrationQueueName,
-				})
+				}); err != nil {
+					params.Logger.Error("Cannot set up auth events", slog.Any("error", err))
+				}
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")
 
 				return nil
 			},
-			Handlers: []amqp.Handler{
-				func(hp amqp.HandlerParams) error {
+			Handlers: []boot.AMQPHandler{
+				func(hp boot.AMQPHandlerParams) error {
 					msgs, err := hp.AMQPController.Consumer.Consume(
 						config.UserRegistrationQueueName, // queue
 						"",                               // consumer
@@ -86,19 +85,19 @@ func run() error {
 					for msg := range msgs {
 						var userRegisteredEvent accountseventsv1.UserRegistered
 						proto.Unmarshal(msg.Body, &userRegisteredEvent)
-						hp.Logger.Info("Received message", slog.Any("msg", userRegisteredEvent))
+						hp.Logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
 					}
 
 					return nil
 				},
 			},
 		}).
-		SetConnectRPCOptions(connectrpc.Options{
+		SetConnectRPCOptions(boot.ConnectRPCOptions{
 			Port: 3000,
 			TransportCredentials: []credentials.TransportCredentials{
 				insecure.NewCredentials(),
 			},
-			Handlers: []connectrpc.Handler{},
+			Handlers: []boot.ConnectRPCHandler{},
 		}).
 		SetBootCallbacks([]boot.BootCallback{
 			func(params boot.BootCallbackParams) error {

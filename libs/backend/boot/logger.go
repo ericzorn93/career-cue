@@ -1,4 +1,4 @@
-package logger
+package boot
 
 import (
 	"log/slog"
@@ -20,5 +20,4 @@ func NewSlogger() Logger {
 	}))
 
 	return logger
-
 }
