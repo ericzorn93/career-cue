@@ -1,19 +1,18 @@
 package application
 
 import (
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/logger"
+	boot "libs/boot"
 	"log/slog"
 )
 
 // GenericServiceImpl handles generic interactions
 type GenericServiceImpl struct {
-	Logger             logger.Logger
-	AuthEventPublisher amqp.Publisher
+	Logger             boot.Logger
+	AuthEventPublisher boot.AMQPPublisher
 }
 
 // NewAuthServiceImpl will construct the auth service
-func NewAuthServiceImpl(logger logger.Logger, contoller amqp.Publisher) GenericServiceImpl {
+func NewAuthServiceImpl(logger boot.Logger, contoller boot.AMQPPublisher) GenericServiceImpl {
 	return GenericServiceImpl{
 		Logger:             logger,
 		AuthEventPublisher: contoller,

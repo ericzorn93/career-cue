@@ -4,8 +4,7 @@ import (
 	"apps/services/inbound-webhooks-api/internal/domain"
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/logger"
+	boot "libs/boot"
 
 	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/protobuf/proto"
@@ -15,12 +14,12 @@ import (
 
 // AuthServiceImpl handles all application auth interactions
 type AuthServiceImpl struct {
-	Logger             logger.Logger
-	AuthEventPublisher amqp.Publisher
+	Logger             boot.Logger
+	AuthEventPublisher boot.AMQPPublisher
 }
 
 // NewAuthServiceImpl will construct the auth service
-func NewAuthServiceImpl(logger logger.Logger, contoller amqp.Publisher) AuthServiceImpl {
+func NewAuthServiceImpl(logger boot.Logger, contoller boot.AMQPPublisher) AuthServiceImpl {
 	return AuthServiceImpl{
 		Logger:             logger,
 		AuthEventPublisher: contoller,

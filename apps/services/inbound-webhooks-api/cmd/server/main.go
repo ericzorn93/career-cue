@@ -18,10 +18,7 @@ import (
 
 	"libs/backend/eventing"
 	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
-	boot "libs/boot/pkg"
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/connectrpc"
-	bootLogger "libs/boot/pkg/logger"
+	boot "libs/boot"
 )
 
 // serviceName is the name of the microservice
@@ -32,7 +29,7 @@ func run() error {
 	ctx := context.Background()
 
 	// Create logger
-	logger := bootLogger.NewSlogger()
+	logger := boot.NewSlogger()
 
 	// Construct config
 	config, err := config.NewConfig()
@@ -56,9 +53,9 @@ func run() error {
 		NewBuildServiceBuilder().
 		SetServiceName(serviceName).
 		SetLogger(logger).
-		SetAMQPOptions(amqp.Options{
+		SetAMQPOptions(boot.AMQPOptions{
 			ConnectionURI: config.AMQPUrl,
-			OnConnectionCallback: func(params amqp.CallBackParams) error {
+			OnConnectionCallback: func(params boot.AMQPCallBackParams) error {
 				params.Logger.Info("AMQP connected successfully")
 
 				// Set Up Auth Events
@@ -74,13 +71,13 @@ func run() error {
 				return nil
 			},
 		}).
-		SetConnectRPCOptions(connectrpc.Options{
+		SetConnectRPCOptions(boot.ConnectRPCOptions{
 			Port: 3000,
 			TransportCredentials: []credentials.TransportCredentials{
 				insecure.NewCredentials(),
 			},
-			Handlers: []connectrpc.Handler{
-				func(params connectrpc.HandlerParams) error {
+			Handlers: []boot.ConnectRPCHandler{
+				func(params boot.ConnectRPCHandlerParams) error {
 					if !params.AMQPController.IsConnected() {
 						errMsg := "AMQP not conntected"
 						logger.Error(errMsg)

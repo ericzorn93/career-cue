@@ -3,9 +3,6 @@ package boot
 import (
 	"context"
 	"io"
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/connectrpc"
-	"libs/boot/pkg/logger"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -32,19 +29,19 @@ func (bsb *BootServiceBuilder) SetServiceName(serviceName string) *BootServiceBu
 }
 
 // SetLogger sets the logger on the BootService
-func (bsb *BootServiceBuilder) SetLogger(logger logger.Logger) *BootServiceBuilder {
+func (bsb *BootServiceBuilder) SetLogger(logger Logger) *BootServiceBuilder {
 	bsb.bootService.logger = logger
 	return bsb
 }
 
 // SetConnectRPCOptions sets the connectRPC Options for connection on the BootService
-func (bsb *BootServiceBuilder) SetConnectRPCOptions(connectRPCOptions connectrpc.Options) *BootServiceBuilder {
+func (bsb *BootServiceBuilder) SetConnectRPCOptions(connectRPCOptions ConnectRPCOptions) *BootServiceBuilder {
 	bsb.bootService.connectRPCOptions = connectRPCOptions
 	return bsb
 }
 
 // SetAMQPOptions sets the AMQP broker options for connection on the BootService
-func (bsb *BootServiceBuilder) SetAMQPOptions(amqpOptions amqp.Options) *BootServiceBuilder {
+func (bsb *BootServiceBuilder) SetAMQPOptions(amqpOptions AMQPOptions) *BootServiceBuilder {
 	bsb.bootService.amqpOptions = amqpOptions
 	return bsb
 }
@@ -66,22 +63,22 @@ type BootService struct {
 	io.Closer
 	wg                *sync.WaitGroup
 	name              string
-	logger            logger.Logger
-	connectRPCOptions connectrpc.Options
-	amqpOptions       amqp.Options
-	amqpController    amqp.Controller
+	logger            Logger
+	connectRPCOptions ConnectRPCOptions
+	amqpOptions       AMQPOptions
+	amqpController    AMQPController
 	bootCallbacks     []BootCallback
 }
 
 // BootCallback are methods for when the service is booted
 type BootCallbackParams struct {
-	Logger logger.Logger
+	Logger Logger
 }
 type BootCallback func(BootCallbackParams) error
 
 // startAMQPBrokerConnection will assign the AMQP broker options to the Boot Service
 // and happens on boot service construction/initialization
-func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) error {
+func (s *BootService) startAMQPBrokerConnection(opts AMQPOptions) error {
 	// Check if options are empty
 	if opts.IsZero() {
 		s.logger.Warn("AMQP will not be used with empty config")
@@ -89,31 +86,28 @@ func (s *BootService) startAMQPBrokerConnection(opts amqp.Options) error {
 	}
 
 	// Establish connection to AMQP broker
-	amqpController, err := amqp.EstablishAMQPConnection(s.logger, opts)
+	err := EstablishAMQPConnection(s, s.logger, opts)
 	if err != nil {
 		return err
 	}
 
-	// Assign Connections
-	s.amqpController = amqpController
 	return nil
 }
 
 // Start spins up the service
-func (s BootService) Start(ctx context.Context) error {
+func (s *BootService) Start(ctx context.Context) error {
 	s.logger.Info("Service started", slog.String("serviceName", s.name))
 
 	// Handle Shutdown of the service
-	go func() {
+	go func(ctx context.Context, bs *BootService) {
 		exitCh := make(chan os.Signal, 1)
 		signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM)
 		<-exitCh
-
-		s.logger.Info("Shutting down the service")
-		if err := s.Stop(context.TODO()); err != nil {
-			s.logger.Error("Trouble closing the boot service")
+		bs.logger.Info("Shutting down the service")
+		if err := bs.Stop(ctx); err != nil {
+			bs.logger.Error("Trouble closing the boot service")
 		}
-	}()
+	}(ctx, s)
 
 	// Control Go Routines
 	s.wg.Add(1)
@@ -128,7 +122,7 @@ func (s BootService) Start(ctx context.Context) error {
 	go func() {
 		defer s.wg.Done()
 
-		if err := connectrpc.StartConnectRPCService(ctx, s.name, s.logger, s.amqpController, s.connectRPCOptions); err != nil {
+		if err := StartConnectRPCService(ctx, s.name, s.logger, s.amqpController, s.connectRPCOptions); err != nil {
 			s.logger.Error("Cannot properly start connectRPC Service")
 			os.Exit(1)
 		}
@@ -152,14 +146,18 @@ func (s BootService) Start(ctx context.Context) error {
 
 // Close supports the io.Closer interface and will shutdown the service
 // when the process is done or programatically
-func (s BootService) Close() error {
+func (s *BootService) Close() error {
+	if err := s.amqpController.Close(); err != nil {
+		s.logger.Error("Trouble closing the AMQP connection")
+	}
+
+	s.logger.Info("Service stopped", "serviceName", s.name)
 	return nil
 }
 
 // Stop proxies the call to the io.Closer method
 // and will spin down the service
 func (s BootService) Stop(_ context.Context) error {
-	s.logger.Info("Service stopped", "serviceName", s.name)
 	return s.Close()
 }
 
@@ -169,11 +167,11 @@ func (s BootService) GetServiceName() string {
 }
 
 // GetLogger returns the logger to the caller
-func (s BootService) GetLogger() logger.Logger {
+func (s BootService) GetLogger() Logger {
 	return s.logger
 }
 
 // GetAMQPController will return the the channel associated with the AMQP broker connection
-func (s BootService) GetAMQPController() amqp.Controller {
+func (s BootService) GetAMQPController() AMQPController {
 	return s.amqpController
 }

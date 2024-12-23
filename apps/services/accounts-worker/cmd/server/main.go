@@ -15,10 +15,7 @@ import (
 
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
-	boot "libs/boot/pkg"
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/connectrpc"
-	bootLogger "libs/boot/pkg/logger"
+	boot "libs/boot"
 )
 
 func run() error {
@@ -26,7 +23,7 @@ func run() error {
 	ctx := context.Background()
 
 	// Create logger
-	logger := bootLogger.NewSlogger()
+	logger := boot.NewSlogger()
 
 	// Construct config
 	config, err := config.NewConfig()
@@ -50,9 +47,9 @@ func run() error {
 		NewBuildServiceBuilder().
 		SetServiceName(config.ServiceName).
 		SetLogger(logger).
-		SetAMQPOptions(amqp.Options{
+		SetAMQPOptions(boot.AMQPOptions{
 			ConnectionURI: config.AMQPUrl,
-			OnConnectionCallback: func(params amqp.CallBackParams) error {
+			OnConnectionCallback: func(params boot.AMQPCallBackParams) error {
 				params.Logger.Info("AMQP connected successfully")
 
 				// Set up all AMQP queues and exchanges
@@ -69,8 +66,10 @@ func run() error {
 
 				return nil
 			},
-			Handlers: []amqp.Handler{
-				func(hp amqp.HandlerParams) error {
+			Handlers: []boot.AMQPHandler{
+				func(hp boot.AMQPHandlerParams) {
+					forever := make(chan struct{})
+
 					msgs, err := hp.AMQPController.Consumer.Consume(
 						config.UserRegistrationQueueName, // queue
 						"",                               // consumer
@@ -82,7 +81,8 @@ func run() error {
 					)
 					if err != nil {
 						hp.Logger.Error("Cannot consume messages", slog.Any("error", err))
-						return err
+						close(forever)
+						return
 					}
 
 					for msg := range msgs {
@@ -91,16 +91,16 @@ func run() error {
 						hp.Logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
 					}
 
-					return nil
+					<-forever
 				},
 			},
 		}).
-		SetConnectRPCOptions(connectrpc.Options{
+		SetConnectRPCOptions(boot.ConnectRPCOptions{
 			Port: 3000,
 			TransportCredentials: []credentials.TransportCredentials{
 				insecure.NewCredentials(),
 			},
-			Handlers: []connectrpc.Handler{},
+			Handlers: []boot.ConnectRPCHandler{},
 		}).
 		SetBootCallbacks([]boot.BootCallback{
 			func(params boot.BootCallbackParams) error {

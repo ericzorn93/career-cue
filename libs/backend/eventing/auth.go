@@ -1,8 +1,7 @@
 package eventing
 
 import (
-	"libs/boot/pkg/amqp"
-	"libs/boot/pkg/logger"
+	boot "libs/boot"
 	"log/slog"
 )
 
@@ -29,8 +28,8 @@ func GetUserRegisteredRoutingKey() string {
 
 // RegisterAuthParams are params for the auth queue constructor
 type RegisterAuthParams struct {
-	Registerer amqp.Registerer
-	Log        logger.Logger
+	Registerer boot.AMQPRegisterer
+	Log        boot.Logger
 	QueueName  string
 	RoutingKey string
 }

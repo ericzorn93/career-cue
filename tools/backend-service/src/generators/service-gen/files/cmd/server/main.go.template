@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	boot "libs/boot/pkg"
+	boot "libs/boot"
 	"libs/boot/pkg/amqp"
 	"libs/boot/pkg/connectrpc"
 	bootLogger "libs/boot/pkg/logger"
