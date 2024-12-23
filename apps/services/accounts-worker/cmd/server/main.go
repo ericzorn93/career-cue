@@ -67,9 +67,7 @@ func run() error {
 				return nil
 			},
 			Handlers: []boot.AMQPHandler{
-				func(hp boot.AMQPHandlerParams) {
-					forever := make(chan struct{})
-
+				func(hp boot.AMQPHandlerParams) error {
 					msgs, err := hp.AMQPController.Consumer.Consume(
 						config.UserRegistrationQueueName, // queue
 						"",                               // consumer
@@ -81,8 +79,7 @@ func run() error {
 					)
 					if err != nil {
 						hp.Logger.Error("Cannot consume messages", slog.Any("error", err))
-						close(forever)
-						return
+						return err
 					}
 
 					for msg := range msgs {
@@ -91,7 +88,7 @@ func run() error {
 						hp.Logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
 					}
 
-					<-forever
+					return nil
 				},
 			},
 		}).

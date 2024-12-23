@@ -23,7 +23,7 @@ type AMQPHandlerParams struct {
 }
 
 // AMQPHandler is a type of callback used specifically for starting the AMQP handlers
-type AMQPHandler func(AMQPHandlerParams)
+type AMQPHandler func(AMQPHandlerParams) error
 
 // AMQPOptions configuration to start
 // the LavinMQ connections to queues and exchanges
@@ -93,15 +93,16 @@ func EstablishAMQPConnection(bootService *BootService, log Logger, opts AMQPOpti
 
 	log.Info("Registering AMQP handlers", slog.Int("count", len(opts.Handlers)))
 
+	// Register all the handlers and run indefinitely
+	forever := make(chan struct{})
 	for _, handler := range opts.Handlers {
 		handlerParams := AMQPHandlerParams{
 			Logger:         log,
 			AMQPController: controller,
 		}
-
-		handler(handlerParams)
+		go handler(handlerParams)
 	}
-
+	<-forever
 	return nil
 }
 
