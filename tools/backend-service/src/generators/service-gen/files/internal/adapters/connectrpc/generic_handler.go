@@ -1,7 +1,7 @@
 package connectrpc
 
 import (
-	"libs/boot"
+	"libs/backend/boot"
 )
 
 // AuthHandler handles all gRPC endpoints for inbound webhooks

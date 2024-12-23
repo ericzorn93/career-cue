@@ -16,9 +16,9 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	boot "libs/backend/boot"
 	"libs/backend/eventing"
 	inboundwebhooksapiv1connect "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1/inboundwebhooksapiv1connect"
-	boot "libs/boot"
 )
 
 // serviceName is the name of the microservice

@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	boot "libs/boot"
+	boot "libs/backend/boot"
 )
 
 // serviceName is the name of the microservice

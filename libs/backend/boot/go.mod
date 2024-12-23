@@ -1,4 +1,4 @@
-module libs/boot
+module libs/backend/boot
 
 go 1.23
 

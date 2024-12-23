@@ -13,9 +13,9 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	boot "libs/backend/boot"
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
-	boot "libs/boot"
 )
 
 func run() error {
