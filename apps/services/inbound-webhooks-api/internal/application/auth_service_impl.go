@@ -2,9 +2,9 @@ package application
 
 import (
 	"apps/services/inbound-webhooks-api/internal/domain"
+	boot "libs/backend/boot"
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
-	boot "libs/boot"
 
 	"github.com/rabbitmq/amqp091-go"
 	"google.golang.org/protobuf/proto"

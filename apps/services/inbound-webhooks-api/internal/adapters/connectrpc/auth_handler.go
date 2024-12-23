@@ -5,9 +5,9 @@ import (
 	"apps/services/inbound-webhooks-api/internal/domain"
 	"context"
 
+	boot "libs/backend/boot"
 	commonv1 "libs/backend/proto-gen/go/common/v1"
 	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
-	boot "libs/boot"
 
 	"connectrpc.com/connect"
 )

@@ -1,7 +1,7 @@
 package application
 
 import (
-	"libs/boot"
+	"libs/backend/boot"
 	"log/slog"
 )
 

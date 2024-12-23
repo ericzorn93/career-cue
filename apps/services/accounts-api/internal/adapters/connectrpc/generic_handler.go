@@ -1,6 +1,6 @@
 package connectrpc
 
-import boot "libs/boot"
+import boot "libs/backend/boot"
 
 // AuthHandler handles all gRPC endpoints for inbound webhooks
 type GenericHandler struct {
