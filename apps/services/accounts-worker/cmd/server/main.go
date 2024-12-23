@@ -88,7 +88,7 @@ func run() error {
 					for msg := range msgs {
 						var userRegisteredEvent accountseventsv1.UserRegistered
 						proto.Unmarshal(msg.Body, &userRegisteredEvent)
-						hp.Logger.Info("Received message", slog.Any("msg", userRegisteredEvent))
+						hp.Logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
 					}
 
 					return nil
