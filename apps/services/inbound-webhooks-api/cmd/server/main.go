@@ -2,7 +2,8 @@ package main
 
 import (
 	connectrpcAdapters "apps/services/inbound-webhooks-api/internal/adapters/connectrpc"
-	"apps/services/inbound-webhooks-api/internal/application"
+	"apps/services/inbound-webhooks-api/internal/app"
+	"apps/services/inbound-webhooks-api/internal/app/usecases"
 	"apps/services/inbound-webhooks-api/internal/config"
 	"context"
 	"errors"
@@ -84,10 +85,12 @@ func run() error {
 						return errors.New(errMsg)
 					}
 
-					// Set up auth service routes and handlers
-					authService := application.NewAuthServiceImpl(logger, params.AMQPController.Publisher)
-					authHandler := connectrpcAdapters.NewAuthHandler(logger, authService)
+					// Construct application
+					authService := usecases.NewAuthService(logger, params.AMQPController.Publisher)
+					application := app.NewApplication(authService)
+					authHandler := connectrpcAdapters.NewAuthHandler(logger, application)
 
+					// Set up auth service routes and handlers
 					path, handler := inboundwebhooksapiv1connect.NewInboundWebhooksAuthServiceHandler(
 						authHandler,
 						options...,

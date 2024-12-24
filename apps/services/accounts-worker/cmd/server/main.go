@@ -5,16 +5,20 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
-	"github.com/golang/protobuf/proto"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/proto"
 
 	boot "libs/backend/boot"
 	"libs/backend/eventing"
+	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
+	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 )
 
@@ -48,7 +52,7 @@ func run() error {
 		SetServiceName(config.ServiceName).
 		SetLogger(logger).
 		SetAMQPOptions(boot.AMQPOptions{
-			ConnectionURI: config.AMQPUrl,
+			ConnectionURI: config.AMQPUri,
 			OnConnectionCallback: func(params boot.AMQPCallBackParams) error {
 				params.Logger.Info("AMQP connected successfully")
 
@@ -83,9 +87,7 @@ func run() error {
 					}
 
 					for msg := range msgs {
-						var userRegisteredEvent accountseventsv1.UserRegistered
-						proto.Unmarshal(msg.Body, &userRegisteredEvent)
-						hp.Logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
+						go temporaryHandleUserRegisteredEvent(hp.Logger, msg, config.AccountsAPIUri)
 					}
 
 					return nil
@@ -115,4 +117,25 @@ func main() {
 		log.Printf("Cannot start service")
 		os.Exit(1)
 	}
+}
+
+// TODO: Remove after implementing the actual handler
+func temporaryHandleUserRegisteredEvent(logger boot.Logger, msg amqp.Delivery, accountsAPIUri string) {
+	var userRegisteredEvent accountseventsv1.UserRegistered
+	proto.Unmarshal(msg.Body, &userRegisteredEvent)
+	logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
+
+	// Call the accounts-api to create the account
+	client := accountsapiv1connect.NewRegistrationServiceClient(http.DefaultClient, accountsAPIUri)
+	client.CreateAccount(context.Background(), connect.NewRequest(&accountsapiv1.CreateAccountRequest{
+		FirstName:            userRegisteredEvent.FirstName,
+		LastName:             userRegisteredEvent.LastName,
+		Nickname:             userRegisteredEvent.Nickname,
+		Username:             userRegisteredEvent.Username,
+		EmailAddress:         userRegisteredEvent.EmailAddress,
+		EmailAddressVerified: userRegisteredEvent.EmailAddressVerified,
+		PhoneNumber:          userRegisteredEvent.PhoneNumber,
+		PhoneNumberVerified:  userRegisteredEvent.PhoneNumberVerified,
+		Strategy:             userRegisteredEvent.Strategy,
+	}))
 }

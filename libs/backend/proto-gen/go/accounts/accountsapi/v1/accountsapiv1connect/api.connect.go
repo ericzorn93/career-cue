@@ -9,7 +9,6 @@ import (
 	context "context"
 	errors "errors"
 	v1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
-	v11 "libs/backend/proto-gen/go/common/v1"
 	http "net/http"
 	strings "strings"
 )
@@ -22,8 +21,8 @@ import (
 const _ = connect.IsAtLeastVersion1_13_0
 
 const (
-	// AccountsAPIName is the fully-qualified name of the AccountsAPI service.
-	AccountsAPIName = "accounts.accountsapi.v1.AccountsAPI"
+	// RegistrationServiceName is the fully-qualified name of the RegistrationService service.
+	RegistrationServiceName = "accounts.accountsapi.v1.RegistrationService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -34,81 +33,84 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AccountsAPICreateAccountProcedure is the fully-qualified name of the AccountsAPI's CreateAccount
-	// RPC.
-	AccountsAPICreateAccountProcedure = "/accounts.accountsapi.v1.AccountsAPI/CreateAccount"
+	// RegistrationServiceCreateAccountProcedure is the fully-qualified name of the
+	// RegistrationService's CreateAccount RPC.
+	RegistrationServiceCreateAccountProcedure = "/accounts.accountsapi.v1.RegistrationService/CreateAccount"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	accountsAPIServiceDescriptor             = v1.File_accounts_accountsapi_v1_api_proto.Services().ByName("AccountsAPI")
-	accountsAPICreateAccountMethodDescriptor = accountsAPIServiceDescriptor.Methods().ByName("CreateAccount")
+	registrationServiceServiceDescriptor             = v1.File_accounts_accountsapi_v1_api_proto.Services().ByName("RegistrationService")
+	registrationServiceCreateAccountMethodDescriptor = registrationServiceServiceDescriptor.Methods().ByName("CreateAccount")
 )
 
-// AccountsAPIClient is a client for the accounts.accountsapi.v1.AccountsAPI service.
-type AccountsAPIClient interface {
-	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error)
+// RegistrationServiceClient is a client for the accounts.accountsapi.v1.RegistrationService
+// service.
+type RegistrationServiceClient interface {
+	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
 }
 
-// NewAccountsAPIClient constructs a client for the accounts.accountsapi.v1.AccountsAPI service. By
-// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
-// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
-// connect.WithGRPC() or connect.WithGRPCWeb() options.
+// NewRegistrationServiceClient constructs a client for the
+// accounts.accountsapi.v1.RegistrationService service. By default, it uses the Connect protocol
+// with the binary Protobuf Codec, asks for gzipped responses, and sends uncompressed requests. To
+// use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or connect.WithGRPCWeb()
+// options.
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewAccountsAPIClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AccountsAPIClient {
+func NewRegistrationServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) RegistrationServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
-	return &accountsAPIClient{
-		createAccount: connect.NewClient[v1.CreateAccountRequest, v11.Empty](
+	return &registrationServiceClient{
+		createAccount: connect.NewClient[v1.CreateAccountRequest, v1.CreateAcountResponse](
 			httpClient,
-			baseURL+AccountsAPICreateAccountProcedure,
-			connect.WithSchema(accountsAPICreateAccountMethodDescriptor),
+			baseURL+RegistrationServiceCreateAccountProcedure,
+			connect.WithSchema(registrationServiceCreateAccountMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 	}
 }
 
-// accountsAPIClient implements AccountsAPIClient.
-type accountsAPIClient struct {
-	createAccount *connect.Client[v1.CreateAccountRequest, v11.Empty]
+// registrationServiceClient implements RegistrationServiceClient.
+type registrationServiceClient struct {
+	createAccount *connect.Client[v1.CreateAccountRequest, v1.CreateAcountResponse]
 }
 
-// CreateAccount calls accounts.accountsapi.v1.AccountsAPI.CreateAccount.
-func (c *accountsAPIClient) CreateAccount(ctx context.Context, req *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error) {
+// CreateAccount calls accounts.accountsapi.v1.RegistrationService.CreateAccount.
+func (c *registrationServiceClient) CreateAccount(ctx context.Context, req *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error) {
 	return c.createAccount.CallUnary(ctx, req)
 }
 
-// AccountsAPIHandler is an implementation of the accounts.accountsapi.v1.AccountsAPI service.
-type AccountsAPIHandler interface {
-	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error)
+// RegistrationServiceHandler is an implementation of the
+// accounts.accountsapi.v1.RegistrationService service.
+type RegistrationServiceHandler interface {
+	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
 }
 
-// NewAccountsAPIHandler builds an HTTP handler from the service implementation. It returns the path
-// on which to mount the handler and the handler itself.
+// NewRegistrationServiceHandler builds an HTTP handler from the service implementation. It returns
+// the path on which to mount the handler and the handler itself.
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewAccountsAPIHandler(svc AccountsAPIHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	accountsAPICreateAccountHandler := connect.NewUnaryHandler(
-		AccountsAPICreateAccountProcedure,
+func NewRegistrationServiceHandler(svc RegistrationServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	registrationServiceCreateAccountHandler := connect.NewUnaryHandler(
+		RegistrationServiceCreateAccountProcedure,
 		svc.CreateAccount,
-		connect.WithSchema(accountsAPICreateAccountMethodDescriptor),
+		connect.WithSchema(registrationServiceCreateAccountMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	return "/accounts.accountsapi.v1.AccountsAPI/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return "/accounts.accountsapi.v1.RegistrationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AccountsAPICreateAccountProcedure:
-			accountsAPICreateAccountHandler.ServeHTTP(w, r)
+		case RegistrationServiceCreateAccountProcedure:
+			registrationServiceCreateAccountHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
 	})
 }
 
-// UnimplementedAccountsAPIHandler returns CodeUnimplemented from all methods.
-type UnimplementedAccountsAPIHandler struct{}
+// UnimplementedRegistrationServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedRegistrationServiceHandler struct{}
 
-func (UnimplementedAccountsAPIHandler) CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.AccountsAPI.CreateAccount is not implemented"))
+func (UnimplementedRegistrationServiceHandler) CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.RegistrationService.CreateAccount is not implemented"))
 }

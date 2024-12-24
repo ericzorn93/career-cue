@@ -73,6 +73,9 @@ func run() error {
 						return errors.New(errMsg)
 					}
 
+          // Set up all ConnectRPC Handlers
+
+
 					return nil
 				},
 			},

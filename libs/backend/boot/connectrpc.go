@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -30,11 +32,11 @@ type ConnectRPCOptions struct {
 	GatewayEnabled       bool
 }
 
-// startConnectRPCService will establish a TCP bound port and start the gRPC service
-func StartConnectRPCService(ctx context.Context, serviceName string, logger Logger, amqpController AMQPController, opts ConnectRPCOptions) error {
+// StartConnectRPCService will establish a TCP bound port and start the gRPC service
+func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 	// Check if the gRPC Gatway should exist
-	if len(opts.Handlers) == 0 {
-		logger.Info("No gRPC handlers present")
+	if len(s.connectRPCOptions.Handlers) == 0 {
+		s.logger.Info("No gRPC handlers present")
 		return nil
 	}
 
@@ -42,26 +44,53 @@ func StartConnectRPCService(ctx context.Context, serviceName string, logger Logg
 	mux := http.NewServeMux()
 
 	// Register protobuf
-	for _, grpcHandler := range opts.Handlers {
+	for _, grpcHandler := range s.connectRPCOptions.Handlers {
 		grpcHandler(ConnectRPCHandlerParams{
 			Context:        ctx,
-			Logger:         logger,
+			Logger:         s.logger,
 			Mux:            mux,
-			AMQPController: amqpController,
+			AMQPController: s.amqpController,
 		})
 	}
 
 	// Start Connect/gRPC Server
-	logger.Info("Starting service on HTTP", slog.String("serviceName", serviceName))
+	s.logger.Info("Starting service on HTTP", slog.String("serviceName", s.name))
 
-	if err := http.ListenAndServe(
-		fmt.Sprintf(":%d", opts.Port),
-		// Use h2c so we can serve HTTP/2 without TLS.
-		h2c.NewHandler(mux, &http2.Server{}),
-	); err != nil {
-		logger.Error("Error occurred", "error", err)
-		return err
-	}
+	// Create an error group to handle multiple goroutines running HTTP Service
+	egroup := errgroup.Group{}
 
-	return nil
+	// Start the HTTP server
+	egroup.Go(func() error {
+		if err := http.ListenAndServe(
+			fmt.Sprintf(":%d", s.connectRPCOptions.Port),
+			// Use h2c so we can serve HTTP/2 without TLS.
+			h2c.NewHandler(mux, &http2.Server{}),
+		); err != nil {
+			s.logger.Error("Error occurred", "error", err)
+			return err
+		}
+
+		return nil
+	})
+
+	// Start the IPV6 bound HTTP server for Fly.io (production only)
+	egroup.Go(func() error {
+		if os.Getenv("FLY_PRIVATE_IP") == "" {
+			s.logger.Info("No Fly.io private IP found, running in Development mode")
+			return nil
+		}
+
+		if err := http.ListenAndServe(
+			fmt.Sprintf("fly-local-6pn:%d", s.connectRPCOptions.Port),
+			// Use h2c so we can serve HTTP/2 without TLS.
+			h2c.NewHandler(mux, &http2.Server{}),
+		); err != nil {
+			s.logger.Error("Error occurred", "error", err)
+			return err
+		}
+
+		return nil
+	})
+
+	return egroup.Wait()
 }

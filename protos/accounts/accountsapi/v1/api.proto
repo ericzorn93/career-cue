@@ -6,10 +6,8 @@ import "buf/validate/validate.proto";
 import "google/type/datetime.proto";
 import "google/protobuf/any.proto";
 
-import "common/v1/empty.proto";
-
-service AccountsAPI {
-    rpc CreateAccount(CreateAccountRequest) returns (common.v1.Empty) {}
+service RegistrationService {
+    rpc CreateAccount(CreateAccountRequest) returns (CreateAcountResponse) {}
 }
 
 // CreateAccountRequest defines the incoming data for the create account request
@@ -24,4 +22,9 @@ message CreateAccountRequest {
     bool phone_number_verified = 8;
     string strategy = 9 [(buf.validate.field).string.min_len = 1];
     map<string, google.protobuf.Any> user_metadata = 10;
+}
+
+// CreateAcountResponse defines the response for the create account request
+message CreateAcountResponse {
+  bool is_success = 1;
 }

@@ -1,4 +1,4 @@
-package domain
+package entities
 
 // User is the internal domain representation
 // of an authenticated user

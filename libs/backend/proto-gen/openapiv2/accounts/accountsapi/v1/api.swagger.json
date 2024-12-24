@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "AccountsAPI"
+      "name": "RegistrationService"
     }
   ],
   "consumes": [
@@ -47,9 +47,14 @@
         }
       }
     },
-    "v1Empty": {
+    "v1CreateAcountResponse": {
       "type": "object",
-      "title": "Empty represents a completely empty message"
+      "properties": {
+        "isSuccess": {
+          "type": "boolean"
+        }
+      },
+      "title": "CreateAcountResponse defines the response for the create account request"
     }
   }
 }

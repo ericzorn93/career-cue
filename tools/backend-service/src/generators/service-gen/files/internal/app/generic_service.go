@@ -1,4 +1,4 @@
-package application
+package app
 
 // GenericService will be a placeholder
 type GenericService interface {
