@@ -45,11 +45,11 @@ func CreateUserRegisterationAuthEventInfrastructure(params RegisterAuthParams) e
 
 	// Create a queue for the service
 	if params.QueueName == "" {
-		params.Log.Warn("Auth queue name is empty")
+		params.Log.Warn("User Registration queue name is empty")
 		return nil
 	}
 
-	authQueue, err := params.Registerer.QueueDeclare(
+	registrationQueue, err := params.Registerer.QueueDeclare(
 		params.QueueName,
 		true,
 		false,
@@ -58,10 +58,10 @@ func CreateUserRegisterationAuthEventInfrastructure(params RegisterAuthParams) e
 		nil,
 	)
 	if err != nil {
-		params.Log.Error("Cannot create auth queue", slog.String("queueName", params.QueueName))
+		params.Log.Error("Cannot create queue", slog.String("queueName", params.QueueName))
 		return err
 	}
-	params.Log.Info("Created auth queue", slog.String("queueName", authQueue.Name))
+	params.Log.Info("Created userRegistration queue", slog.String("queueName", registrationQueue.Name))
 
 	// Bind Queue to Exchange
 	var chosenRoutingKey string
@@ -71,10 +71,10 @@ func CreateUserRegisterationAuthEventInfrastructure(params RegisterAuthParams) e
 		chosenRoutingKey = params.RoutingKey
 	}
 
-	if err = params.Registerer.QueueBind(authQueue.Name, chosenRoutingKey, AuthExchange, false, nil); err != nil {
+	if err = params.Registerer.QueueBind(registrationQueue.Name, chosenRoutingKey, AuthExchange, false, nil); err != nil {
 		params.Log.Error(
-			"Cannot bind queue to exchange",
-			slog.String("queueName", authQueue.Name),
+			"Cannot bind registration queue to exchange",
+			slog.String("queueName", registrationQueue.Name),
 			slog.String("exchangeName", AuthExchange),
 		)
 		return err
