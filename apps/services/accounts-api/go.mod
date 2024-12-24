@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	connectrpc.com/connect v1.17.0
+	connectrpc.com/grpcreflect v1.2.0
 	connectrpc.com/validate v0.1.0
 	google.golang.org/grpc v1.68.1
 )
