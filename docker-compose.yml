@@ -1,4 +1,5 @@
 version: '3.9'
+name: career-cue
 services:
   inbound-webhooks-api:
     image: career-cue/inbound-webhooks-api
