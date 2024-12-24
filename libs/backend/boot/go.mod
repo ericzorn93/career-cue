@@ -6,6 +6,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.29.0
+	golang.org/x/sync v0.9.0
 	google.golang.org/grpc v1.68.1
 )
 
