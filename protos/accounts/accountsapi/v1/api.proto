@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "google/type/datetime.proto";
 import "google/protobuf/any.proto";
 
-service AccountsAPI {
+service RegistrationService {
     rpc CreateAccount(CreateAccountRequest) returns (CreateAcountResponse) {}
 }
 

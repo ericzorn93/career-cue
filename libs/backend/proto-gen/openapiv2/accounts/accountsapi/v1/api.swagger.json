@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "AccountsAPI"
+      "name": "RegistrationService"
     }
   ],
   "consumes": [

@@ -9,11 +9,14 @@ import (
 	"os"
 
 	"connectrpc.com/connect"
+	"connectrpc.com/grpcreflect"
 	"connectrpc.com/validate"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	boot "libs/backend/boot"
+	connectrpcadapter "apps/services/accounts-api/internal/adapters/connectrpc"
+	"libs/backend/boot"
+	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 )
 
 // serviceName is the name of the microservice
@@ -39,7 +42,7 @@ func run() error {
 		logger.Error("Cannot set up validation interceptor", slog.Any("error", err))
 		return err
 	}
-	_ = []connect.HandlerOption{
+	options := []connect.HandlerOption{
 		connect.WithInterceptors(validationInterceptor),
 	}
 
@@ -72,6 +75,21 @@ func run() error {
 						logger.Error(errMsg)
 						return errors.New(errMsg)
 					}
+
+					// Register all ConnectRPC handlers
+					registrationHandler := connectrpcadapter.NewRegistrationHandler(logger)
+
+					// Assign the handler to the HTTP path
+					path, httpHandler := accountsapiv1connect.NewRegistrationServiceHandler(
+						registrationHandler,
+						options...,
+					)
+					params.Mux.Handle(path, httpHandler)
+					reflector := grpcreflect.NewStaticReflector(
+						accountsapiv1connect.RegistrationServiceName,
+					)
+					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
+					params.Mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
 					return nil
 				},
