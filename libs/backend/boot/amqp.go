@@ -39,7 +39,7 @@ func (o AMQPOptions) IsZero() bool {
 }
 
 // EstablishAMQPConnection will create a connection to the AMQP broker
-func EstablishAMQPConnection(bootService *BootService, log Logger, opts AMQPOptions) error {
+func (s *BootService) EstablishAMQPConnection(opts AMQPOptions) error {
 	// Validate the conneciton URI to AMQP
 	connectionPrefixes := [2]string{"amqp://", "amqps://"}
 	hasPrefix := false
@@ -51,7 +51,7 @@ func EstablishAMQPConnection(bootService *BootService, log Logger, opts AMQPOpti
 	}
 
 	if opts.ConnectionURI == "" || !hasPrefix {
-		log.Error("Cannot connect to AMQP with empty connection string")
+		s.logger.Error("Cannot connect to AMQP with empty connection string")
 		return errors.New("cannot connect with invalid AMQP String")
 	}
 
@@ -60,44 +60,44 @@ func EstablishAMQPConnection(bootService *BootService, log Logger, opts AMQPOpti
 		Heartbeat: time.Second * 10,
 	})
 	if err != nil {
-		log.Error("Cannot connect to AMQP", slog.Any("error", err))
+		s.logger.Error("Cannot connect to AMQP", slog.Any("error", err))
 		return errors.New("AMQP connection failed")
 	}
 
 	// Create Channel
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Error("Cannot create AMQP channel")
+		s.logger.Error("Cannot create AMQP channel")
 		return err
 	}
 
 	// AMQP controller wrapper
-	controller := NewController(log, conn, ch)
-	bootService.amqpController = controller
+	controller := NewController(s.logger, conn, ch)
+	s.amqpController = controller
 
 	// Start/Stop the connection on close
 	callbackParams := AMQPCallBackParams{
-		Logger:     log,
+		Logger:     s.logger,
 		Controller: controller,
 	}
 	if err := opts.OnConnectionCallback(callbackParams); err != nil {
-		log.Error("AMQP connection callback failed", slog.Any("error", err))
+		s.logger.Error("AMQP connection callback failed", slog.Any("error", err))
 		return err
 	}
 
 	// Register All Handlers
 	if len(opts.Handlers) == 0 {
-		log.Warn("No AMQP handlers present")
+		s.logger.Warn("No AMQP handlers present")
 		return nil
 	}
 
-	log.Info("Registering AMQP handlers", slog.Int("count", len(opts.Handlers)))
+	s.logger.Info("Registering AMQP handlers", slog.Int("count", len(opts.Handlers)))
 
 	// Register all the handlers and run indefinitely
 	forever := make(chan struct{})
 	for _, handler := range opts.Handlers {
 		handlerParams := AMQPHandlerParams{
-			Logger:         log,
+			Logger:         s.logger,
 			AMQPController: controller,
 		}
 		go handler(handlerParams)

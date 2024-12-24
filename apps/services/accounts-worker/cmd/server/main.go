@@ -9,10 +9,10 @@ import (
 
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
-	"github.com/golang/protobuf/proto"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/proto"
 
 	boot "libs/backend/boot"
 	"libs/backend/eventing"

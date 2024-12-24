@@ -86,7 +86,7 @@ func (s *BootService) startAMQPBrokerConnection(opts AMQPOptions) error {
 	}
 
 	// Establish connection to AMQP broker
-	err := EstablishAMQPConnection(s, s.logger, opts)
+	err := s.EstablishAMQPConnection(opts)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (s *BootService) Start(ctx context.Context) error {
 	go func() {
 		defer s.wg.Done()
 
-		if err := StartConnectRPCService(ctx, s.name, s.logger, s.amqpController, s.connectRPCOptions); err != nil {
+		if err := s.StartConnectRPCService(ctx); err != nil {
 			s.logger.Error("Cannot properly start connectRPC Service")
 			os.Exit(1)
 		}

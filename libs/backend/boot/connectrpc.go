@@ -30,11 +30,11 @@ type ConnectRPCOptions struct {
 	GatewayEnabled       bool
 }
 
-// startConnectRPCService will establish a TCP bound port and start the gRPC service
-func StartConnectRPCService(ctx context.Context, serviceName string, logger Logger, amqpController AMQPController, opts ConnectRPCOptions) error {
+// StartConnectRPCService will establish a TCP bound port and start the gRPC service
+func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 	// Check if the gRPC Gatway should exist
-	if len(opts.Handlers) == 0 {
-		logger.Info("No gRPC handlers present")
+	if len(s.connectRPCOptions.Handlers) == 0 {
+		s.logger.Info("No gRPC handlers present")
 		return nil
 	}
 
@@ -42,24 +42,24 @@ func StartConnectRPCService(ctx context.Context, serviceName string, logger Logg
 	mux := http.NewServeMux()
 
 	// Register protobuf
-	for _, grpcHandler := range opts.Handlers {
+	for _, grpcHandler := range s.connectRPCOptions.Handlers {
 		grpcHandler(ConnectRPCHandlerParams{
 			Context:        ctx,
-			Logger:         logger,
+			Logger:         s.logger,
 			Mux:            mux,
-			AMQPController: amqpController,
+			AMQPController: s.amqpController,
 		})
 	}
 
 	// Start Connect/gRPC Server
-	logger.Info("Starting service on HTTP", slog.String("serviceName", serviceName))
+	s.logger.Info("Starting service on HTTP", slog.String("serviceName", s.name))
 
 	if err := http.ListenAndServe(
-		fmt.Sprintf(":%d", opts.Port),
+		fmt.Sprintf(":%d", s.connectRPCOptions.Port),
 		// Use h2c so we can serve HTTP/2 without TLS.
 		h2c.NewHandler(mux, &http2.Server{}),
 	); err != nil {
-		logger.Error("Error occurred", "error", err)
+		s.logger.Error("Error occurred", "error", err)
 		return err
 	}
 
