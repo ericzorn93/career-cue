@@ -10,6 +10,7 @@ import (
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
 	"github.com/golang/protobuf/proto"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -83,9 +84,7 @@ func run() error {
 					}
 
 					for msg := range msgs {
-						var userRegisteredEvent accountseventsv1.UserRegistered
-						proto.Unmarshal(msg.Body, &userRegisteredEvent)
-						hp.Logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
+						go temporaryHandleUserRegisteredEvent(hp.Logger, msg)
 					}
 
 					return nil
@@ -115,4 +114,11 @@ func main() {
 		log.Printf("Cannot start service")
 		os.Exit(1)
 	}
+}
+
+// TODO: Remove after implementing the actual handler
+func temporaryHandleUserRegisteredEvent(logger boot.Logger, msg amqp.Delivery) {
+	var userRegisteredEvent accountseventsv1.UserRegistered
+	proto.Unmarshal(msg.Body, &userRegisteredEvent)
+	logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
 }
