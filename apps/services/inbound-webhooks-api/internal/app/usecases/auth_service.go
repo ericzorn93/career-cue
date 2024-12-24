@@ -1,7 +1,7 @@
-package application
+package usecases
 
 import (
-	"apps/services/inbound-webhooks-api/internal/domain"
+	"apps/services/inbound-webhooks-api/internal/domain/entities"
 	boot "libs/backend/boot"
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
@@ -12,15 +12,15 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-// AuthServiceImpl handles all application auth interactions
-type AuthServiceImpl struct {
+// AuthService handles all application auth interactions
+type AuthService struct {
 	Logger             boot.Logger
 	AuthEventPublisher boot.AMQPPublisher
 }
 
-// NewAuthServiceImpl will construct the auth service
-func NewAuthServiceImpl(logger boot.Logger, amqpPublisher boot.AMQPPublisher) AuthServiceImpl {
-	return AuthServiceImpl{
+// NewAuthService will construct the auth service
+func NewAuthService(logger boot.Logger, amqpPublisher boot.AMQPPublisher) AuthService {
+	return AuthService{
 		Logger:             logger,
 		AuthEventPublisher: amqpPublisher,
 	}
@@ -28,7 +28,7 @@ func NewAuthServiceImpl(logger boot.Logger, amqpPublisher boot.AMQPPublisher) Au
 
 // RegisterUser is an application interface method to handle user registration
 // webhooks
-func (s AuthServiceImpl) RegisterUser(user domain.User) error {
+func (s AuthService) RegisterUser(user entities.User) error {
 	s.Logger.Info("Publishing userRegistered Event")
 
 	metadata := make(map[string]*anypb.Any)

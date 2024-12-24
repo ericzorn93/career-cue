@@ -1,12 +1,14 @@
-package application
+package app
+
+import "apps/services/inbound-webhooks-api/internal/app/ports"
 
 // Application is the main application struct
 type Application struct {
-	AuthService AuthService
+	AuthService ports.AuthService
 }
 
 // NewApplication creates a new application
-func NewApplication(authService AuthService) Application {
+func NewApplication(authService ports.AuthService) Application {
 	return Application{
 		AuthService: authService,
 	}

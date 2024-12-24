@@ -1,8 +1,8 @@
 package connectrpc
 
 import (
-	"apps/services/inbound-webhooks-api/internal/application"
-	"apps/services/inbound-webhooks-api/internal/domain"
+	"apps/services/inbound-webhooks-api/internal/app"
+	"apps/services/inbound-webhooks-api/internal/domain/entities"
 	"context"
 
 	boot "libs/backend/boot"
@@ -16,11 +16,11 @@ import (
 type AuthHandler struct {
 	inboundwebhooksapiv1.UnimplementedInboundWebhooksAuthAPIServer
 	Logger      boot.Logger
-	Application application.Application
+	Application app.Application
 }
 
 // NewAuthHandler will return a pointer to the inbound webhooks API server
-func NewAuthHandler(logger boot.Logger, application application.Application) *AuthHandler {
+func NewAuthHandler(logger boot.Logger, application app.Application) *AuthHandler {
 	return &AuthHandler{
 		Logger:      logger,
 		Application: application,
@@ -34,17 +34,17 @@ func (h *AuthHandler) UserRegistered(
 	req *connect.Request[inboundwebhooksapiv1.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
 	if err := h.Application.AuthService.RegisterUser(
-		domain.NewUser(
-			domain.WithUserFirstName(req.Msg.FirstName),
-			domain.WithUserLastName(req.Msg.LastName),
-			domain.WithUserNickname(req.Msg.Nickname),
-			domain.WithUserUsername(req.Msg.Username),
-			domain.WithEmailAddress(req.Msg.EmailAddress),
-			domain.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
-			domain.WithPhoneNumber(req.Msg.PhoneNumber),
-			domain.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
-			domain.WithStrategy(req.Msg.Strategy),
-			domain.WithMetadata(make(map[string]any, 0)),
+		entities.NewUser(
+			entities.WithUserFirstName(req.Msg.FirstName),
+			entities.WithUserLastName(req.Msg.LastName),
+			entities.WithUserNickname(req.Msg.Nickname),
+			entities.WithUserUsername(req.Msg.Username),
+			entities.WithEmailAddress(req.Msg.EmailAddress),
+			entities.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
+			entities.WithPhoneNumber(req.Msg.PhoneNumber),
+			entities.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
+			entities.WithStrategy(req.Msg.Strategy),
+			entities.WithMetadata(make(map[string]any, 0)),
 		),
 	); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
