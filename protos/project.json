@@ -1,0 +1,32 @@
+{
+  "name": "protos",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "protos",
+  "tags": ["api", "protos", "backend"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "buf dep update",
+          "buf generate",
+          "buf push",
+          "sh ./scripts/go_mod_tidy.sh"
+        ]
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "buf lint"
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "buf push"
+      }
+    }
+  }
+}

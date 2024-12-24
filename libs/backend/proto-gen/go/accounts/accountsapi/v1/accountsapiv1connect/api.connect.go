@@ -9,7 +9,6 @@ import (
 	context "context"
 	errors "errors"
 	v1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
-	v11 "libs/backend/proto-gen/go/common/v1"
 	http "net/http"
 	strings "strings"
 )
@@ -47,7 +46,7 @@ var (
 
 // AccountsAPIClient is a client for the accounts.accountsapi.v1.AccountsAPI service.
 type AccountsAPIClient interface {
-	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error)
+	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
 }
 
 // NewAccountsAPIClient constructs a client for the accounts.accountsapi.v1.AccountsAPI service. By
@@ -60,7 +59,7 @@ type AccountsAPIClient interface {
 func NewAccountsAPIClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AccountsAPIClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &accountsAPIClient{
-		createAccount: connect.NewClient[v1.CreateAccountRequest, v11.Empty](
+		createAccount: connect.NewClient[v1.CreateAccountRequest, v1.CreateAcountResponse](
 			httpClient,
 			baseURL+AccountsAPICreateAccountProcedure,
 			connect.WithSchema(accountsAPICreateAccountMethodDescriptor),
@@ -71,17 +70,17 @@ func NewAccountsAPIClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // accountsAPIClient implements AccountsAPIClient.
 type accountsAPIClient struct {
-	createAccount *connect.Client[v1.CreateAccountRequest, v11.Empty]
+	createAccount *connect.Client[v1.CreateAccountRequest, v1.CreateAcountResponse]
 }
 
 // CreateAccount calls accounts.accountsapi.v1.AccountsAPI.CreateAccount.
-func (c *accountsAPIClient) CreateAccount(ctx context.Context, req *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error) {
+func (c *accountsAPIClient) CreateAccount(ctx context.Context, req *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error) {
 	return c.createAccount.CallUnary(ctx, req)
 }
 
 // AccountsAPIHandler is an implementation of the accounts.accountsapi.v1.AccountsAPI service.
 type AccountsAPIHandler interface {
-	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error)
+	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
 }
 
 // NewAccountsAPIHandler builds an HTTP handler from the service implementation. It returns the path
@@ -109,6 +108,6 @@ func NewAccountsAPIHandler(svc AccountsAPIHandler, opts ...connect.HandlerOption
 // UnimplementedAccountsAPIHandler returns CodeUnimplemented from all methods.
 type UnimplementedAccountsAPIHandler struct{}
 
-func (UnimplementedAccountsAPIHandler) CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v11.Empty], error) {
+func (UnimplementedAccountsAPIHandler) CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.AccountsAPI.CreateAccount is not implemented"))
 }

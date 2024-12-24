@@ -7,13 +7,14 @@ import (
 
 	boot "libs/backend/boot"
 	commonv1 "libs/backend/proto-gen/go/common/v1"
-	pb "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
+	inboundwebhooksapiv1 "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 
 	"connectrpc.com/connect"
 )
 
 // AuthHandler handles all gRPC endpoints for inbound webhooks
 type AuthHandler struct {
+	inboundwebhooksapiv1.UnimplementedInboundWebhooksAuthAPIServer
 	Logger      boot.Logger
 	Application application.Application
 }
@@ -30,7 +31,7 @@ func NewAuthHandler(logger boot.Logger, application application.Application) *Au
 // to an exchange within the message broker
 func (h *AuthHandler) UserRegistered(
 	ctx context.Context,
-	req *connect.Request[pb.UserRegisteredRequest],
+	req *connect.Request[inboundwebhooksapiv1.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
 	if err := h.Application.AuthService.RegisterUser(
 		domain.NewUser(
