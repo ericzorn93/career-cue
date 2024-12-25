@@ -90,7 +90,7 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 		}
 
 		if err := http.ListenAndServe(
-			fmt.Sprintf("%s:%d", flyPrivateIP, s.connectRPCOptions.Port),
+			fmt.Sprintf("[%s]:%d", flyPrivateIP, s.connectRPCOptions.Port),
 			// Use h2c so we can serve HTTP/2 without TLS.
 			h2c.NewHandler(mux, &http2.Server{}),
 		); err != nil {
