@@ -90,7 +90,9 @@ func WithMetadata(Metadata map[string]any) UserOption {
 
 // NewUser is the constructor for a User struct
 func NewUser(opts ...UserOption) User {
-	u := User{}
+	u := User{
+		Metadata: make(map[string]any),
+	}
 
 	for _, opt := range opts {
 		opt(&u)

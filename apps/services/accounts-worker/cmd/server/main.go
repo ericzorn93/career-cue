@@ -1,6 +1,7 @@
 package main
 
 import (
+	"apps/services/accounts-worker/internal/adapters/handlers/messagebroker"
 	"apps/services/accounts-worker/internal/app"
 	"apps/services/accounts-worker/internal/config"
 	"apps/services/accounts-worker/internal/domain/services"
@@ -17,6 +18,21 @@ import (
 	boot "libs/backend/boot"
 	"libs/backend/eventing"
 )
+
+// setupHandler sets up the handler for the message broker
+func setupHandler(logger boot.Logger, accountsAPIUri string, amqpConsumer boot.AMQPConsumer) messagebroker.LavinMQHandler {
+	// Initialize the application
+	accountService := services.NewAccountService(services.AccountServiceParams{
+		Logger:         logger,
+		AccountsAPIURI: accountsAPIUri,
+	})
+	application := app.NewApp(app.WithAccountService(accountService))
+
+	// Initialize the message broker handler
+	handler := messagebroker.NewLavinMQHandler(logger, amqpConsumer, application)
+
+	return handler
+}
 
 func run() error {
 	// Application Context
@@ -68,16 +84,12 @@ func run() error {
 			},
 			Handlers: []boot.AMQPHandler{
 				func(hp boot.AMQPHandlerParams) error {
+					handler := setupHandler(hp.Logger, config.AccountsAPIUri, hp.AMQPController.Consumer)
 
-					accountService := services.NewAccountService(services.AccountServiceParams{
-						Logger:          hp.Logger,
-						AccountConsumer: hp.AMQPController.Consumer,
-						AccountsAPIURI:  config.AccountsAPIUri,
-					})
-					application := app.NewApp(app.WithAccountService(accountService))
-
-					// TODO: Register Handler
-					application.AccountService.PublishAccountCreated(config.UserRegistrationQueueName)
+					// Handle the user registered event
+					if err := handler.HandleUserRegisteredEvent(ctx, config.UserRegistrationQueueName); err != nil {
+						hp.Logger.Error("Cannot handle user registered event", slog.Any("error", err))
+					}
 
 					return nil
 				},

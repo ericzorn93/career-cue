@@ -11,11 +11,11 @@ type App struct {
 type AppOption func(*App)
 
 // NewApp creates a new App struct
-func NewApp(opts ...AppOption) *App {
-	app := new(App)
+func NewApp(opts ...AppOption) App {
+	app := App{}
 
 	for _, opt := range opts {
-		opt(app)
+		opt(&app)
 	}
 
 	return app
