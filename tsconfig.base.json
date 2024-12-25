@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@career-cue/backend-service": ["tools/backend-service/src/index.ts"]
+      "@career-cue/backend-service": ["tools/backend-service/src/index.ts"],
+      "@career-cue/proto-gen/es": ["libs/backend/proto-gen/es/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

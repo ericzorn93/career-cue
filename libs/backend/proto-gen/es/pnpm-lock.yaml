@@ -1,0 +1,19 @@
+lockfileVersion: '6.0'
+
+dependencies:
+  '@bufbuild/protobuf':
+    specifier: ^2.2.3
+    version: 2.2.3
+  tslib:
+    specifier: ^2.3.0
+    version: 2.3.0
+
+packages:
+
+  /@bufbuild/protobuf@2.2.3:
+    resolution: {integrity: sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==}
+    dev: false
+
+  /tslib@2.3.0:
+    resolution: {integrity: sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==}
+    dev: false

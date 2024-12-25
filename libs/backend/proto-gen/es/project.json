@@ -1,0 +1,19 @@
+{
+  "name": "proto-gen-es",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/backend/proto-gen/es/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/backend/proto-gen/es",
+        "main": "libs/backend/proto-gen/es/src/index.ts",
+        "tsConfig": "libs/backend/proto-gen/es/tsconfig.lib.json",
+        "assets": ["libs/backend/proto-gen/es/*.md"]
+      }
+    }
+  }
+}
