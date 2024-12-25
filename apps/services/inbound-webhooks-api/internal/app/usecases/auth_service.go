@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"apps/services/inbound-webhooks-api/internal/domain/entities"
 	boot "libs/backend/boot"
+	"libs/backend/domain/user"
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 
@@ -28,7 +28,7 @@ func NewAuthService(logger boot.Logger, amqpPublisher boot.AMQPPublisher) AuthSe
 
 // RegisterUser is an application interface method to handle user registration
 // webhooks
-func (s AuthService) RegisterUser(user entities.User) error {
+func (s AuthService) RegisterUser(user user.User) error {
 	s.Logger.Info("Publishing userRegistered Event")
 
 	metadata := make(map[string]*anypb.Any)

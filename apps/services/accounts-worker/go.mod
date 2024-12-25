@@ -5,7 +5,6 @@ go 1.23
 require (
 	connectrpc.com/connect v1.17.0
 	connectrpc.com/validate v0.1.0
-	github.com/rabbitmq/amqp091-go v1.10.0
 	google.golang.org/grpc v1.68.1
 	google.golang.org/protobuf v1.35.2
 )
