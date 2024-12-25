@@ -44,18 +44,18 @@ func (s *BootService) EstablishAMQPConnection(opts AMQPOptions) error {
 	connectionPrefixes := [2]string{"amqp://", "amqps://"}
 	hasPrefix := false
 	for _, prefix := range connectionPrefixes {
-		hasPrefix = strings.HasPrefix(opts.ConnectionURI, prefix)
-		if hasPrefix {
+		if hasPrefix = strings.HasPrefix(opts.ConnectionURI, prefix); hasPrefix {
 			break
 		}
 	}
 
+	// Validate AMQP connection string
 	if opts.ConnectionURI == "" || !hasPrefix {
 		s.logger.Error("Cannot connect to AMQP with empty connection string")
 		return errors.New("cannot connect with invalid AMQP String")
 	}
 
-	// Connect to AMQP broker and poll every 10 seconds god health
+	// Connect to AMQP broker and poll every 10 seconds good health
 	conn, err := amqp.DialConfig(opts.ConnectionURI, amqp.Config{
 		Heartbeat: time.Second * 10,
 	})
@@ -96,11 +96,16 @@ func (s *BootService) EstablishAMQPConnection(opts AMQPOptions) error {
 	// Register all the handlers and run indefinitely
 	forever := make(chan struct{})
 	for _, handler := range opts.Handlers {
+		handler := handler
 		handlerParams := AMQPHandlerParams{
 			Logger:         s.logger,
 			AMQPController: controller,
 		}
-		go handler(handlerParams)
+		go func() {
+			if err := handler(handlerParams); err != nil {
+				s.logger.Error("AMQP handler failed", slog.Any("error", err))
+			}
+		}()
 	}
 	<-forever
 	return nil

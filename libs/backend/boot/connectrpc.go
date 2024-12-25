@@ -45,12 +45,17 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// Register protobuf
 	for _, grpcHandler := range s.connectRPCOptions.Handlers {
-		grpcHandler(ConnectRPCHandlerParams{
+		err := grpcHandler(ConnectRPCHandlerParams{
 			Context:        ctx,
 			Logger:         s.logger,
 			Mux:            mux,
 			AMQPController: s.amqpController,
 		})
+
+		if err != nil {
+			s.logger.Error("Error occurred", "error", err)
+			return err
+		}
 	}
 
 	// Start Connect/gRPC Server
@@ -58,6 +63,7 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// Create an error group to handle multiple goroutines running HTTP Service
 	egroup := errgroup.Group{}
+	egroup.SetLimit(2)
 
 	// Start the HTTP server
 	egroup.Go(func() error {
