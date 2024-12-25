@@ -14,4 +14,5 @@ RUN apk update --no-cache bash curl
 WORKDIR /app
 COPY --from=builder /bin/accounts-api /bin/accounts-api
 EXPOSE 3000
+EXPOSE 5000
 CMD [ "/bin/accounts-api" ]

@@ -1,15 +1,15 @@
 package connectrpc
 
 import (
-	"apps/services/inbound-webhooks-api/internal/app"
-	"apps/services/inbound-webhooks-api/internal/domain/entities"
 	"context"
 
+	"connectrpc.com/connect"
+
+	"apps/services/inbound-webhooks-api/internal/app"
 	boot "libs/backend/boot"
+	"libs/backend/domain/user"
 	commonv1 "libs/backend/proto-gen/go/common/v1"
 	inboundwebhooksapiv1 "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
-
-	"connectrpc.com/connect"
 )
 
 // AuthHandler handles all gRPC endpoints for inbound webhooks
@@ -34,17 +34,17 @@ func (h *AuthHandler) UserRegistered(
 	req *connect.Request[inboundwebhooksapiv1.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
 	if err := h.Application.AuthService.RegisterUser(
-		entities.NewUser(
-			entities.WithUserFirstName(req.Msg.FirstName),
-			entities.WithUserLastName(req.Msg.LastName),
-			entities.WithUserNickname(req.Msg.Nickname),
-			entities.WithUserUsername(req.Msg.Username),
-			entities.WithEmailAddress(req.Msg.EmailAddress),
-			entities.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
-			entities.WithPhoneNumber(req.Msg.PhoneNumber),
-			entities.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
-			entities.WithStrategy(req.Msg.Strategy),
-			entities.WithMetadata(make(map[string]any, 0)),
+		user.NewUser(
+			user.WithUserFirstName(req.Msg.FirstName),
+			user.WithUserLastName(req.Msg.LastName),
+			user.WithUserNickname(req.Msg.Nickname),
+			user.WithUserUsername(req.Msg.Username),
+			user.WithEmailAddress(req.Msg.EmailAddress),
+			user.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
+			user.WithPhoneNumber(req.Msg.PhoneNumber),
+			user.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
+			user.WithStrategy(req.Msg.Strategy),
+			user.WithMetadata(make(map[string]any, 0)),
 		),
 	); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
