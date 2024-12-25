@@ -1,25 +1,21 @@
 package main
 
 import (
+	"apps/services/accounts-worker/internal/app"
 	"apps/services/accounts-worker/internal/config"
+	"apps/services/accounts-worker/internal/domain/services"
 	"context"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/proto"
 
 	boot "libs/backend/boot"
 	"libs/backend/eventing"
-	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
-	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
-	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 )
 
 func run() error {
@@ -72,23 +68,16 @@ func run() error {
 			},
 			Handlers: []boot.AMQPHandler{
 				func(hp boot.AMQPHandlerParams) error {
-					msgs, err := hp.AMQPController.Consumer.Consume(
-						config.UserRegistrationQueueName, // queue
-						"",                               // consumer
-						true,                             // auto-ack
-						false,                            // exclusive
-						false,                            // no-local
-						false,                            // no-wait
-						nil,                              // args
-					)
-					if err != nil {
-						hp.Logger.Error("Cannot consume messages", slog.Any("error", err))
-						return err
-					}
 
-					for msg := range msgs {
-						go temporaryHandleUserRegisteredEvent(hp.Logger, msg, config.AccountsAPIUri)
-					}
+					accountService := services.NewAccountService(services.AccountServiceParams{
+						Logger:          hp.Logger,
+						AccountConsumer: hp.AMQPController.Consumer,
+						AccountsAPIURI:  config.AccountsAPIUri,
+					})
+					application := app.NewApp(app.WithAccountService(accountService))
+
+					// TODO: Register Handler
+					application.AccountService.PublishAccountCreated(config.UserRegistrationQueueName)
 
 					return nil
 				},
@@ -117,25 +106,4 @@ func main() {
 		log.Printf("Cannot start service")
 		os.Exit(1)
 	}
-}
-
-// TODO: Remove after implementing the actual handler
-func temporaryHandleUserRegisteredEvent(logger boot.Logger, msg amqp.Delivery, accountsAPIUri string) {
-	var userRegisteredEvent accountseventsv1.UserRegistered
-	proto.Unmarshal(msg.Body, &userRegisteredEvent)
-	logger.Info("Received message", slog.String("msg", userRegisteredEvent.String()))
-
-	// Call the accounts-api to create the account
-	client := accountsapiv1connect.NewRegistrationServiceClient(http.DefaultClient, accountsAPIUri)
-	client.CreateAccount(context.Background(), connect.NewRequest(&accountsapiv1.CreateAccountRequest{
-		FirstName:            userRegisteredEvent.FirstName,
-		LastName:             userRegisteredEvent.LastName,
-		Nickname:             userRegisteredEvent.Nickname,
-		Username:             userRegisteredEvent.Username,
-		EmailAddress:         userRegisteredEvent.EmailAddress,
-		EmailAddressVerified: userRegisteredEvent.EmailAddressVerified,
-		PhoneNumber:          userRegisteredEvent.PhoneNumber,
-		PhoneNumberVerified:  userRegisteredEvent.PhoneNumberVerified,
-		Strategy:             userRegisteredEvent.Strategy,
-	}))
 }
