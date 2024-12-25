@@ -1,10 +1,11 @@
 go 1.23
 
 use (
-	./apps/services/inbound-webhooks-api
 	./apps/services/accounts-api
 	./apps/services/accounts-worker
+	./apps/services/inbound-webhooks-api
 	./libs/backend/boot
+	./libs/backend/domain/user
 	./libs/backend/eventing
 	./libs/backend/proto-gen/go
 )
