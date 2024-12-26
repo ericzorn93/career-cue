@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"gorm.io/gorm"
 )
 
 // BootServiceBuilder is a builder struct for the BootService Instance
@@ -75,7 +77,8 @@ type BootService struct {
 	amqpOptions       AMQPOptions
 	amqpController    AMQPController
 	dbOptions         DBOptions
-	db                *sql.DB
+	localDB           *sql.DB
+	db                *gorm.DB
 	bootCallbacks     []BootCallback
 }
 
@@ -120,6 +123,8 @@ func (s *BootService) startDBConnection(opts DBOptions) error {
 
 // Start spins up the service
 func (s *BootService) Start(ctx context.Context) error {
+	forever := make(chan struct{})
+	defer close(forever)
 	s.logger.Info("Service started", slog.String("serviceName", s.name))
 
 	// Handle Shutdown of the service
@@ -131,10 +136,8 @@ func (s *BootService) Start(ctx context.Context) error {
 		if err := bs.Stop(ctx); err != nil {
 			bs.logger.Error("Trouble closing the boot service", slog.String("serviceName", bs.name))
 		}
+		os.Exit(0)
 	}(ctx, s)
-
-	// Control Go Routines
-	s.wg.Add(1)
 
 	// Start the connection to AMQP broker
 	if err := s.startAMQPBrokerConnection(s.amqpOptions); err != nil {
@@ -149,17 +152,10 @@ func (s *BootService) Start(ctx context.Context) error {
 	}
 
 	// Start the connectRPC Service
-	go func() {
-		defer s.wg.Done()
-
-		if err := s.StartConnectRPCService(ctx); err != nil {
-			s.logger.Error("Cannot properly start connectRPC Service")
-			os.Exit(1)
-		}
-	}()
-
-	// Wait for services to start
-	s.wg.Wait()
+	if err := s.StartConnectRPCService(ctx); err != nil {
+		s.logger.Error("Cannot properly start connectRPC Service")
+		os.Exit(1)
+	}
 
 	// Execute boot callbacks after service starts
 	for _, cb := range s.bootCallbacks {
@@ -171,6 +167,7 @@ func (s *BootService) Start(ctx context.Context) error {
 		}
 	}
 
+	<-forever
 	return nil
 }
 
@@ -183,7 +180,8 @@ func (s *BootService) Close() error {
 	}
 
 	// Close the CockroachDB connection
-	if err := s.db.Close(); err != nil {
+	s.logger.Info("Closing DB connection")
+	if err := s.localDB.Close(); err != nil {
 		s.logger.Error("Trouble closing the DB connection")
 	}
 

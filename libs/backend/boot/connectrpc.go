@@ -2,7 +2,6 @@ package boot
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -10,8 +9,8 @@ import (
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc/credentials"
+	"gorm.io/gorm"
 )
 
 // ConnectRPCHandlerParams will be passed to the handler registered
@@ -20,7 +19,7 @@ type ConnectRPCHandlerParams struct {
 	Logger         Logger
 	Mux            *http.ServeMux
 	AMQPController AMQPController
-	DB             *sql.DB
+	DB             *gorm.DB
 }
 
 // ConnectRPCHandler is a type of callback used specifically for starting the gRPC handlers
@@ -65,11 +64,8 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 	s.logger.Info("Starting service on HTTP", slog.String("serviceName", s.name))
 
 	// Create an error group to handle multiple goroutines running HTTP Service
-	egroup := errgroup.Group{}
-	egroup.SetLimit(2)
-
 	// Start the HTTP server
-	egroup.Go(func() error {
+	go func() error {
 		s.logger.Info("Service bound to port", slog.Uint64("port", s.connectRPCOptions.Port), slog.String("serviceName", s.name))
 
 		if err := http.ListenAndServe(
@@ -82,10 +78,10 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 		}
 
 		return nil
-	})
+	}()
 
 	// Start the IPV6 bound HTTP server for Fly.io (production only) - Always run on port 5000
-	egroup.Go(func() error {
+	go func() error {
 		environment := os.Getenv("ENV")
 		if environment != "production" && environment != "prod" {
 			s.logger.Info("Not running in production on Fly.io, skipping IPV6 bound HTTP server")
@@ -105,7 +101,7 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 		}
 
 		return nil
-	})
+	}()
 
-	return egroup.Wait()
+	return nil
 }

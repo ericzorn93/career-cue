@@ -29,7 +29,8 @@ func (bs *BootService) InitializeDB() (err error) {
 		return
 	}
 
-	bs.db = sqlDB
+	bs.localDB = sqlDB
+	bs.db = db
 	bs.logger.Info("DB connected successfully")
 
 	return err
