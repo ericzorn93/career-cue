@@ -2,6 +2,7 @@ package boot
 
 import (
 	"context"
+	"database/sql"
 	"io"
 	"log/slog"
 	"os"
@@ -46,6 +47,12 @@ func (bsb *BootServiceBuilder) SetAMQPOptions(amqpOptions AMQPOptions) *BootServ
 	return bsb
 }
 
+// SetDBOptions sets the DB options for connection on the BootService
+func (bsb *BootServiceBuilder) SetDBOptions(dbOptions DBOptions) *BootServiceBuilder {
+	bsb.bootService.dbOptions = dbOptions
+	return bsb
+}
+
 // SetBootCallbacks sets the boot callback for connection on the BootService
 func (bsb *BootServiceBuilder) SetBootCallbacks(bootCallbacks []BootCallback) *BootServiceBuilder {
 	bsb.bootService.bootCallbacks = bootCallbacks
@@ -67,6 +74,8 @@ type BootService struct {
 	connectRPCOptions ConnectRPCOptions
 	amqpOptions       AMQPOptions
 	amqpController    AMQPController
+	dbOptions         DBOptions
+	db                *sql.DB
 	bootCallbacks     []BootCallback
 }
 
@@ -95,6 +104,20 @@ func (s *BootService) startAMQPBrokerConnection(opts AMQPOptions) error {
 	return nil
 }
 
+// startDBConnection will assign the DB options to the Boot Service
+// and start the connection to the DB
+func (s *BootService) startDBConnection(opts DBOptions) error {
+	// Check if options are empty
+	if opts.IsZero() {
+		s.logger.Warn("DB will not be used with empty config")
+		return nil
+	}
+
+	// Establish connection to DB
+	s.logger.Info("Establishing connection to DB")
+	return s.InitializeDB()
+}
+
 // Start spins up the service
 func (s *BootService) Start(ctx context.Context) error {
 	s.logger.Info("Service started", slog.String("serviceName", s.name))
@@ -116,6 +139,12 @@ func (s *BootService) Start(ctx context.Context) error {
 	// Start the connection to AMQP broker
 	if err := s.startAMQPBrokerConnection(s.amqpOptions); err != nil {
 		s.logger.Error("Cannot establish connection to AMQP broker", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	// Start the connection to CockroachDB
+	if err := s.startDBConnection(s.dbOptions); err != nil {
+		s.logger.Error("Cannot establish connection to DB", slog.Any("error", err))
 		os.Exit(1)
 	}
 
@@ -148,8 +177,14 @@ func (s *BootService) Start(ctx context.Context) error {
 // Close supports the io.Closer interface and will shutdown the service
 // when the process is done or programatically
 func (s *BootService) Close() error {
+	// Close the AMQP connection
 	if err := s.amqpController.Close(); err != nil {
 		s.logger.Error("Trouble closing the AMQP connection")
+	}
+
+	// Close the CockroachDB connection
+	if err := s.db.Close(); err != nil {
+		s.logger.Error("Trouble closing the DB connection")
 	}
 
 	s.logger.Info("Service stopped", "serviceName", s.name)

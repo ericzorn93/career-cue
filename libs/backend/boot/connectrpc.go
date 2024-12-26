@@ -2,6 +2,7 @@ package boot
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -19,6 +20,7 @@ type ConnectRPCHandlerParams struct {
 	Logger         Logger
 	Mux            *http.ServeMux
 	AMQPController AMQPController
+	DB             *sql.DB
 }
 
 // ConnectRPCHandler is a type of callback used specifically for starting the gRPC handlers
@@ -50,6 +52,7 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 			Logger:         s.logger,
 			Mux:            mux,
 			AMQPController: s.amqpController,
+			DB:             s.db,
 		})
 
 		if err != nil {

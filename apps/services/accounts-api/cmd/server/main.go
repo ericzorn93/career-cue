@@ -51,15 +51,13 @@ func run() error {
 		NewBuildServiceBuilder().
 		SetServiceName(serviceName).
 		SetLogger(logger).
+		SetDBOptions(boot.DBOptions{
+			ConnectionDSN: config.DBDsn,
+		}).
 		SetAMQPOptions(boot.AMQPOptions{
 			ConnectionURI: config.AMQPUrl,
 			OnConnectionCallback: func(params boot.AMQPCallBackParams) error {
 				params.Logger.Info("AMQP connected successfully")
-
-				// Set up all AMQP queues and exchanges
-
-				params.Logger.Info("Set up all AMQP queues and exchanges")
-
 				return nil
 			},
 		}).
