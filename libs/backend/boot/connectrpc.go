@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -81,16 +80,8 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// Start the IPV6 bound HTTP server for Fly.io (production only) - Always run on port 5000
 	egroup.Go(func() error {
-		// Get IPV6 address from environment
-		flyPrivateIP := os.Getenv("FLY_PRIVATE_IP")
-
-		if flyPrivateIP == "" {
-			s.logger.Info("No Fly.io private IP found, running in Development mode")
-			return nil
-		}
-
 		if err := http.ListenAndServe(
-			fmt.Sprintf("[%s]:%d", flyPrivateIP, 5000),
+			fmt.Sprintf("fly-local-6pn:%d", 8080),
 			// Use h2c so we can serve HTTP/2 without TLS.
 			h2c.NewHandler(mux, &http2.Server{}),
 		); err != nil {
