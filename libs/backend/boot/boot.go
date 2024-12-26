@@ -88,6 +88,7 @@ func (s *BootService) startAMQPBrokerConnection(opts AMQPOptions) error {
 	// Establish connection to AMQP broker
 	err := s.EstablishAMQPConnection(opts)
 	if err != nil {
+		s.logger.Error("Cannot establish connection to AMQP broker", slog.Any("error", err))
 		return err
 	}
 
@@ -105,7 +106,7 @@ func (s *BootService) Start(ctx context.Context) error {
 		<-exitCh
 		bs.logger.Info("Shutting down the service")
 		if err := bs.Stop(ctx); err != nil {
-			bs.logger.Error("Trouble closing the boot service")
+			bs.logger.Error("Trouble closing the boot service", slog.String("serviceName", bs.name))
 		}
 	}(ctx, s)
 
