@@ -67,6 +67,8 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// Start the HTTP server
 	egroup.Go(func() error {
+		s.logger.Info("Service bound to port", slog.Uint64("port", s.connectRPCOptions.Port), slog.String("serviceName", s.name))
+
 		if err := http.ListenAndServe(
 			fmt.Sprintf(":%d", s.connectRPCOptions.Port),
 			// Use h2c so we can serve HTTP/2 without TLS.
@@ -87,8 +89,11 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 			return nil
 		}
 
+		const flyPort uint64 = 8080
+		s.logger.Info("Service bound to port in production", slog.Uint64("port", flyPort), slog.String("serviceName", s.name))
+
 		if err := http.ListenAndServe(
-			fmt.Sprintf("fly-local-6pn:%d", 8080),
+			fmt.Sprintf("fly-local-6pn:%d", flyPort),
 			// Use h2c so we can serve HTTP/2 without TLS.
 			h2c.NewHandler(mux, &http2.Server{}),
 		); err != nil {
