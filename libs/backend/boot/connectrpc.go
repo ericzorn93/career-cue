@@ -67,6 +67,8 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// Start the HTTP server
 	egroup.Go(func() error {
+		s.logger.Info("Service bound to port", slog.Uint64("port", s.connectRPCOptions.Port), slog.String("serviceName", s.name))
+
 		if err := http.ListenAndServe(
 			fmt.Sprintf(":%d", s.connectRPCOptions.Port),
 			// Use h2c so we can serve HTTP/2 without TLS.
@@ -81,16 +83,17 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// Start the IPV6 bound HTTP server for Fly.io (production only) - Always run on port 5000
 	egroup.Go(func() error {
-		// Get IPV6 address from environment
-		flyPrivateIP := os.Getenv("FLY_PRIVATE_IP")
-
-		if flyPrivateIP == "" {
-			s.logger.Info("No Fly.io private IP found, running in Development mode")
+		environment := os.Getenv("ENV")
+		if environment != "production" && environment != "prod" {
+			s.logger.Info("Not running in production on Fly.io, skipping IPV6 bound HTTP server")
 			return nil
 		}
 
+		const flyPort uint64 = 8080
+		s.logger.Info("Service bound to port in production", slog.Uint64("port", flyPort), slog.String("serviceName", s.name))
+
 		if err := http.ListenAndServe(
-			fmt.Sprintf("[%s]:%d", flyPrivateIP, 5000),
+			fmt.Sprintf("fly-local-6pn:%d", flyPort),
 			// Use h2c so we can serve HTTP/2 without TLS.
 			h2c.NewHandler(mux, &http2.Server{}),
 		); err != nil {

@@ -5,6 +5,7 @@ primary_region = 'ewr'
 
 [build]
 dockerfile = "Dockerfile"
+ignorefile = ".dockerignore"
 
 [[machines]]
 restart_policy = "always"
