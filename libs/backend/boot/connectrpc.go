@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -80,6 +81,12 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// Start the IPV6 bound HTTP server for Fly.io (production only) - Always run on port 5000
 	egroup.Go(func() error {
+		environment := os.Getenv("ENV")
+		if environment != "production" && environment != "prod" {
+			s.logger.Info("Not running in production on Fly.io, skipping IPV6 bound HTTP server")
+			return nil
+		}
+
 		if err := http.ListenAndServe(
 			fmt.Sprintf("fly-local-6pn:%d", 8080),
 			// Use h2c so we can serve HTTP/2 without TLS.
