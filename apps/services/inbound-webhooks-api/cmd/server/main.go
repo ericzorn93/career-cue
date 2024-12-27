@@ -59,13 +59,11 @@ func run() error {
 			OnConnectionCallback: func(params boot.AMQPCallBackParams) error {
 				params.Logger.Info("AMQP connected successfully")
 
-				// Set Up Auth Events
-				if err := eventing.CreateUserRegisterationAuthEventInfrastructure(eventing.RegisterAuthParams{
-					Log:        params.Logger,
-					Registerer: params.Controller.Registerer,
-				}); err != nil {
-					params.Logger.Error("Trouble setting up auth events")
-				}
+				// Set up the auth event queues and exchanges
+				authEventRegisterer := eventing.NewAuthEventSetup(params.Controller.Registerer, params.Logger)
+				authEventRegisterer.
+					CreateExchange().
+					Complete()
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")
 

@@ -16,11 +16,6 @@ var (
 	EventNameUserRegistered EventName = EventName(GetEventName(AuthDomain, "userRegistered"))
 )
 
-// Routing Keys
-var (
-	defaultAuthRoutingKey = GetRoutingKeyPrefix(AuthDomain) + ".*"
-)
-
 // GetUserRegisteredRoutingKey returns the routing key for user registered event
 func GetUserRegisteredRoutingKey() string {
 	return EventNameUserRegistered.String()
@@ -34,23 +29,44 @@ type RegisterAuthParams struct {
 	RoutingKey string
 }
 
-// CreateUserRegisterationAuthEventInfrastructure constructs Auth Queue from AMQP Channel
-func CreateUserRegisterationAuthEventInfrastructure(params RegisterAuthParams) error {
+// AuthRegisterer is a struct for auth queues and exchanges constructor
+type AuthEventSetup struct {
+	registerer boot.AMQPRegisterer
+	log        boot.Logger
+	queueNames []string
+}
+
+func NewAuthEventSetup(registerer boot.AMQPRegisterer, log boot.Logger) AuthEventSetup {
+	return AuthEventSetup{
+		registerer: registerer,
+		log:        log,
+		queueNames: make([]string, 0),
+	}
+}
+
+// CreateExchange creates an exchange for the auth event setup
+func (a *AuthEventSetup) CreateExchange() *AuthEventSetup {
 	// Initialize Auth Exchange - topic
-	err := params.Registerer.ExchangeDeclare(AuthExchange, "topic", true, false, false, false, nil)
+	err := a.registerer.ExchangeDeclare(AuthExchange, "topic", true, false, false, false, nil)
 	if err != nil {
-		params.Log.Error("Cannot create exchange")
-		return err
+		a.log.Error("Cannot create exchange")
+		return a
 	}
 
+	a.log.Info("Created auth exchange", slog.String("exchangeName", AuthExchange))
+	return a
+}
+
+func (a *AuthEventSetup) CreateQueue(queueName string) *AuthEventSetup {
 	// Create a queue for the service
-	if params.QueueName == "" {
-		params.Log.Warn("User Registration queue name is empty")
-		return nil
+	if queueName == "" {
+		a.log.Warn("Auth queue name is empty")
+		return a
 	}
 
-	registrationQueue, err := params.Registerer.QueueDeclare(
-		params.QueueName,
+	// Register auth queue with the broker
+	registrationQueue, err := a.registerer.QueueDeclare(
+		queueName,
 		true,
 		false,
 		false,
@@ -58,27 +74,37 @@ func CreateUserRegisterationAuthEventInfrastructure(params RegisterAuthParams) e
 		nil,
 	)
 	if err != nil {
-		params.Log.Error("Cannot create queue", slog.String("queueName", params.QueueName))
-		return err
+		a.log.Error("Cannot create queue", slog.String("queueName", queueName))
+		return a
 	}
-	params.Log.Info("Created userRegistration queue", slog.String("queueName", registrationQueue.Name))
+	a.log.Info("Created auth queue", slog.String("queueName", registrationQueue.Name))
 
+	// Add queue name to the list of queues for auth
+	a.queueNames = append(a.queueNames, registrationQueue.Name)
+
+	return a
+}
+
+// BindQueues binds the queues to the exchange for each routing key
+func (a *AuthEventSetup) BindQueues(routingKeys []string) *AuthEventSetup {
 	// Bind Queue to Exchange
-	var chosenRoutingKey string
-	if params.RoutingKey == "" {
-		chosenRoutingKey = defaultAuthRoutingKey
-	} else {
-		chosenRoutingKey = params.RoutingKey
+	for _, queueName := range a.queueNames {
+		for _, routingKey := range routingKeys {
+			if err := a.registerer.QueueBind(queueName, routingKey, AuthExchange, false, nil); err != nil {
+				a.log.Error(
+					"Cannot bind registration queue to exchange",
+					slog.String("queueName", queueName),
+					slog.String("exchangeName", AuthExchange),
+				)
+				return a
+			}
+		}
 	}
 
-	if err = params.Registerer.QueueBind(registrationQueue.Name, chosenRoutingKey, AuthExchange, false, nil); err != nil {
-		params.Log.Error(
-			"Cannot bind registration queue to exchange",
-			slog.String("queueName", registrationQueue.Name),
-			slog.String("exchangeName", AuthExchange),
-		)
-		return err
-	}
+	return a
+}
 
-	return nil
+// Complete completes the auth event setup
+func (a AuthEventSetup) Complete() {
+	a.log.Info("Completed auth event setup")
 }

@@ -1,6 +1,7 @@
 version: '3.9'
 name: career-cue
 services:
+  ############ INBOUND WEBHOOKS API ############
   inbound-webhooks-api:
     image: career-cue/inbound-webhooks-api
     container_name: career-cue-inbound-webhooks-api
@@ -15,6 +16,9 @@ services:
       - inbound-webhooks-api:/app
     depends_on:
       - lavinmq
+  ############ /INBOUND WEBHOOKS API ############
+
+  ############ ACCOUNTS API ############
   accounts-api:
     image: career-cue/accounts-api
     container_name: career-cue-accounts-api
@@ -29,6 +33,10 @@ services:
       - accounts-api:/app
     depends_on:
       - inbound-webhooks-api
+      - cockroachdb-cluster
+  ############ /ACCOUNTS API ############
+
+  ############ ACCOUNTS WORKER ############
   accounts-worker:
     image: career-cue/accounts-worker
     container_name: career-cue-accounts-worker
@@ -43,6 +51,9 @@ services:
       - accounts-worker:/app
     depends_on:
       - inbound-webhooks-api
+  ############ /ACCOUNTS WORKER ############
+
+  ############ LAVINMQ ############
   lavinmq:
     image: cloudamqp/lavinmq:latest
     container_name: lavinmq
@@ -51,8 +62,23 @@ services:
       - 15672:15672 # Management UI
       - 5672:5672 # AMQP
     restart: always
+  ############ /LAVINMQ ############
+
+  ############ CockroachDB Cluser ############
+  cockroachdb-cluster:
+    image: cockroachdb/cockroach
+    ports:
+      - '26257:26257'
+      - '9876:8080'
+    command: start-single-node --insecure
+    volumes:
+      - cockroachdb-cluster:/cockroach/cockroach-data'
+      - ./docker-startup/db:/docker-entrypoint-initdb.d
+    restart: always
+  ############ /CockroachDB Cluser ############
 volumes:
   inbound-webhooks-api:
   accounts-api:
   accounts-worker:
   lavinmq:
+  cockroachdb-cluster:

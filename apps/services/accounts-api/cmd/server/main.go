@@ -2,6 +2,7 @@ package main
 
 import (
 	"apps/services/accounts-api/internal/config"
+	"apps/services/accounts-api/internal/models"
 	"context"
 	"errors"
 	"log"
@@ -51,15 +52,19 @@ func run() error {
 		NewBuildServiceBuilder().
 		SetServiceName(serviceName).
 		SetLogger(logger).
+		SetDBOptions(boot.DBOptions{
+			Host:     config.DBHost,
+			Name:     config.DBName,
+			User:     config.DBUser,
+			Password: config.DBPassword,
+			Port:     config.DBPort,
+			SSLMode:  config.DBSSLMode,
+			TimeZone: config.DBTimeZone,
+		}).
 		SetAMQPOptions(boot.AMQPOptions{
 			ConnectionURI: config.AMQPUrl,
 			OnConnectionCallback: func(params boot.AMQPCallBackParams) error {
 				params.Logger.Info("AMQP connected successfully")
-
-				// Set up all AMQP queues and exchanges
-
-				params.Logger.Info("Set up all AMQP queues and exchanges")
-
 				return nil
 			},
 		}).
@@ -85,9 +90,7 @@ func run() error {
 						options...,
 					)
 					params.Mux.Handle(path, httpHandler)
-					reflector := grpcreflect.NewStaticReflector(
-						accountsapiv1connect.RegistrationServiceName,
-					)
+					reflector := grpcreflect.NewStaticReflector(accountsapiv1connect.RegistrationServiceName)
 					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
 					params.Mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
@@ -96,6 +99,16 @@ func run() error {
 			},
 		}).
 		SetBootCallbacks([]boot.BootCallback{
+			func(params boot.BootCallbackParams) error {
+				// Run DB migrations
+				if err := params.DB.AutoMigrate(&models.Account{}); err != nil {
+					params.Logger.Error("Failed to run DB migrations", slog.Any("error", err))
+					return err
+				}
+
+				params.Logger.Info("Ran DB migrations", slog.String("serviceName", serviceName))
+				return nil
+			},
 			func(params boot.BootCallbackParams) error {
 				params.Logger.Info("Service booted successfully", slog.String("serviceName", serviceName))
 				return nil
