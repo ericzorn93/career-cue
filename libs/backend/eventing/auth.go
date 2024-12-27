@@ -3,12 +3,17 @@ package eventing
 import (
 	boot "libs/backend/boot"
 	"log/slog"
+
+	"github.com/rabbitmq/amqp091-go"
 )
 
 // Event Producer/Consumer
 const (
-	AuthExchange = "authExchange"
-	AuthDomain   = "auth"
+	AuthDomain               = "auth"
+	AuthExchange             = "authExchange"
+	AuthDeadletterExchange   = "authDeadletterExchange"
+	AuthDeadletterQueue      = "authDeadletterQueue"
+	AuthDeadletterRoutingKey = "authDlx"
 )
 
 // Event Names
@@ -53,6 +58,40 @@ func (a *AuthEventSetup) CreateExchange() *AuthEventSetup {
 		return a
 	}
 
+	// Initialize Dead Letter Exchange
+	err = a.registerer.ExchangeDeclare(AuthDeadletterExchange, "direct", true, false, false, false, nil)
+	if err != nil {
+		a.log.Error("Cannot create dead letter exchange")
+		return a
+	}
+
+	// Initialize Dead Letter Queue
+	authDeadletterQueue, err := a.registerer.QueueDeclare(
+		AuthDeadletterQueue, // name
+		true,                // durable
+		false,               // delete when unused
+		false,               // exclusive
+		false,               // no-wait
+		nil,                 // arguments
+	)
+	if err != nil {
+		a.log.Error("Failed to declare the auth dead letter queue:")
+		return a
+	}
+
+	// Bind Auth Dead Letter Queue to Auth Dead Letter Exchange
+	err = a.registerer.QueueBind(
+		authDeadletterQueue.Name, // queue name
+		AuthDeadletterRoutingKey, // routing key
+		AuthDeadletterExchange,   // exchange
+		false,
+		nil,
+	)
+	if err != nil {
+		a.log.Error("Cannot bind dead letter queue to exchange")
+		return a
+	}
+
 	a.log.Info("Created auth exchange", slog.String("exchangeName", AuthExchange))
 	return a
 }
@@ -71,12 +110,16 @@ func (a *AuthEventSetup) CreateQueue(queueName string) *AuthEventSetup {
 		false,
 		false,
 		false,
-		nil,
+		amqp091.Table{
+			"x-dead-letter-exchange":    AuthDeadletterExchange,
+			"x-dead-letter-routing-key": AuthDeadletterRoutingKey,
+		},
 	)
 	if err != nil {
 		a.log.Error("Cannot create queue", slog.String("queueName", queueName))
 		return a
 	}
+
 	a.log.Info("Created auth queue", slog.String("queueName", registrationQueue.Name))
 
 	// Add queue name to the list of queues for auth
