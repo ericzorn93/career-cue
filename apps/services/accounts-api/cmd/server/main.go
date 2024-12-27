@@ -27,7 +27,7 @@ const serviceName = "accounts-api"
 // Account is our model, which corresponds to the "accounts" table
 type Account struct {
 	gorm.Model
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	FirstName string
 }
 
@@ -109,10 +109,6 @@ func run() error {
 			},
 		}).
 		SetBootCallbacks([]boot.BootCallback{
-			func(params boot.BootCallbackParams) error {
-				params.Logger.Info("Creating database if not exists")
-				return params.DB.Exec("CREATE DATABASE IF NOT EXISTS accounts_api").Error
-			},
 			func(params boot.BootCallbackParams) error {
 				// Run DB migrations
 				if err := params.DB.AutoMigrate(&Account{}); err != nil {
