@@ -43,7 +43,7 @@ func (bs *BootService) InitializeDB() (err error) {
 		bs.dbOptions.SSLMode,
 		bs.dbOptions.TimeZone,
 	)
-	bs.logger.Info("Connecting to database", "dsn", dsn)
+	bs.logger.Info("Connecting to database")
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
