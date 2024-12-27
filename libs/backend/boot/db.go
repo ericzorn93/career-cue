@@ -34,7 +34,15 @@ func (dbo DBOptions) IsZero() bool {
 // BootServiceBuilder is a builder struct for the BootService Instance
 func (bs *BootService) InitializeDB() (err error) {
 	// Construct the DSN
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", bs.dbOptions.Host, bs.dbOptions.User, bs.dbOptions.Password, bs.dbOptions.Name, bs.dbOptions.Port, bs.dbOptions.SSLMode, bs.dbOptions.TimeZone)
+	dsn := fmt.Sprintf(
+		"postgresql://%s@%s:%s/%s?sslmode=%s&timeZone=%s",
+		bs.dbOptions.User,
+		bs.dbOptions.Host,
+		bs.dbOptions.Port,
+		bs.dbOptions.Name,
+		bs.dbOptions.SSLMode,
+		bs.dbOptions.TimeZone,
+	)
 	bs.logger.Info("Connecting to database", slog.String("dsn", dsn))
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
