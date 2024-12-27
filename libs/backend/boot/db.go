@@ -34,8 +34,9 @@ func (dbo DBOptions) IsZero() bool {
 func (bs *BootService) InitializeDB() (err error) {
 	// Construct the DSN
 	dsn := fmt.Sprintf(
-		"postgresql://%s@%s:%s/%s?sslmode=%s&timeZone=%s",
+		"postgresql://%s:%s@%s:%s/%s?sslmode=%s&timeZone=%s",
 		bs.dbOptions.User,
+		bs.dbOptions.Password,
 		bs.dbOptions.Host,
 		bs.dbOptions.Port,
 		bs.dbOptions.Name,
