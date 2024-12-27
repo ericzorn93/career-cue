@@ -11,8 +11,10 @@ import (
 	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/validate"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"gorm.io/gorm"
 
 	connectrpcadapter "apps/services/accounts-api/internal/adapters/connectrpc"
 	"libs/backend/boot"
@@ -21,6 +23,13 @@ import (
 
 // serviceName is the name of the microservice
 const serviceName = "accounts-api"
+
+// Account is our model, which corresponds to the "accounts" table
+type Account struct {
+	gorm.Model
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	FirstName string
+}
 
 func run() error {
 	// Application Context
@@ -52,7 +61,13 @@ func run() error {
 		SetServiceName(serviceName).
 		SetLogger(logger).
 		SetDBOptions(boot.DBOptions{
-			ConnectionDSN: config.DBDsn,
+			Host:     config.DBHost,
+			Name:     config.DBName,
+			User:     config.DBUser,
+			Password: config.DBPassword,
+			Port:     config.DBPort,
+			SSLMode:  config.DBSSLMode,
+			TimeZone: config.DBTimeZone,
 		}).
 		SetAMQPOptions(boot.AMQPOptions{
 			ConnectionURI: config.AMQPUrl,
@@ -94,6 +109,20 @@ func run() error {
 			},
 		}).
 		SetBootCallbacks([]boot.BootCallback{
+			func(params boot.BootCallbackParams) error {
+				params.Logger.Info("Creating database if not exists")
+				return params.DB.Exec("CREATE DATABASE IF NOT EXISTS accounts_api").Error
+			},
+			func(params boot.BootCallbackParams) error {
+				// Run DB migrations
+				if err := params.DB.AutoMigrate(&Account{}); err != nil {
+					params.Logger.Error("Failed to run DB migrations", slog.Any("error", err))
+					return err
+				}
+
+				params.Logger.Info("Ran DB migrations", slog.String("serviceName", serviceName))
+				return nil
+			},
 			func(params boot.BootCallbackParams) error {
 				params.Logger.Info("Service booted successfully", slog.String("serviceName", serviceName))
 				return nil

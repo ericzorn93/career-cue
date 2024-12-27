@@ -73,6 +73,8 @@ services:
     command: start-single-node --insecure
     volumes:
       - cockroachdb-cluster:/cockroach/cockroach-data'
+      - ./docker-startup/db:/docker-entrypoint-initdb.d
+    restart: always
   ############ /CockroachDB Cluser ############
 volumes:
   inbound-webhooks-api:

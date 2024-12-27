@@ -85,6 +85,7 @@ type BootService struct {
 // BootCallback are methods for when the service is booted
 type BootCallbackParams struct {
 	Logger Logger
+	DB     *gorm.DB
 }
 type BootCallback func(BootCallbackParams) error
 
@@ -161,6 +162,7 @@ func (s *BootService) Start(ctx context.Context) error {
 	for _, cb := range s.bootCallbacks {
 		if err := cb(BootCallbackParams{
 			Logger: s.logger,
+			DB:     s.db,
 		}); err != nil {
 			s.logger.Error("failed to execute boot callback", slog.Any("error", err))
 			os.Exit(1)
