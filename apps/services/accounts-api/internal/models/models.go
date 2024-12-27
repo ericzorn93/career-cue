@@ -11,4 +11,7 @@ type Account struct {
 	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	FirstName string
 	LastName  string
+	NickName  string `gorm:"unique;index:idx_nick_name"`
+	UserName  string `gorm:"unique;index:idx_user_name;index:idx_user_name_email"`
+	Email     string `gorm:"unique;index:idx_email;index:idx_user_name_email"`
 }
