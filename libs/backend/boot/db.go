@@ -2,7 +2,6 @@ package boot
 
 import (
 	"fmt"
-	"log/slog"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -43,7 +42,7 @@ func (bs *BootService) InitializeDB() (err error) {
 		bs.dbOptions.SSLMode,
 		bs.dbOptions.TimeZone,
 	)
-	bs.logger.Info("Connecting to database", slog.String("dsn", dsn))
+	bs.logger.Info("Connecting to database")
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
