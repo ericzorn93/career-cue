@@ -2,6 +2,7 @@ package main
 
 import (
 	"apps/services/accounts-api/internal/config"
+	"apps/services/accounts-api/internal/models"
 	"context"
 	"errors"
 	"log"
@@ -11,10 +12,8 @@ import (
 	"connectrpc.com/connect"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/validate"
-	"github.com/google/uuid"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"gorm.io/gorm"
 
 	connectrpcadapter "apps/services/accounts-api/internal/adapters/connectrpc"
 	"libs/backend/boot"
@@ -23,13 +22,6 @@ import (
 
 // serviceName is the name of the microservice
 const serviceName = "accounts-api"
-
-// Account is our model, which corresponds to the "accounts" table
-type Account struct {
-	gorm.Model
-	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	FirstName string
-}
 
 func run() error {
 	// Application Context
@@ -98,9 +90,7 @@ func run() error {
 						options...,
 					)
 					params.Mux.Handle(path, httpHandler)
-					reflector := grpcreflect.NewStaticReflector(
-						accountsapiv1connect.RegistrationServiceName,
-					)
+					reflector := grpcreflect.NewStaticReflector(accountsapiv1connect.RegistrationServiceName)
 					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
 					params.Mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
@@ -111,7 +101,7 @@ func run() error {
 		SetBootCallbacks([]boot.BootCallback{
 			func(params boot.BootCallbackParams) error {
 				// Run DB migrations
-				if err := params.DB.AutoMigrate(&Account{}); err != nil {
+				if err := params.DB.AutoMigrate(&models.Account{}); err != nil {
 					params.Logger.Error("Failed to run DB migrations", slog.Any("error", err))
 					return err
 				}
