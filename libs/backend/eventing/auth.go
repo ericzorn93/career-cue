@@ -42,7 +42,7 @@ type AuthEventSetup struct {
 }
 
 func NewAuthEventSetup(registerer boot.AMQPRegisterer, log boot.Logger) EventBuilder {
-	return AuthEventSetup{
+	return &AuthEventSetup{
 		registerer: registerer,
 		log:        log,
 		queueNames: make([]string, 0),
@@ -50,7 +50,7 @@ func NewAuthEventSetup(registerer boot.AMQPRegisterer, log boot.Logger) EventBui
 }
 
 // CreateExchange creates an exchange for the auth event setup
-func (a AuthEventSetup) CreateExchange() EventBuilder {
+func (a *AuthEventSetup) CreateExchange() EventBuilder {
 	// Initialize Auth Exchange - topic
 	err := a.registerer.ExchangeDeclare(AuthExchange, "topic", true, false, false, false, nil)
 	if err != nil {
@@ -63,7 +63,7 @@ func (a AuthEventSetup) CreateExchange() EventBuilder {
 }
 
 // CreateDeadletter creates a dead letter exchange and queue for the auth event setup
-func (a AuthEventSetup) CreateDeadletter() EventBuilder {
+func (a *AuthEventSetup) CreateDeadletter() EventBuilder {
 	// Initialize Dead Letter Exchange
 	err := a.registerer.ExchangeDeclare(AuthDeadletterExchange, "direct", true, false, false, false, nil)
 	if err != nil {
@@ -103,7 +103,7 @@ func (a AuthEventSetup) CreateDeadletter() EventBuilder {
 	return a
 }
 
-func (a AuthEventSetup) CreateQueue(queueName string) EventBuilder {
+func (a *AuthEventSetup) CreateQueue(queueName string) EventBuilder {
 	// Create a queue for the service
 	if queueName == "" {
 		a.log.Warn("Auth queue name is empty")
@@ -136,7 +136,7 @@ func (a AuthEventSetup) CreateQueue(queueName string) EventBuilder {
 }
 
 // BindQueues binds the queues to the exchange for each routing key
-func (a AuthEventSetup) BindQueues(routingKeys []string) EventBuilder {
+func (a *AuthEventSetup) BindQueues(routingKeys []string) EventBuilder {
 	a.log.Info("Binding queues to exchange", slog.String("exchangeName", AuthExchange), slog.Any("queueNames", a.queueNames))
 
 	// Bind Queue to Exchange
@@ -157,6 +157,6 @@ func (a AuthEventSetup) BindQueues(routingKeys []string) EventBuilder {
 }
 
 // Complete completes the auth event setup
-func (a AuthEventSetup) Complete() {
+func (a *AuthEventSetup) Complete() {
 	a.log.Info("Completed auth event setup")
 }
