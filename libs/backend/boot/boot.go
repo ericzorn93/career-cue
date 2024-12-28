@@ -181,10 +181,14 @@ func (s *BootService) Close() error {
 		s.logger.Error("Trouble closing the AMQP connection")
 	}
 
-	// Close the CockroachDB connection
-	s.logger.Info("Closing DB connection")
-	if err := s.localDB.Close(); err != nil {
-		s.logger.Error("Trouble closing the DB connection")
+	// Close the DB connection
+	if s.localDB == nil {
+		return nil
+	} else {
+		s.logger.Info("Closing DB connection")
+		if err := s.localDB.Close(); err != nil {
+			s.logger.Error("Trouble closing the DB connection")
+		}
 	}
 
 	s.logger.Info("Service stopped", "serviceName", s.name)
