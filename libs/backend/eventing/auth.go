@@ -41,8 +41,8 @@ type AuthEventSetup struct {
 	queueNames []string
 }
 
-func NewAuthEventSetup(registerer boot.AMQPRegisterer, log boot.Logger) *AuthEventSetup {
-	return &AuthEventSetup{
+func NewAuthEventSetup(registerer boot.AMQPRegisterer, log boot.Logger) AuthEventSetup {
+	return AuthEventSetup{
 		registerer: registerer,
 		log:        log,
 		queueNames: make([]string, 0),
