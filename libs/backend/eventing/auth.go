@@ -58,8 +58,14 @@ func (a *AuthEventSetup) CreateExchange() *AuthEventSetup {
 		return a
 	}
 
+	a.log.Info("Created auth exchange", slog.String("exchangeName", AuthExchange))
+	return a
+}
+
+// CreateDeadletter creates a dead letter exchange and queue for the auth event setup
+func (a *AuthEventSetup) CreateDeadletter() *AuthEventSetup {
 	// Initialize Dead Letter Exchange
-	err = a.registerer.ExchangeDeclare(AuthDeadletterExchange, "direct", true, false, false, false, nil)
+	err := a.registerer.ExchangeDeclare(AuthDeadletterExchange, "direct", true, false, false, false, nil)
 	if err != nil {
 		a.log.Error("Cannot create dead letter exchange")
 		return a
@@ -88,11 +94,12 @@ func (a *AuthEventSetup) CreateExchange() *AuthEventSetup {
 		nil,
 	)
 	if err != nil {
-		a.log.Error("Cannot bind dead letter queue to exchange")
+		a.log.Error("Cannot bind auth deadletter queue to exchange")
 		return a
 	}
 
-	a.log.Info("Created auth exchange", slog.String("exchangeName", AuthExchange))
+	a.log.Info("Created auth dead letter exchange and queue", slog.String("exchangeName", AuthDeadletterExchange), slog.String("queueName", authDeadletterQueue.Name))
+
 	return a
 }
 
@@ -106,10 +113,10 @@ func (a *AuthEventSetup) CreateQueue(queueName string) *AuthEventSetup {
 	// Register auth queue with the broker
 	registrationQueue, err := a.registerer.QueueDeclare(
 		queueName,
-		true,
-		false,
-		false,
-		false,
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
 		amqp091.Table{
 			"x-dead-letter-exchange":    AuthDeadletterExchange,
 			"x-dead-letter-routing-key": AuthDeadletterRoutingKey,
@@ -130,6 +137,8 @@ func (a *AuthEventSetup) CreateQueue(queueName string) *AuthEventSetup {
 
 // BindQueues binds the queues to the exchange for each routing key
 func (a *AuthEventSetup) BindQueues(routingKeys []string) *AuthEventSetup {
+	a.log.Info("Binding queues to exchange", slog.String("exchangeName", AuthExchange), slog.Any("queueNames", a.queueNames))
+
 	// Bind Queue to Exchange
 	for _, queueName := range a.queueNames {
 		for _, routingKey := range routingKeys {
@@ -148,6 +157,6 @@ func (a *AuthEventSetup) BindQueues(routingKeys []string) *AuthEventSetup {
 }
 
 // Complete completes the auth event setup
-func (a AuthEventSetup) Complete() {
+func (a *AuthEventSetup) Complete() {
 	a.log.Info("Completed auth event setup")
 }

@@ -63,6 +63,7 @@ func run() error {
 				authEventRegisterer := eventing.NewAuthEventSetup(params.Controller.Registerer, params.Logger)
 				authEventRegisterer.
 					CreateExchange().
+					CreateDeadletter().
 					Complete()
 
 				params.Logger.Info("Set up all AMQP queues and exchanges")

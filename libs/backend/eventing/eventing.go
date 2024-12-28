@@ -28,3 +28,12 @@ func GetRoutingKeyPrefix(domainName string) string {
 func GetEventName(domain, eventName string) string {
 	return fmt.Sprintf("%s.%s.%s", CareerCueEventPrefix, domain, eventName)
 }
+
+// EventBuilder is an interface for building events and event infrastructure
+type EventBuilder interface {
+	CreateExchange() EventBuilder
+	CreateDeadletter() EventBuilder
+	CreateQueue(queueName string) EventBuilder
+	BindQueues(routingKeys []string) EventBuilder
+	Complete()
+}

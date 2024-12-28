@@ -72,6 +72,7 @@ func run() error {
 				authEventRegisterer := eventing.NewAuthEventSetup(params.Controller.Registerer, params.Logger)
 				authEventRegisterer.
 					CreateExchange().
+					CreateDeadletter().
 					CreateQueue(config.UserRegistrationQueueName).
 					BindQueues([]string{eventing.GetUserRegisteredRoutingKey()}).
 					Complete()
