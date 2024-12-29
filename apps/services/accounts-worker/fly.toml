@@ -14,3 +14,7 @@ restart_policy = "always"
 memory = '1gb'
 cpu_kind = 'shared'
 cpus = 1
+
+[metrics]
+port = 3000
+path = "/metrics" # default for most prometheus exporters

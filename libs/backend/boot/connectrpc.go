@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc/credentials"
@@ -43,6 +44,9 @@ func (s *BootService) StartConnectRPCService(ctx context.Context) error {
 
 	// HTTP Server Mux
 	mux := http.NewServeMux()
+
+	// Register Prometheus Metrics Handler
+	mux.Handle("/metrics", promhttp.Handler())
 
 	// Register protobuf
 	for _, grpcHandler := range s.connectRPCOptions.Handlers {
