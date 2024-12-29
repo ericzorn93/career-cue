@@ -1,4 +1,6 @@
-package user
+package entities
+
+import "libs/backend/domain/user/valueobjects"
 
 // User is the internal domain representation
 // of an authenticated user
@@ -12,7 +14,7 @@ type User struct {
 	PhoneNumber          string
 	PhoneNumberVerified  bool
 	Strategy             string
-	CommonID             string
+	CommonID             valueobjects.CommonID
 	Metadata             map[string]any
 }
 
@@ -83,7 +85,7 @@ func WithStrategy(strategy string) UserOption {
 }
 
 // WithCommonID adds the user's common ID to the struct (UUID)
-func WithCommonID(commonID string) UserOption {
+func WithCommonID(commonID valueobjects.CommonID) UserOption {
 	return func(u *User) {
 		u.CommonID = commonID
 	}
