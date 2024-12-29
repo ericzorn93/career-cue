@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 	"errors"
-	"libs/backend/domain/user"
+	userEntities "libs/backend/domain/user/entities"
 )
 
 var (
@@ -19,5 +19,5 @@ var (
 
 // AccountService will be a placeholder
 type AccountService interface {
-	CreateAccount(context.Context, user.User) error
+	CreateAccount(context.Context, userEntities.User) error
 }

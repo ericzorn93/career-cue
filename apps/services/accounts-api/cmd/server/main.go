@@ -82,7 +82,7 @@ func run() error {
 					}
 
 					// Register all ConnectRPC handlers
-					registrationHandler := connectrpcadapter.NewRegistrationHandler(logger)
+					registrationHandler := connectrpcadapter.NewRegistrationHandler(logger, params.DB)
 
 					// Assign the handler to the HTTP path
 					path, httpHandler := accountsapiv1connect.NewRegistrationServiceHandler(

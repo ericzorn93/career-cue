@@ -1,11 +1,11 @@
 package ports
 
 import (
-	"libs/backend/domain/user"
+	userEntities "libs/backend/domain/user/entities"
 )
 
 // AuthService will handle auth webhook
 // interactions
 type AuthService interface {
-	RegisterUser(user user.User) error
+	RegisterUser(user userEntities.User) error
 }

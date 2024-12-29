@@ -2,7 +2,7 @@ package usecases
 
 import (
 	boot "libs/backend/boot"
-	"libs/backend/domain/user"
+	userEntities "libs/backend/domain/user/entities"
 	"libs/backend/eventing"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 
@@ -28,7 +28,7 @@ func NewAuthService(logger boot.Logger, amqpPublisher boot.AMQPPublisher) AuthSe
 
 // RegisterUser is an application interface method to handle user registration
 // webhooks
-func (s AuthService) RegisterUser(user user.User) error {
+func (s AuthService) RegisterUser(user userEntities.User) error {
 	s.Logger.Info("Publishing userRegistered Event")
 
 	metadata := make(map[string]*anypb.Any)
@@ -51,6 +51,7 @@ func (s AuthService) RegisterUser(user user.User) error {
 		PhoneNumber:          user.PhoneNumber,
 		PhoneNumberVerified:  user.PhoneNumberVerified,
 		Strategy:             user.Strategy,
+		CommonId:             user.CommonID.String(),
 		UserMetadata:         metadata,
 	}
 	b, err := proto.Marshal(userRegisteredEvent)

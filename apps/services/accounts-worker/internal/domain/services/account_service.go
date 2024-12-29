@@ -4,7 +4,7 @@ import (
 	"apps/services/accounts-worker/internal/app/ports"
 	"context"
 	boot "libs/backend/boot"
-	"libs/backend/domain/user"
+	userEntities "libs/backend/domain/user/entities"
 	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 	"log/slog"
@@ -40,7 +40,7 @@ func NewAccountService(params AccountServiceParams) AccountService {
 
 // RegisterUser is an application interface method to handle user registration
 // webhooks
-func (s AccountService) CreateAccount(ctx context.Context, user user.User) error {
+func (s AccountService) CreateAccount(ctx context.Context, user userEntities.User) error {
 	// Call the accounts-api to create the account
 	account, err := s.RegistrationServiceClient.CreateAccount(ctx, connect.NewRequest(&accountsapiv1.CreateAccountRequest{
 		FirstName:            user.FirstName,
@@ -51,6 +51,7 @@ func (s AccountService) CreateAccount(ctx context.Context, user user.User) error
 		EmailAddressVerified: user.EmailAddressVerified,
 		PhoneNumber:          user.PhoneNumber,
 		PhoneNumberVerified:  user.PhoneNumberVerified,
+		CommonId:             user.CommonID.String(),
 		Strategy:             user.Strategy,
 	}))
 

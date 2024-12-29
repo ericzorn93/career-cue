@@ -1,4 +1,6 @@
-package user
+package entities
+
+import "libs/backend/domain/user/valueobjects"
 
 // User is the internal domain representation
 // of an authenticated user
@@ -12,6 +14,7 @@ type User struct {
 	PhoneNumber          string
 	PhoneNumberVerified  bool
 	Strategy             string
+	CommonID             valueobjects.CommonID
 	Metadata             map[string]any
 }
 
@@ -47,37 +50,44 @@ func WithUserUsername(username string) UserOption {
 }
 
 // WithEmailAddress adds the user's email address to the struct
-func WithEmailAddress(EmailAddress string) UserOption {
+func WithEmailAddress(emailAddress string) UserOption {
 	return func(u *User) {
-		u.EmailAddress = EmailAddress
+		u.EmailAddress = emailAddress
 	}
 }
 
 // WithEmailAddressVerified adds the user's email address verification status to the struct
-func WithEmailAddressVerified(EmailAddressVerified bool) UserOption {
+func WithEmailAddressVerified(emailAddressVerified bool) UserOption {
 	return func(u *User) {
-		u.EmailAddressVerified = EmailAddressVerified
+		u.EmailAddressVerified = emailAddressVerified
 	}
 }
 
 // WithPhoneNumber adds the user's phone number to the struct
-func WithPhoneNumber(PhoneNumber string) UserOption {
+func WithPhoneNumber(phoneNumber string) UserOption {
 	return func(u *User) {
-		u.PhoneNumber = PhoneNumber
+		u.PhoneNumber = phoneNumber
 	}
 }
 
 // WithPhoneNumberVerified adds the user's phone number verification status to the struct
-func WithPhoneNumberVerified(PhoneNumberVerified bool) UserOption {
+func WithPhoneNumberVerified(phoneNumberVerified bool) UserOption {
 	return func(u *User) {
-		u.PhoneNumberVerified = PhoneNumberVerified
+		u.PhoneNumberVerified = phoneNumberVerified
 	}
 }
 
 // WithStrategy adds the user's authentication strategy to the struct
-func WithStrategy(Strategy string) UserOption {
+func WithStrategy(strategy string) UserOption {
 	return func(u *User) {
-		u.Strategy = Strategy
+		u.Strategy = strategy
+	}
+}
+
+// WithCommonID adds the user's common ID to the struct (UUID)
+func WithCommonID(commonID valueobjects.CommonID) UserOption {
+	return func(u *User) {
+		u.CommonID = commonID
 	}
 }
 

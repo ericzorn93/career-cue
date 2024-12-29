@@ -2,12 +2,14 @@ package connectrpc
 
 import (
 	"context"
+	"log/slog"
 
 	"connectrpc.com/connect"
 
 	"apps/services/inbound-webhooks-api/internal/app"
 	boot "libs/backend/boot"
-	"libs/backend/domain/user"
+	userEntities "libs/backend/domain/user/entities"
+	userValueObjects "libs/backend/domain/user/valueobjects"
 	commonv1 "libs/backend/proto-gen/go/common/v1"
 	inboundwebhooksapiv1 "libs/backend/proto-gen/go/webhooks/inboundwebhooksapi/v1"
 )
@@ -33,18 +35,26 @@ func (h *AuthHandler) UserRegistered(
 	ctx context.Context,
 	req *connect.Request[inboundwebhooksapiv1.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
+	// Parse CommonID
+	commonID, err := userValueObjects.NewCommonIDFromString(req.Msg.CommonId)
+	if err != nil {
+		h.Logger.Error("Cannot create common ID", slog.Any("error", err))
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
 	if err := h.Application.AuthService.RegisterUser(
-		user.NewUser(
-			user.WithUserFirstName(req.Msg.FirstName),
-			user.WithUserLastName(req.Msg.LastName),
-			user.WithUserNickname(req.Msg.Nickname),
-			user.WithUserUsername(req.Msg.Username),
-			user.WithEmailAddress(req.Msg.EmailAddress),
-			user.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
-			user.WithPhoneNumber(req.Msg.PhoneNumber),
-			user.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
-			user.WithStrategy(req.Msg.Strategy),
-			user.WithMetadata(make(map[string]any, 0)),
+		userEntities.NewUser(
+			userEntities.WithUserFirstName(req.Msg.FirstName),
+			userEntities.WithUserLastName(req.Msg.LastName),
+			userEntities.WithUserNickname(req.Msg.Nickname),
+			userEntities.WithUserUsername(req.Msg.Username),
+			userEntities.WithEmailAddress(req.Msg.EmailAddress),
+			userEntities.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
+			userEntities.WithPhoneNumber(req.Msg.PhoneNumber),
+			userEntities.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
+			userEntities.WithStrategy(req.Msg.Strategy),
+			userEntities.WithCommonID(commonID),
+			userEntities.WithMetadata(make(map[string]any, 0)),
 		),
 	); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)

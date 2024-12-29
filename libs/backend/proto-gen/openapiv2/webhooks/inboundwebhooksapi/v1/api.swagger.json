@@ -115,6 +115,9 @@
         "strategy": {
           "type": "string"
         },
+        "commonId": {
+          "type": "string"
+        },
         "userMetadata": {
           "type": "object",
           "additionalProperties": {

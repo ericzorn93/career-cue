@@ -4,7 +4,8 @@ import (
 	"apps/services/accounts-worker/internal/app"
 	"context"
 	"libs/backend/boot"
-	"libs/backend/domain/user"
+	userEntities "libs/backend/domain/user/entities"
+	userValueObjects "libs/backend/domain/user/valueobjects"
 	accountseventsv1 "libs/backend/proto-gen/go/accounts/accountsevents/v1"
 	"log/slog"
 
@@ -49,17 +50,25 @@ func (h LavinMQHandler) HandleUserRegisteredEvent(ctx context.Context, queueName
 		var userRegisteredEvent accountseventsv1.UserRegistered
 		proto.Unmarshal(msg.Body, &userRegisteredEvent)
 
+		// Parse CommonID
+		commonID, err := userValueObjects.NewCommonIDFromString(userRegisteredEvent.CommonId)
+		if err != nil {
+			h.Logger.Error("Cannot create common ID", slog.Any("error", err))
+			continue
+		}
+
 		// Create User in Accounts API
-		user := user.NewUser(
-			user.WithUserFirstName(userRegisteredEvent.FirstName),
-			user.WithUserLastName(userRegisteredEvent.LastName),
-			user.WithUserNickname(userRegisteredEvent.Nickname),
-			user.WithUserUsername(userRegisteredEvent.Username),
-			user.WithEmailAddress(userRegisteredEvent.EmailAddress),
-			user.WithEmailAddressVerified(userRegisteredEvent.EmailAddressVerified),
-			user.WithPhoneNumber(userRegisteredEvent.PhoneNumber),
-			user.WithPhoneNumberVerified(userRegisteredEvent.PhoneNumberVerified),
-			user.WithStrategy(userRegisteredEvent.Strategy),
+		user := userEntities.NewUser(
+			userEntities.WithUserFirstName(userRegisteredEvent.FirstName),
+			userEntities.WithUserLastName(userRegisteredEvent.LastName),
+			userEntities.WithUserNickname(userRegisteredEvent.Nickname),
+			userEntities.WithUserUsername(userRegisteredEvent.Username),
+			userEntities.WithEmailAddress(userRegisteredEvent.EmailAddress),
+			userEntities.WithEmailAddressVerified(userRegisteredEvent.EmailAddressVerified),
+			userEntities.WithPhoneNumber(userRegisteredEvent.PhoneNumber),
+			userEntities.WithPhoneNumberVerified(userRegisteredEvent.PhoneNumberVerified),
+			userEntities.WithCommonID(commonID),
+			userEntities.WithStrategy(userRegisteredEvent.Strategy),
 		)
 
 		// Create Account in Accounts API

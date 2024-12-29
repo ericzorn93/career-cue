@@ -23,3 +23,7 @@ cpus = 1
 
 [[machines]]
 restart_policy = "always"
+
+[metrics]
+port = 3000
+path = "/metrics" # default for most prometheus exporters
