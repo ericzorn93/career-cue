@@ -51,6 +51,7 @@ func (s AccountService) CreateAccount(ctx context.Context, user user.User) error
 		EmailAddressVerified: user.EmailAddressVerified,
 		PhoneNumber:          user.PhoneNumber,
 		PhoneNumberVerified:  user.PhoneNumberVerified,
+		CommonId:             user.CommonID,
 		Strategy:             user.Strategy,
 	}))
 

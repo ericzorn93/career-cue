@@ -59,6 +59,7 @@ func (h LavinMQHandler) HandleUserRegisteredEvent(ctx context.Context, queueName
 			user.WithEmailAddressVerified(userRegisteredEvent.EmailAddressVerified),
 			user.WithPhoneNumber(userRegisteredEvent.PhoneNumber),
 			user.WithPhoneNumberVerified(userRegisteredEvent.PhoneNumberVerified),
+			user.WithCommonID(userRegisteredEvent.CommonId),
 			user.WithStrategy(userRegisteredEvent.Strategy),
 		)
 

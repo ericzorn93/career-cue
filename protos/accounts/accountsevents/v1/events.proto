@@ -20,5 +20,6 @@ message UserRegistered {
     string phone_number = 7 [(buf.validate.field).string.min_len = 1];
     bool phone_number_verified = 8;
     string strategy = 9 [(buf.validate.field).string.min_len = 1];
-    map<string, google.protobuf.Any> user_metadata = 10;
+    string common_id = 10 [(buf.validate.field).string.min_len = 1];
+    map<string, google.protobuf.Any> user_metadata = 11;
 }

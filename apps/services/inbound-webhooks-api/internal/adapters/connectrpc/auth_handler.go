@@ -44,6 +44,7 @@ func (h *AuthHandler) UserRegistered(
 			user.WithPhoneNumber(req.Msg.PhoneNumber),
 			user.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
 			user.WithStrategy(req.Msg.Strategy),
+			user.WithCommonID(req.Msg.CommonId),
 			user.WithMetadata(make(map[string]any, 0)),
 		),
 	); err != nil {

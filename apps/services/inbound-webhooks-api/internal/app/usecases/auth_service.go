@@ -51,6 +51,7 @@ func (s AuthService) RegisterUser(user user.User) error {
 		PhoneNumber:          user.PhoneNumber,
 		PhoneNumberVerified:  user.PhoneNumberVerified,
 		Strategy:             user.Strategy,
+		CommonId:             user.CommonID,
 		UserMetadata:         metadata,
 	}
 	b, err := proto.Marshal(userRegisteredEvent)

@@ -9,6 +9,7 @@ import (
 type Account struct {
 	gorm.Model
 	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	CommonID  uuid.UUID `gorm:"type:uuid;"`
 	FirstName string
 	LastName  string
 	NickName  string `gorm:"unique;index:idx_nick_name"`
