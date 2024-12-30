@@ -88,15 +88,6 @@
     "v1UserRegisteredRequest": {
       "type": "object",
       "properties": {
-        "firstName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        },
-        "nickname": {
-          "type": "string"
-        },
         "username": {
           "type": "string"
         },
@@ -106,23 +97,8 @@
         "emailAddressVerified": {
           "type": "boolean"
         },
-        "phoneNumber": {
-          "type": "string"
-        },
-        "phoneNumberVerified": {
-          "type": "boolean"
-        },
-        "strategy": {
-          "type": "string"
-        },
         "commonId": {
           "type": "string"
-        },
-        "userMetadata": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/protobufAny"
-          }
         }
       },
       "title": "UserRegisteredRequest defines the incoming data for the user created event from\nAuth0 Actions after the user has registered for the first time"

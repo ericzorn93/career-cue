@@ -59,16 +59,10 @@ func (h LavinMQHandler) HandleUserRegisteredEvent(ctx context.Context, queueName
 
 		// Create User in Accounts API
 		user := userEntities.NewUser(
-			userEntities.WithUserFirstName(userRegisteredEvent.FirstName),
-			userEntities.WithUserLastName(userRegisteredEvent.LastName),
-			userEntities.WithUserNickname(userRegisteredEvent.Nickname),
 			userEntities.WithUserUsername(userRegisteredEvent.Username),
 			userEntities.WithEmailAddress(userRegisteredEvent.EmailAddress),
 			userEntities.WithEmailAddressVerified(userRegisteredEvent.EmailAddressVerified),
-			userEntities.WithPhoneNumber(userRegisteredEvent.PhoneNumber),
-			userEntities.WithPhoneNumberVerified(userRegisteredEvent.PhoneNumberVerified),
 			userEntities.WithCommonID(commonID),
-			userEntities.WithStrategy(userRegisteredEvent.Strategy),
 		)
 
 		// Create Account in Accounts API
