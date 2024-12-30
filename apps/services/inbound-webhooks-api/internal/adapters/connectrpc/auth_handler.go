@@ -46,7 +46,6 @@ func (h *AuthHandler) UserRegistered(
 		userEntities.NewUser(
 			userEntities.WithUserUsername(req.Msg.Username),
 			userEntities.WithEmailAddress(req.Msg.EmailAddress),
-			userEntities.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
 			userEntities.WithCommonID(commonID),
 			userEntities.WithMetadata(make(map[string]any, 0)),
 		),

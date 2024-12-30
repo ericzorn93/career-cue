@@ -34,10 +34,9 @@ func (r *RegistrationServiceHandler) CreateAccount(
 ) (*connect.Response[accountsapiv1.CreateAcountResponse], error) {
 	r.Logger.Info("CreateAccount called")
 	r.DB.Save(&models.Account{
-		EmailAddress:         req.Msg.EmailAddress,
-		EmailAddressVerified: req.Msg.EmailAddressVerified,
-		UserName:             req.Msg.Username,
-		CommonID:             uuid.MustParse(req.Msg.CommonId),
+		EmailAddress: req.Msg.EmailAddress,
+		UserName:     req.Msg.Username,
+		CommonID:     uuid.MustParse(req.Msg.CommonId),
 	})
 	return connect.NewResponse(&accountsapiv1.CreateAcountResponse{IsSuccess: true}), nil
 }

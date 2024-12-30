@@ -94,9 +94,6 @@
         "emailAddress": {
           "type": "string"
         },
-        "emailAddressVerified": {
-          "type": "boolean"
-        },
         "commonId": {
           "type": "string"
         }

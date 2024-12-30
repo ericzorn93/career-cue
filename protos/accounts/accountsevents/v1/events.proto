@@ -13,6 +13,5 @@ import "buf/validate/validate.proto";
 message UserRegistered {
     string username = 1 [(buf.validate.field).string.min_len = 1];
     string email_address = 2 [(buf.validate.field).string.email = true];
-    bool email_address_verified = 3;
-    string common_id = 4 [(buf.validate.field).string.min_len = 1];
+    string common_id = 3 [(buf.validate.field).string.min_len = 1];
 }

@@ -61,7 +61,6 @@ func (h LavinMQHandler) HandleUserRegisteredEvent(ctx context.Context, queueName
 		user := userEntities.NewUser(
 			userEntities.WithUserUsername(userRegisteredEvent.Username),
 			userEntities.WithEmailAddress(userRegisteredEvent.EmailAddress),
-			userEntities.WithEmailAddressVerified(userRegisteredEvent.EmailAddressVerified),
 			userEntities.WithCommonID(commonID),
 		)
 
