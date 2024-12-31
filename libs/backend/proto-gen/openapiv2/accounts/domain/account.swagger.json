@@ -1,14 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "accounts/accountsapi/v1/api.proto",
+    "title": "accounts/domain/account.proto",
     "version": "version not set"
   },
-  "tags": [
-    {
-      "name": "RegistrationService"
-    }
-  ],
   "consumes": [
     "application/json"
   ],
@@ -17,24 +12,6 @@
   ],
   "paths": {},
   "definitions": {
-    "domainAccount": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "username": {
-          "type": "string"
-        },
-        "emailAddress": {
-          "type": "string"
-        },
-        "commonId": {
-          "type": "string"
-        }
-      },
-      "title": "Account defines the account domain model"
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -64,24 +41,6 @@
           }
         }
       }
-    },
-    "v1CreateAcountResponse": {
-      "type": "object",
-      "properties": {
-        "isSuccess": {
-          "type": "boolean"
-        }
-      },
-      "title": "CreateAcountResponse defines the response for the create account request"
-    },
-    "v1GetAccountResponse": {
-      "type": "object",
-      "properties": {
-        "account": {
-          "$ref": "#/definitions/domainAccount"
-        }
-      },
-      "title": "GetAccountResponse defines the response for the get account request"
     }
   }
 }

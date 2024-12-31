@@ -36,18 +36,25 @@ const (
 	// RegistrationServiceCreateAccountProcedure is the fully-qualified name of the
 	// RegistrationService's CreateAccount RPC.
 	RegistrationServiceCreateAccountProcedure = "/accounts.accountsapi.v1.RegistrationService/CreateAccount"
+	// RegistrationServiceGetAccountProcedure is the fully-qualified name of the RegistrationService's
+	// GetAccount RPC.
+	RegistrationServiceGetAccountProcedure = "/accounts.accountsapi.v1.RegistrationService/GetAccount"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
 	registrationServiceServiceDescriptor             = v1.File_accounts_accountsapi_v1_api_proto.Services().ByName("RegistrationService")
 	registrationServiceCreateAccountMethodDescriptor = registrationServiceServiceDescriptor.Methods().ByName("CreateAccount")
+	registrationServiceGetAccountMethodDescriptor    = registrationServiceServiceDescriptor.Methods().ByName("GetAccount")
 )
 
 // RegistrationServiceClient is a client for the accounts.accountsapi.v1.RegistrationService
 // service.
 type RegistrationServiceClient interface {
+	// CreateAccount creates a new account
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
+	// GetAccount retrieves an account by its common id
+	GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error)
 }
 
 // NewRegistrationServiceClient constructs a client for the
@@ -67,12 +74,19 @@ func NewRegistrationServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(registrationServiceCreateAccountMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getAccount: connect.NewClient[v1.GetAccountRequest, v1.GetAccountResponse](
+			httpClient,
+			baseURL+RegistrationServiceGetAccountProcedure,
+			connect.WithSchema(registrationServiceGetAccountMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // registrationServiceClient implements RegistrationServiceClient.
 type registrationServiceClient struct {
 	createAccount *connect.Client[v1.CreateAccountRequest, v1.CreateAcountResponse]
+	getAccount    *connect.Client[v1.GetAccountRequest, v1.GetAccountResponse]
 }
 
 // CreateAccount calls accounts.accountsapi.v1.RegistrationService.CreateAccount.
@@ -80,10 +94,18 @@ func (c *registrationServiceClient) CreateAccount(ctx context.Context, req *conn
 	return c.createAccount.CallUnary(ctx, req)
 }
 
+// GetAccount calls accounts.accountsapi.v1.RegistrationService.GetAccount.
+func (c *registrationServiceClient) GetAccount(ctx context.Context, req *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error) {
+	return c.getAccount.CallUnary(ctx, req)
+}
+
 // RegistrationServiceHandler is an implementation of the
 // accounts.accountsapi.v1.RegistrationService service.
 type RegistrationServiceHandler interface {
+	// CreateAccount creates a new account
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
+	// GetAccount retrieves an account by its common id
+	GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error)
 }
 
 // NewRegistrationServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -98,10 +120,18 @@ func NewRegistrationServiceHandler(svc RegistrationServiceHandler, opts ...conne
 		connect.WithSchema(registrationServiceCreateAccountMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	registrationServiceGetAccountHandler := connect.NewUnaryHandler(
+		RegistrationServiceGetAccountProcedure,
+		svc.GetAccount,
+		connect.WithSchema(registrationServiceGetAccountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/accounts.accountsapi.v1.RegistrationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case RegistrationServiceCreateAccountProcedure:
 			registrationServiceCreateAccountHandler.ServeHTTP(w, r)
+		case RegistrationServiceGetAccountProcedure:
+			registrationServiceGetAccountHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -113,4 +143,8 @@ type UnimplementedRegistrationServiceHandler struct{}
 
 func (UnimplementedRegistrationServiceHandler) CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.RegistrationService.CreateAccount is not implemented"))
+}
+
+func (UnimplementedRegistrationServiceHandler) GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.RegistrationService.GetAccount is not implemented"))
 }

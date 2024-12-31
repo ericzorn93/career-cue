@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package accounts.domain;
+
+// Account defines the account domain model
+message Account {
+  string id = 1;
+  string username = 2;
+  string email_address = 3;
+  string common_id = 4;
+}

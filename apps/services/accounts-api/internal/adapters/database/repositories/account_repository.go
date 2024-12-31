@@ -3,10 +3,13 @@ package repositories
 import (
 	"apps/services/accounts-api/internal/models"
 	"context"
+	"errors"
 	"libs/backend/boot"
 	userEntities "libs/backend/domain/user/entities"
+	userValueObjects "libs/backend/domain/user/valueobjects"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -45,4 +48,24 @@ func (r AccountRepository) CreateAccount(ctx context.Context, user userEntities.
 	}
 
 	return nil
+}
+
+// GetAccount gets an account from the database by commonID
+func (r AccountRepository) GetAccount(ctx context.Context, commonID userValueObjects.CommonID) (userEntities.User, error) {
+	r.Logger.Info("Getting account", slog.String("commonID", commonID.String()))
+
+	account := &models.Account{}
+	r.Database.First(account, "common_id = ?", commonID.Value())
+
+	if account.ID == uuid.Nil {
+		return userEntities.User{}, errors.New("account not found")
+	}
+
+	parsedCommonID := userValueObjects.NewCommonIDFromUUID(account.CommonID)
+
+	return userEntities.NewUser(
+		userEntities.WithCommonID(parsedCommonID),
+		userEntities.WithEmailAddress(account.EmailAddress),
+		userEntities.WithUserUsername(account.UserName),
+	), nil
 }

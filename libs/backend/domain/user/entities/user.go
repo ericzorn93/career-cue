@@ -111,6 +111,11 @@ func NewUser(opts ...UserOption) User {
 	return u
 }
 
+// NewEmptyUser is the constructor for an empty User struct
+func NewEmptyUser() User {
+	return User{}
+}
+
 // GetFullName will return the concatonated user's
 // first and last name
 func (u User) GetFullName() string {

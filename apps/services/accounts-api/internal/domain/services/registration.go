@@ -5,6 +5,7 @@ import (
 	"context"
 	"libs/backend/boot"
 	userEntities "libs/backend/domain/user/entities"
+	userValueObjects "libs/backend/domain/user/valueobjects"
 	"log/slog"
 )
 
@@ -36,4 +37,17 @@ func (s RegistrationService) RegisterUser(ctx context.Context, user userEntities
 	}
 
 	return nil
+}
+
+// GetUser gets a user from the system
+func (s RegistrationService) GetUser(ctx context.Context, commonID userValueObjects.CommonID) (userEntities.User, error) {
+	s.Logger.Info("Getting user", slog.String("commonID", commonID.String()))
+
+	// Get account from the repository
+	user, err := s.AccountRepository.GetAccount(ctx, commonID)
+	if err != nil {
+		return userEntities.NewEmptyUser(), err
+	}
+
+	return user, nil
 }

@@ -5,9 +5,14 @@ package accounts.accountsapi.v1;
 import "buf/validate/validate.proto";
 import "google/type/datetime.proto";
 import "google/protobuf/any.proto";
+import "accounts/domain/account.proto";
 
 service RegistrationService {
+    // CreateAccount creates a new account
     rpc CreateAccount(CreateAccountRequest) returns (CreateAcountResponse) {}
+
+    // GetAccount retrieves an account by its common id
+    rpc GetAccount(GetAccountRequest) returns (GetAccountResponse) {}
 }
 
 // CreateAccountRequest defines the incoming data for the create account request
@@ -20,4 +25,14 @@ message CreateAccountRequest {
 // CreateAcountResponse defines the response for the create account request
 message CreateAcountResponse {
   bool is_success = 1;
+}
+
+// GetAccountRequest defines the incoming data for the get account request
+message GetAccountRequest {
+  string common_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+// GetAccountResponse defines the response for the get account request
+message GetAccountResponse{
+  accounts.domain.Account account = 1;
 }
