@@ -1,5 +1,6 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
+  - internal/graph/*.graphql
   - internal/graph/**/*.graphql
 
 # Where should the generated server code go?
@@ -28,8 +29,8 @@ federation:
 
 # Where should any generated models go?
 model:
-  filename: internal/graph/models/models_gen.go
-  package: models
+  filename: internal/graph/models_gen.go
+  package: graph
 
   # Optional: Pass in a path to a new gotpl template to use for generating the models
   # model_template: [your/path/model.gotpl]

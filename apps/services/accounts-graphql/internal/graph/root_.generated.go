@@ -3,7 +3,6 @@
 package graph
 
 import (
-	"apps/services/accounts-graphql/internal/graph/models"
 	"bytes"
 	"context"
 	"embed"
@@ -44,30 +43,20 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateTodo func(childComplexity int, input models.NewTodo) int
+		CreateTodo func(childComplexity int, input NewTodo) int
+		Empty      func(childComplexity int) int
 	}
 
 	Query struct {
-		Random             func(childComplexity int) int
+		Empty              func(childComplexity int) int
 		Todos              func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
-	}
-
-	Random struct {
-		ID    func(childComplexity int) int
-		Value func(childComplexity int) int
 	}
 
 	Todo struct {
 		Done func(childComplexity int) int
 		ID   func(childComplexity int) int
 		Text func(childComplexity int) int
-		User func(childComplexity int) int
-	}
-
-	User struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -104,14 +93,21 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(models.NewTodo)), true
+		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(NewTodo)), true
 
-	case "Query.random":
-		if e.complexity.Query.Random == nil {
+	case "Mutation.empty":
+		if e.complexity.Mutation.Empty == nil {
 			break
 		}
 
-		return e.complexity.Query.Random(childComplexity), true
+		return e.complexity.Mutation.Empty(childComplexity), true
+
+	case "Query.empty":
+		if e.complexity.Query.Empty == nil {
+			break
+		}
+
+		return e.complexity.Query.Empty(childComplexity), true
 
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
@@ -126,20 +122,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.__resolve__service(childComplexity), true
-
-	case "Random.id":
-		if e.complexity.Random.ID == nil {
-			break
-		}
-
-		return e.complexity.Random.ID(childComplexity), true
-
-	case "Random.value":
-		if e.complexity.Random.Value == nil {
-			break
-		}
-
-		return e.complexity.Random.Value(childComplexity), true
 
 	case "Todo.done":
 		if e.complexity.Todo.Done == nil {
@@ -161,27 +143,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.Text(childComplexity), true
-
-	case "Todo.user":
-		if e.complexity.Todo.User == nil {
-			break
-		}
-
-		return e.complexity.Todo.User(childComplexity), true
-
-	case "User.id":
-		if e.complexity.User.ID == nil {
-			break
-		}
-
-		return e.complexity.User.ID(childComplexity), true
-
-	case "User.name":
-		if e.complexity.User.Name == nil {
-			break
-		}
-
-		return e.complexity.User.Name(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -295,7 +256,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schema.graphql"
+//go:embed "schema.graphql" "todos.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -308,6 +269,7 @@ func sourceData(filename string) string {
 
 var sources = []*ast.Source{
 	{Name: "schema.graphql", Input: sourceData("schema.graphql"), BuiltIn: false},
+	{Name: "todos.graphql", Input: sourceData("todos.graphql"), BuiltIn: false},
 	{Name: "../../federation/directives.graphql", Input: `
 	directive @authenticated on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
 	directive @composeDirective(name: String!) repeatable on SCHEMA

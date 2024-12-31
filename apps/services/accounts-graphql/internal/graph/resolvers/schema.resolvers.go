@@ -6,24 +6,18 @@ package resolvers
 
 import (
 	"apps/services/accounts-graphql/internal/graph"
-	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 	"fmt"
 )
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input models.NewTodo) (*models.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+// Empty is the resolver for the empty field.
+func (r *mutationResolver) Empty(ctx context.Context) (bool, error) {
+	panic(fmt.Errorf("not implemented: Empty - empty"))
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*models.Todo, error) {
-	return []*models.Todo{}, nil
-}
-
-// Random is the resolver for the random field.
-func (r *queryResolver) Random(ctx context.Context) (*models.Random, error) {
-	panic(fmt.Errorf("not implemented: Random - random"))
+// Empty is the resolver for the empty field.
+func (r *queryResolver) Empty(ctx context.Context) (bool, error) {
+	panic(fmt.Errorf("not implemented: Empty - empty"))
 }
 
 // Mutation returns graph.MutationResolver implementation.
