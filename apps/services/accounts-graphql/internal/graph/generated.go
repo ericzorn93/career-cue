@@ -3,7 +3,7 @@
 package graph
 
 import (
-	"apps/services/accounts-graphql/graph/model"
+	"apps/services/accounts-graphql/internal/graph/model"
 	"bytes"
 	"context"
 	"embed"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"apps/services/accounts-graphql/graph"
 	"apps/services/accounts-graphql/internal/config"
+	"apps/services/accounts-graphql/internal/graph"
 	"context"
 	"errors"
 	"log"
