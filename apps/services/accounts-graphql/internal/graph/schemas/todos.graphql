@@ -1,18 +1,8 @@
 type Todo {
   id: ID!
-  text: String!
   done: Boolean!
-}
-
-input NewTodo {
-  text: String!
-  userId: String!
 }
 
 extend type Query {
   todos: [Todo!]!
-}
-
-extend type Mutation {
-  createTodo(input: NewTodo!): Todo!
 }

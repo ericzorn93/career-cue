@@ -7,15 +7,11 @@ package resolvers
 import (
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
-	"fmt"
 )
-
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input models.NewTodo) (*models.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
-}
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*models.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+	return []*models.Todo{
+		{ID: "1", Done: false},
+	}, nil
 }
