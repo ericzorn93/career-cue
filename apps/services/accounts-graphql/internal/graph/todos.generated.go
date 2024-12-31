@@ -3,6 +3,7 @@
 package graph
 
 import (
+	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 	"errors"
 	"strconv"
@@ -27,7 +28,7 @@ import (
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.CollectedField, obj *Todo) (ret graphql.Marshaler) {
+func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.CollectedField, obj *models.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -71,7 +72,7 @@ func (ec *executionContext) fieldContext_Todo_id(_ context.Context, field graphq
 	return fc, nil
 }
 
-func (ec *executionContext) _Todo_text(ctx context.Context, field graphql.CollectedField, obj *Todo) (ret graphql.Marshaler) {
+func (ec *executionContext) _Todo_text(ctx context.Context, field graphql.CollectedField, obj *models.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_text(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -115,7 +116,7 @@ func (ec *executionContext) fieldContext_Todo_text(_ context.Context, field grap
 	return fc, nil
 }
 
-func (ec *executionContext) _Todo_done(ctx context.Context, field graphql.CollectedField, obj *Todo) (ret graphql.Marshaler) {
+func (ec *executionContext) _Todo_done(ctx context.Context, field graphql.CollectedField, obj *models.Todo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Todo_done(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -163,8 +164,8 @@ func (ec *executionContext) fieldContext_Todo_done(_ context.Context, field grap
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, obj any) (NewTodo, error) {
-	var it NewTodo
+func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, obj any) (models.NewTodo, error) {
+	var it models.NewTodo
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -207,7 +208,7 @@ func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, obj any) 
 
 var todoImplementors = []string{"Todo"}
 
-func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj *Todo) graphql.Marshaler {
+func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj *models.Todo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, todoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -258,16 +259,16 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNNewTodo2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐNewTodo(ctx context.Context, v any) (NewTodo, error) {
+func (ec *executionContext) unmarshalNNewTodo2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐNewTodo(ctx context.Context, v any) (models.NewTodo, error) {
 	res, err := ec.unmarshalInputNewTodo(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNTodo2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐTodo(ctx context.Context, sel ast.SelectionSet, v Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐTodo(ctx context.Context, sel ast.SelectionSet, v models.Todo) graphql.Marshaler {
 	return ec._Todo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTodo2ᚕᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚕᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Todo) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -291,7 +292,7 @@ func (ec *executionContext) marshalNTodo2ᚕᚖappsᚋservicesᚋaccountsᚑgrap
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTodo2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐTodo(ctx, sel, v[i])
+			ret[i] = ec.marshalNTodo2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐTodo(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -311,7 +312,7 @@ func (ec *executionContext) marshalNTodo2ᚕᚖappsᚋservicesᚋaccountsᚑgrap
 	return ret
 }
 
-func (ec *executionContext) marshalNTodo2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐTodo(ctx context.Context, sel ast.SelectionSet, v *Todo) graphql.Marshaler {
+func (ec *executionContext) marshalNTodo2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐTodo(ctx context.Context, sel ast.SelectionSet, v *models.Todo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

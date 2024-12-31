@@ -3,6 +3,7 @@
 package graph
 
 import (
+	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 	"errors"
 	"fmt"
@@ -19,11 +20,11 @@ import (
 
 type MutationResolver interface {
 	Empty(ctx context.Context) (bool, error)
-	CreateTodo(ctx context.Context, input NewTodo) (*Todo, error)
+	CreateTodo(ctx context.Context, input models.NewTodo) (*models.Todo, error)
 }
 type QueryResolver interface {
 	Empty(ctx context.Context) (bool, error)
-	Todos(ctx context.Context) ([]*Todo, error)
+	Todos(ctx context.Context) ([]*models.Todo, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -43,13 +44,13 @@ func (ec *executionContext) field_Mutation_createTodo_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_createTodo_argsInput(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (NewTodo, error) {
+) (models.NewTodo, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNNewTodo2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐNewTodo(ctx, tmp)
+		return ec.unmarshalNNewTodo2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐNewTodo(ctx, tmp)
 	}
 
-	var zeroVal NewTodo
+	var zeroVal models.NewTodo
 	return zeroVal, nil
 }
 
@@ -142,7 +143,7 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["input"].(NewTodo))
+		return ec.resolvers.Mutation().CreateTodo(rctx, fc.Args["input"].(models.NewTodo))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -154,9 +155,9 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Todo)
+	res := resTmp.(*models.Todo)
 	fc.Result = res
-	return ec.marshalNTodo2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐTodo(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐTodo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -261,9 +262,9 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*Todo)
+	res := resTmp.([]*models.Todo)
 	fc.Result = res
-	return ec.marshalNTodo2ᚕᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚐTodoᚄ(ctx, field.Selections, res)
+	return ec.marshalNTodo2ᚕᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐTodoᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_todos(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {

@@ -29,8 +29,8 @@ federation:
 
 # Where should any generated models go?
 model:
-  filename: internal/graph/models_gen.go
-  package: graph
+  filename: internal/graph/models/models_gen.go
+  package: models
 
   # Optional: Pass in a path to a new gotpl template to use for generating the models
   # model_template: [your/path/model.gotpl]
