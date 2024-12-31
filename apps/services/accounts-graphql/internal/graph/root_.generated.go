@@ -3,7 +3,7 @@
 package graph
 
 import (
-	"apps/services/accounts-graphql/internal/graph/model"
+	"apps/services/accounts-graphql/internal/graph/models"
 	"bytes"
 	"context"
 	"embed"
@@ -44,7 +44,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateTodo func(childComplexity int, input model.NewTodo) int
+		CreateTodo func(childComplexity int, input models.NewTodo) int
 	}
 
 	Query struct {
@@ -104,7 +104,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(model.NewTodo)), true
+		return e.complexity.Mutation.CreateTodo(childComplexity, args["input"].(models.NewTodo)), true
 
 	case "Query.random":
 		if e.complexity.Query.Random == nil {
