@@ -13,6 +13,11 @@ type NewTodo struct {
 type Query struct {
 }
 
+type Random struct {
+	ID    string `json:"id"`
+	Value int32  `json:"value"`
+}
+
 type Todo struct {
 	ID   string `json:"id"`
 	Text string `json:"text"`

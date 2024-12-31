@@ -14,8 +14,14 @@ type User {
   name: String!
 }
 
+type Random {
+  id: ID!
+  value: Int!
+}
+
 type Query {
   todos: [Todo!]!
+  random: Random!
 }
 
 input NewTodo {

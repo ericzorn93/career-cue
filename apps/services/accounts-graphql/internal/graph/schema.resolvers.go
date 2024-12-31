@@ -20,6 +20,11 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	return []*model.Todo{}, nil
 }
 
+// Random is the resolver for the random field.
+func (r *queryResolver) Random(ctx context.Context) (*model.Random, error) {
+	return &model.Random{ID: "1", Value: 29}, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 

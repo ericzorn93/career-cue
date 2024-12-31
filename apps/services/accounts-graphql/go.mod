@@ -6,7 +6,6 @@ require (
 	connectrpc.com/connect v1.17.0
 	connectrpc.com/validate v0.1.0
 	github.com/99designs/gqlgen v0.17.61
-	github.com/hashicorp/golang-lru v1.0.2
 	github.com/vektah/gqlparser/v2 v2.5.20
 	google.golang.org/grpc v1.68.1
 )

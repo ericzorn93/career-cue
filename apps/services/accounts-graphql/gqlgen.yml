@@ -1,33 +1,34 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - graph/*.graphqls
+  - internal/graph/**/*.graphql
 
 # Where should the generated server code go?
 exec:
   package: graph
-  layout: single-file # Only other option is "follow-schema," ie multi-file.
+  # layout: single-file # Only other option is "follow-schema," ie multi-file.
+  layout: follow-schema # Only other option is "single-file."
 
   # Only for single-file layout:
-  filename: graph/generated.go
+  # filename: internal/graph/generated.go
 
   # Only for follow-schema layout:
-  # dir: graph
-  # filename_template: "{name}.generated.go"
+  dir: internal/graph
+  filename_template: "{name}.generated.go"
 
   # Optional: Maximum number of goroutines in concurrency to use per child resolvers(default: unlimited)
   # worker_limit: 1000
 
 # Uncomment to enable federation
-# federation:
-#   filename: graph/federation.go
-#   package: graph
-#   version: 2
-#   options:
-#     computed_requires: true
+federation:
+  filename: internal/graph/federation.go
+  package: graph
+  version: 2
+  options:
+    computed_requires: true
 
 # Where should any generated models go?
 model:
-  filename: graph/model/models_gen.go
+  filename: internal/graph/model/models_gen.go
   package: model
 
   # Optional: Pass in a path to a new gotpl template to use for generating the models
@@ -42,7 +43,7 @@ resolver:
   # filename: graph/resolver.go
 
   # Only for follow-schema layout:
-  dir: graph
+  dir: internal/graph
   filename_template: "{name}.resolvers.go"
 
   # Optional: turn on to not generate template comments above resolvers
@@ -131,7 +132,7 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
-  # gqlgen provides a default GraphQL UUID convenience wrapper for github.com/google/uuid 
+  # gqlgen provides a default GraphQL UUID convenience wrapper for github.com/google/uuid
   # but you can override this to provide your own GraphQL UUID implementation
   UUID:
     model:

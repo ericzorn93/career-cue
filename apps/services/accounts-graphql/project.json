@@ -28,6 +28,13 @@
     "tidy": {
       "executor": "@nx-go/nx-go:tidy"
     },
+    "generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "go generate ./..."
+      }
+    },
     "docker-build": {
       "dependsOn": ["build"],
       "command": "docker build -f apps/services/accounts-graphql/Dockerfile . -t accounts-graphql:latest"
