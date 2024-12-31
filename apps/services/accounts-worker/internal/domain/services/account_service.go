@@ -17,7 +17,7 @@ import (
 type AccountService struct {
 	Logger                    boot.Logger
 	AccountConsumer           boot.AMQPConsumer
-	RegistrationServiceClient accountsapiv1connect.RegistrationServiceClient
+	RegistrationServiceClient accountsapiv1connect.AccountServiceClient
 }
 
 // AccountServiceParams is a struct to hold the parameters for the AccountService
@@ -29,7 +29,7 @@ type AccountServiceParams struct {
 
 // NewAccountService will construct the auth service
 func NewAccountService(params AccountServiceParams) AccountService {
-	registrationServiceClient := accountsapiv1connect.NewRegistrationServiceClient(http.DefaultClient, params.AccountsAPIURI)
+	registrationServiceClient := accountsapiv1connect.NewAccountServiceClient(http.DefaultClient, params.AccountsAPIURI)
 
 	return AccountService{
 		Logger:                    params.Logger,
@@ -43,16 +43,9 @@ func NewAccountService(params AccountServiceParams) AccountService {
 func (s AccountService) CreateAccount(ctx context.Context, user userEntities.User) error {
 	// Call the accounts-api to create the account
 	account, err := s.RegistrationServiceClient.CreateAccount(ctx, connect.NewRequest(&accountsapiv1.CreateAccountRequest{
-		FirstName:            user.FirstName,
-		LastName:             user.LastName,
-		Nickname:             user.Nickname,
-		Username:             user.Username,
-		EmailAddress:         user.EmailAddress,
-		EmailAddressVerified: user.EmailAddressVerified,
-		PhoneNumber:          user.PhoneNumber,
-		PhoneNumberVerified:  user.PhoneNumberVerified,
-		CommonId:             user.CommonID.String(),
-		Strategy:             user.Strategy,
+		Username:     user.Username,
+		EmailAddress: user.EmailAddress,
+		CommonId:     user.CommonID.String(),
 	}))
 
 	if err != nil {

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"apps/services/accounts-api/internal/app"
 	"apps/services/accounts-api/internal/config"
+	"apps/services/accounts-api/internal/domain/services"
 	"apps/services/accounts-api/internal/models"
 	"context"
 	"errors"
@@ -16,6 +18,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	connectrpcadapter "apps/services/accounts-api/internal/adapters/connectrpc"
+	"apps/services/accounts-api/internal/adapters/database/repositories"
 	"libs/backend/boot"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 )
@@ -81,16 +84,27 @@ func run() error {
 						return errors.New(errMsg)
 					}
 
+					// Create repositories
+					accountRepo := repositories.NewAccountRespository(params.Logger, params.DB)
+
+					// Create services
+					registrationService := services.NewRegistrationService(params.Logger, accountRepo)
+
+					// Create Application
+					app := app.NewApp(
+						app.WithRegistrationService(registrationService),
+					)
+
 					// Register all ConnectRPC handlers
-					registrationHandler := connectrpcadapter.NewRegistrationHandler(logger, params.DB)
+					registrationHandler := connectrpcadapter.NewRegistrationHandler(params.Logger, app)
 
 					// Assign the handler to the HTTP path
-					path, httpHandler := accountsapiv1connect.NewRegistrationServiceHandler(
+					path, httpHandler := accountsapiv1connect.NewAccountServiceHandler(
 						registrationHandler,
 						options...,
 					)
 					params.Mux.Handle(path, httpHandler)
-					reflector := grpcreflect.NewStaticReflector(accountsapiv1connect.RegistrationServiceName)
+					reflector := grpcreflect.NewStaticReflector(accountsapiv1connect.AccountServiceName)
 					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
 					params.Mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 

@@ -44,15 +44,8 @@ func (h *AuthHandler) UserRegistered(
 
 	if err := h.Application.AuthService.RegisterUser(
 		userEntities.NewUser(
-			userEntities.WithUserFirstName(req.Msg.FirstName),
-			userEntities.WithUserLastName(req.Msg.LastName),
-			userEntities.WithUserNickname(req.Msg.Nickname),
 			userEntities.WithUserUsername(req.Msg.Username),
 			userEntities.WithEmailAddress(req.Msg.EmailAddress),
-			userEntities.WithEmailAddressVerified(req.Msg.EmailAddressVerified),
-			userEntities.WithPhoneNumber(req.Msg.PhoneNumber),
-			userEntities.WithPhoneNumberVerified(req.Msg.PhoneNumberVerified),
-			userEntities.WithStrategy(req.Msg.Strategy),
 			userEntities.WithCommonID(commonID),
 			userEntities.WithMetadata(make(map[string]any, 0)),
 		),

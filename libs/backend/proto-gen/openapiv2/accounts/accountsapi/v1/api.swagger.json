@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "RegistrationService"
+      "name": "AccountService"
     }
   ],
   "consumes": [
@@ -17,6 +17,29 @@
   ],
   "paths": {},
   "definitions": {
+    "domainAccount": {
+      "type": "object",
+      "properties": {
+        "commonId": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Account defines the account domain model"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -55,6 +78,15 @@
         }
       },
       "title": "CreateAcountResponse defines the response for the create account request"
+    },
+    "v1GetAccountResponse": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/domainAccount"
+        }
+      },
+      "title": "GetAccountResponse defines the response for the get account request"
     }
   }
 }

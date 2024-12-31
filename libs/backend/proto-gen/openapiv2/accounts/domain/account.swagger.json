@@ -1,55 +1,16 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "webhooks/inboundwebhooksapi/v1/api.proto",
+    "title": "accounts/domain/account.proto",
     "version": "version not set"
   },
-  "tags": [
-    {
-      "name": "InboundWebhooksAuthService"
-    }
-  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {
-    "/v1/webhooks/inbound/auth/user/registered": {
-      "post": {
-        "summary": "Auth0",
-        "operationId": "InboundWebhooksAuthService_UserRegistered",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1Empty"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1UserRegisteredRequest"
-            }
-          }
-        ],
-        "tags": [
-          "InboundWebhooksAuthService"
-        ]
-      }
-    }
-  },
+  "paths": {},
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -80,25 +41,6 @@
           }
         }
       }
-    },
-    "v1Empty": {
-      "type": "object",
-      "title": "Empty represents a completely empty message"
-    },
-    "v1UserRegisteredRequest": {
-      "type": "object",
-      "properties": {
-        "username": {
-          "type": "string"
-        },
-        "emailAddress": {
-          "type": "string"
-        },
-        "commonId": {
-          "type": "string"
-        }
-      },
-      "title": "UserRegisteredRequest defines the incoming data for the user created event from\nAuth0 Actions after the user has registered for the first time"
     }
   }
 }

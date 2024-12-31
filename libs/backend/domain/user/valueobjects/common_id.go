@@ -27,6 +27,11 @@ func NewCommonIDFromString(value string) (CommonID, error) {
 	return CommonID{value: commonID}, nil
 }
 
+// NewCommonIDFromUUID creates a new CommonID from uuid.UUID instance
+func NewCommonIDFromUUID(id uuid.UUID) CommonID {
+	return CommonID{value: id}
+}
+
 // Value returns the value of the CommonID
 func (c CommonID) Value() uuid.UUID {
 	return c.value

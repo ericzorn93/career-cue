@@ -11,15 +11,7 @@ import "buf/validate/validate.proto";
 // UserRegistered defines the incoming data for the user created event from
 // Auth0 Actions after the user has registered for the first time
 message UserRegistered {
-    string first_name = 1 [(buf.validate.field).string.min_len = 1];
-    string last_name = 2 [(buf.validate.field).string.min_len = 1];
-    string nickname = 3 [(buf.validate.field).string.min_len = 1];
-    string username = 4 [(buf.validate.field).string.min_len = 1];
-    string email_address = 5 [(buf.validate.field).string.email = true];
-    bool email_address_verified = 6;
-    string phone_number = 7 [(buf.validate.field).string.min_len = 1];
-    bool phone_number_verified = 8;
-    string strategy = 9 [(buf.validate.field).string.min_len = 1];
-    string common_id = 10 [(buf.validate.field).string.min_len = 1];
-    map<string, google.protobuf.Any> user_metadata = 11;
+    string username = 1 [(buf.validate.field).string.min_len = 1];
+    string email_address = 2 [(buf.validate.field).string.email = true];
+    string common_id = 3 [(buf.validate.field).string.min_len = 1];
 }

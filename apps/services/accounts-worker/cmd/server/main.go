@@ -19,21 +19,6 @@ import (
 	"libs/backend/eventing"
 )
 
-// setupHandler sets up the handler for the message broker
-func setupHandler(logger boot.Logger, accountsAPIUri string, amqpConsumer boot.AMQPConsumer) messagebroker.LavinMQHandler {
-	// Initialize the application
-	accountService := services.NewAccountService(services.AccountServiceParams{
-		Logger:         logger,
-		AccountsAPIURI: accountsAPIUri,
-	})
-	application := app.NewApp(app.WithAccountService(accountService))
-
-	// Initialize the message broker handler
-	handler := messagebroker.NewLavinMQHandler(logger, amqpConsumer, application)
-
-	return handler
-}
-
 func run() error {
 	// Application Context
 	ctx := context.Background()
@@ -83,7 +68,17 @@ func run() error {
 			},
 			Handlers: []boot.AMQPHandler{
 				func(hp boot.AMQPHandlerParams) error {
-					handler := setupHandler(hp.Logger, config.AccountsAPIUri, hp.AMQPController.Consumer)
+					// Initialize services
+					accountService := services.NewAccountService(services.AccountServiceParams{
+						Logger:         logger,
+						AccountsAPIURI: config.AccountsAPIUri,
+					})
+
+					// Initialize the application
+					application := app.NewApp(app.WithAccountService(accountService))
+
+					// Initialize the message broker handler
+					handler := messagebroker.NewLavinMQHandler(logger, hp.AMQPController.Consumer, application)
 
 					// Handle the user registered event
 					if err := handler.HandleUserRegisteredEvent(ctx, config.UserRegistrationQueueName); err != nil {
