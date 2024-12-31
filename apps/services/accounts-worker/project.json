@@ -39,8 +39,8 @@
         "commands": [
           "flyctl deploy -c apps/services/accounts-worker/fly.toml -y",
           "flyctl scale count 1 -r ewr -c apps/services/accounts-worker/fly.toml -y",
-          "flyctl scale count 1 -r lax -c apps/services/accounts-worker/fly.toml -y",
-          "flyctl scale count 1 -r ord -c apps/services/accounts-worker/fly.toml -y"
+          "flyctl scale count 0 -r lax -c apps/services/accounts-worker/fly.toml -y",
+          "flyctl scale count 0 -r ord -c apps/services/accounts-worker/fly.toml -y"
         ]
       }
     }

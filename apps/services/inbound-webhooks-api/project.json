@@ -39,8 +39,8 @@
         "commands": [
           "flyctl deploy -c apps/services/inbound-webhooks-api/fly.toml -y",
           "flyctl scale count 1 -r ewr -c apps/services/inbound-webhooks-api/fly.toml -y",
-          "flyctl scale count 1 -r lax -c apps/services/inbound-webhooks-api/fly.toml -y",
-          "flyctl scale count 1 -r ord -c apps/services/inbound-webhooks-api/fly.toml -y"
+          "flyctl scale count 0 -r lax -c apps/services/inbound-webhooks-api/fly.toml -y",
+          "flyctl scale count 0 -r ord -c apps/services/inbound-webhooks-api/fly.toml -y"
         ]
       }
     }
