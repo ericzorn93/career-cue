@@ -1,0 +1,8 @@
+type Todo {
+  id: ID!
+  done: Boolean!
+}
+
+extend type Query {
+  todos: [Todo!]!
+}

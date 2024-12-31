@@ -1,6 +1,16 @@
 # Primary Docker Compose Imports
 docker_compose(["./docker-compose.yml"])
 
+# Accounts GraphQL
+docker_build('career-cue/accounts-graphql', '.',
+    dockerfile="./apps/services/accounts-graphql/Dockerfile",
+    live_update = [
+        sync('./apps/services/accounts-graphql', '/app'),
+        run('air --build.cmd "go build -o /bin/accounts-graphql ./apps/services/accounts-graphql/cmd/server/main.go" --build.bin "/bin/accounts-graphql"'),
+        restart_container()
+    ]
+)
+
 # Accounts API
 docker_build('career-cue/accounts-api', '.',
     dockerfile="./apps/services/accounts-api/Dockerfile",
