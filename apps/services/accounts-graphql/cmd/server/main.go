@@ -3,6 +3,7 @@ package main
 import (
 	"apps/services/accounts-graphql/internal/config"
 	"apps/services/accounts-graphql/internal/graph"
+	"apps/services/accounts-graphql/internal/graph/resolvers"
 	"context"
 	"errors"
 	"log"
@@ -79,7 +80,7 @@ func run() error {
 					}
 
 					// Set up all ConnectRPC Handlers
-					srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+					srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &resolvers.Resolver{}}))
 					srv.AddTransport(transport.Options{})
 					srv.AddTransport(transport.GET{})
 					srv.AddTransport(transport.POST{})
