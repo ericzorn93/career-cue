@@ -1,6 +1,7 @@
 package main
 
 import (
+	"apps/services/accounts-graphql/graph"
 	"apps/services/accounts-graphql/internal/config"
 	"context"
 	"errors"
@@ -10,6 +11,10 @@ import (
 
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -74,6 +79,20 @@ func run() error {
 					}
 
 					// Set up all ConnectRPC Handlers
+					srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+					srv.AddTransport(transport.Options{})
+					srv.AddTransport(transport.GET{})
+					srv.AddTransport(transport.POST{})
+					// srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+
+					// Middleware
+					srv.Use(extension.Introspection{})
+					// srv.Use(extension.AutomaticPersistedQuery{
+					// Cache: lru.New[string](100),
+					// })
+
+					params.Mux.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
+					params.Mux.Handle("/graphql", srv)
 
 					return nil
 				},
