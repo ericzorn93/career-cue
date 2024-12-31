@@ -67,5 +67,7 @@ func (r AccountRepository) GetAccount(ctx context.Context, commonID userValueObj
 		userEntities.WithCommonID(parsedCommonID),
 		userEntities.WithEmailAddress(account.EmailAddress),
 		userEntities.WithUserUsername(account.UserName),
+		userEntities.WithCreatedAt(account.CreatedAt),
+		userEntities.WithUpdatedAt(account.UpdatedAt),
 	), nil
 }

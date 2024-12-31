@@ -2,10 +2,13 @@ syntax = "proto3";
 
 package accounts.domain;
 
+import "google/protobuf/timestamp.proto";
+
 // Account defines the account domain model
 message Account {
-  string id = 1;
+  string common_id = 1;
   string username = 2;
   string email_address = 3;
-  string common_id = 4;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 }

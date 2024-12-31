@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "RegistrationService"
+      "name": "AccountService"
     }
   ],
   "consumes": [
@@ -20,7 +20,7 @@
     "domainAccount": {
       "type": "object",
       "properties": {
-        "id": {
+        "commonId": {
           "type": "string"
         },
         "username": {
@@ -29,8 +29,13 @@
         "emailAddress": {
           "type": "string"
         },
-        "commonId": {
-          "type": "string"
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
         }
       },
       "title": "Account defines the account domain model"

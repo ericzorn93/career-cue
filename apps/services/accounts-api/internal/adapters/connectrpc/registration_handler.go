@@ -12,11 +12,12 @@ import (
 	accountsDomain "libs/backend/proto-gen/go/accounts/domain"
 
 	"connectrpc.com/connect"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // AuthHandler handles all gRPC endpoints for inbound webhooks
 type RegistrationServiceHandler struct {
-	accountsapiv1connect.UnimplementedRegistrationServiceHandler
+	accountsapiv1connect.UnimplementedAccountServiceHandler
 
 	// Logger is the logger from the boot framework
 	Logger boot.Logger
@@ -77,6 +78,8 @@ func (r *RegistrationServiceHandler) GetAccount(
 		CommonId:     user.CommonID.String(),
 		EmailAddress: user.EmailAddress,
 		Username:     user.Username,
+		CreatedAt:    timestamppb.New(user.CreatedAt),
+		UpdatedAt:    timestamppb.New(user.UpdatedAt),
 	}
 	resp := &accountsapiv1.GetAccountResponse{Account: account}
 

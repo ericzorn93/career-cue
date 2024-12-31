@@ -99,12 +99,12 @@ func run() error {
 					registrationHandler := connectrpcadapter.NewRegistrationHandler(params.Logger, app)
 
 					// Assign the handler to the HTTP path
-					path, httpHandler := accountsapiv1connect.NewRegistrationServiceHandler(
+					path, httpHandler := accountsapiv1connect.NewAccountServiceHandler(
 						registrationHandler,
 						options...,
 					)
 					params.Mux.Handle(path, httpHandler)
-					reflector := grpcreflect.NewStaticReflector(accountsapiv1connect.RegistrationServiceName)
+					reflector := grpcreflect.NewStaticReflector(accountsapiv1connect.AccountServiceName)
 					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
 					params.Mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 

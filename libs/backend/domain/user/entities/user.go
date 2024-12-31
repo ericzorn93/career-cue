@@ -1,6 +1,9 @@
 package entities
 
-import "libs/backend/domain/user/valueobjects"
+import (
+	"libs/backend/domain/user/valueobjects"
+	"time"
+)
 
 // User is the internal domain representation
 // of an authenticated user
@@ -16,6 +19,8 @@ type User struct {
 	Strategy             string
 	CommonID             valueobjects.CommonID
 	Metadata             map[string]any
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 }
 
 // UserOption allows us to configure User
@@ -95,6 +100,20 @@ func WithCommonID(commonID valueobjects.CommonID) UserOption {
 func WithMetadata(Metadata map[string]any) UserOption {
 	return func(u *User) {
 		u.Metadata = Metadata
+	}
+}
+
+// WithCreatedAt adds the user's creation timestamp to the struct
+func WithCreatedAt(createdAt time.Time) UserOption {
+	return func(u *User) {
+		u.CreatedAt = createdAt
+	}
+}
+
+// WithUpdatedAt adds the user's update timestamp to the struct
+func WithUpdatedAt(updatedAt time.Time) UserOption {
+	return func(u *User) {
+		u.UpdatedAt = updatedAt
 	}
 }
 

@@ -17,7 +17,7 @@ import (
 type AccountService struct {
 	Logger                    boot.Logger
 	AccountConsumer           boot.AMQPConsumer
-	RegistrationServiceClient accountsapiv1connect.RegistrationServiceClient
+	RegistrationServiceClient accountsapiv1connect.AccountServiceClient
 }
 
 // AccountServiceParams is a struct to hold the parameters for the AccountService
@@ -29,7 +29,7 @@ type AccountServiceParams struct {
 
 // NewAccountService will construct the auth service
 func NewAccountService(params AccountServiceParams) AccountService {
-	registrationServiceClient := accountsapiv1connect.NewRegistrationServiceClient(http.DefaultClient, params.AccountsAPIURI)
+	registrationServiceClient := accountsapiv1connect.NewAccountServiceClient(http.DefaultClient, params.AccountsAPIURI)
 
 	return AccountService{
 		Logger:                    params.Logger,
