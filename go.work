@@ -3,6 +3,7 @@ go 1.23
 use (
 	./apps/services/accounts-api
 	./apps/services/accounts-worker
+	./apps/services/accounts-graphql
 	./apps/services/inbound-webhooks-api
 	./libs/backend/boot
 	./libs/backend/domain/user

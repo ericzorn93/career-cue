@@ -53,6 +53,25 @@ services:
       - inbound-webhooks-api
   ############ /ACCOUNTS WORKER ############
 
+  ############ ACCOUNTS GRAPHQL ############
+  accounts-graphql:
+    image: career-cue/accounts-graphql
+    container_name: career-cue-accounts-graphql
+    build:
+      context: .
+      dockerfile: ./apps/services/accounts-graphql/Dockerfile
+    ports:
+      - 3003:3000
+    env_file:
+      - ./apps/services/accounts-graphql/.env.local
+    volumes:
+      - accounts-graphql:/app
+    depends_on:
+      - inbound-webhooks-api
+      - accounts-api
+      - cockroachdb-cluster
+  ############ /ACCOUNTS GRAPHQL ############
+
   ############ LAVINMQ ############
   lavinmq:
     image: cloudamqp/lavinmq:latest
@@ -80,5 +99,6 @@ volumes:
   inbound-webhooks-api:
   accounts-api:
   accounts-worker:
+  accounts-graphql:
   lavinmq:
   cockroachdb-cluster:
