@@ -12,6 +12,6 @@ import (
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*models.Todo, error) {
 	return []*models.Todo{
-		{ID: "1", Done: false},
+		{ID: "1", Done: false, Text: "Buy milk"},
 	}, nil
 }
