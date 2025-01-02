@@ -6,7 +6,7 @@ supergraph:
 cors:
   allow_any_origin: true
 sandbox:
-  enabled: true
+  enabled: false
 homepage:
   enabled: false
 include_subgraph_errors:
