@@ -17,12 +17,12 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
 type Mutation {
-  empty: Boolean! @join__field(graph: ACCOUNTS_GRAPHQL)
+  empty: Boolean! @join__field(graph: ACCOUNTS)
 }
 
 type Query {
-  empty: Boolean! @join__field(graph: ACCOUNTS_GRAPHQL)
-  todos: [Todo!]! @join__field(graph: ACCOUNTS_GRAPHQL)
+  empty: Boolean! @join__field(graph: ACCOUNTS)
+  todos: [Todo!]! @join__field(graph: ACCOUNTS)
 }
 
 type Todo {
@@ -46,5 +46,5 @@ enum core__Purpose {
 scalar join__FieldSet
 
 enum join__Graph {
-  ACCOUNTS_GRAPHQL @join__graph(name: "accounts-graphql" url: "http://accounts-graphql:3000/graphql")
+  ACCOUNTS @join__graph(name: "accounts" url: "https://accounts-graphql-prod.fly.dev/graphql")
 }

@@ -104,7 +104,7 @@ services:
       - '4000:4000'
     volumes:
       - ./graphql/supergraph-dev.yaml:/supergraph.yaml
-      - ./graphql/supergraph.graphql:/supergraph.graphql
+      - ./graphql/supergraph-dev.graphql:/supergraph.graphql
       - ./graphql/router-dev.yaml:/router.yaml
     command:
       [
