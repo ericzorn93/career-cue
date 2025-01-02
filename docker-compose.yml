@@ -103,9 +103,9 @@ services:
     ports:
       - '4000:4000'
     volumes:
-      - ./graphql/supergraph.yaml:/supergraph.yaml
+      - ./graphql/supergraph-dev.yaml:/supergraph.yaml
       - ./graphql/supergraph.graphql:/supergraph.graphql
-      - ./graphql/router.yaml:/router.yaml
+      - ./graphql/router-dev.yaml:/router.yaml
     command:
       [
         '--dev',
