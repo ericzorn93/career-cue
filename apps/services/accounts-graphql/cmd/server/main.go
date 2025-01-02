@@ -80,7 +80,7 @@ func run() error {
 					}
 
 					// Set up all ConnectRPC Handlers
-					srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: &resolvers.Resolver{}}))
+					srv := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers.NewResolver(config)}))
 					srv.AddTransport(transport.Options{})
 					srv.AddTransport(transport.GET{})
 					srv.AddTransport(transport.POST{})

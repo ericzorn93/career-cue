@@ -1,8 +1,22 @@
 type Account {
-  id: ID!
-  email: String!
+  """
+  The unique identifier for the account
+  """
+  id: UUID!
+  """
+  The email address of the account
+  """
+  emailAddress: String!
+  """
+  The createdAt time of the account
+  """
+  createdAt: Time!
+  """
+  The updatedAt time of the account
+  """
+  updatedAt: Time!
 }
 
-extend type Query {
-  accounts: [Account!]!
+extend type Viewer {
+  account(id: ID!): Account @goField(forceResolver: true)
 }
