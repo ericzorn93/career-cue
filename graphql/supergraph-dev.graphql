@@ -17,8 +17,17 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
 type Account {
-  email: String!
-  id: ID!
+  """The createdAt time of the account"""
+  createdAt: Time!
+
+  """The email address of the account"""
+  emailAddress: String!
+
+  """The unique identifier for the account"""
+  id: UUID!
+
+  """The updatedAt time of the account"""
+  updatedAt: Time!
 }
 
 type Mutation {
@@ -26,15 +35,19 @@ type Mutation {
 }
 
 type Query {
-  accounts: [Account!]! @join__field(graph: ACCOUNTS)
   empty: Boolean! @join__field(graph: ACCOUNTS)
-  todos: [Todo!]! @join__field(graph: ACCOUNTS)
+
+  """Viewer is the root query object for the user"""
+  viewer: Viewer! @join__field(graph: ACCOUNTS)
 }
 
-type Todo {
-  done: Boolean!
-  id: ID!
-  text: String!
+scalar Time
+
+scalar UUID
+
+type Viewer {
+  account(id: ID!): Account @join__field(graph: ACCOUNTS)
+  empty: Boolean!
 }
 
 enum core__Purpose {

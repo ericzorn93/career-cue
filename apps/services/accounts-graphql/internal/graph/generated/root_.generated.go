@@ -34,6 +34,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Viewer() ViewerResolver
 }
 
 type DirectiveRoot struct {
@@ -41,8 +42,10 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Account struct {
-		Email func(childComplexity int) int
-		ID    func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		EmailAddress func(childComplexity int) int
+		ID           func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -50,16 +53,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Accounts           func(childComplexity int) int
 		Empty              func(childComplexity int) int
-		Todos              func(childComplexity int) int
+		Viewer             func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
 	}
 
-	Todo struct {
-		Done func(childComplexity int) int
-		ID   func(childComplexity int) int
-		Text func(childComplexity int) int
+	Viewer struct {
+		Account func(childComplexity int, id string) int
+		Empty   func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -86,12 +87,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Account.email":
-		if e.complexity.Account.Email == nil {
+	case "Account.createdAt":
+		if e.complexity.Account.CreatedAt == nil {
 			break
 		}
 
-		return e.complexity.Account.Email(childComplexity), true
+		return e.complexity.Account.CreatedAt(childComplexity), true
+
+	case "Account.emailAddress":
+		if e.complexity.Account.EmailAddress == nil {
+			break
+		}
+
+		return e.complexity.Account.EmailAddress(childComplexity), true
 
 	case "Account.id":
 		if e.complexity.Account.ID == nil {
@@ -100,19 +108,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Account.ID(childComplexity), true
 
+	case "Account.updatedAt":
+		if e.complexity.Account.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Account.UpdatedAt(childComplexity), true
+
 	case "Mutation.empty":
 		if e.complexity.Mutation.Empty == nil {
 			break
 		}
 
 		return e.complexity.Mutation.Empty(childComplexity), true
-
-	case "Query.accounts":
-		if e.complexity.Query.Accounts == nil {
-			break
-		}
-
-		return e.complexity.Query.Accounts(childComplexity), true
 
 	case "Query.empty":
 		if e.complexity.Query.Empty == nil {
@@ -121,12 +129,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Empty(childComplexity), true
 
-	case "Query.todos":
-		if e.complexity.Query.Todos == nil {
+	case "Query.viewer":
+		if e.complexity.Query.Viewer == nil {
 			break
 		}
 
-		return e.complexity.Query.Todos(childComplexity), true
+		return e.complexity.Query.Viewer(childComplexity), true
 
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
@@ -135,26 +143,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.__resolve__service(childComplexity), true
 
-	case "Todo.done":
-		if e.complexity.Todo.Done == nil {
+	case "Viewer.account":
+		if e.complexity.Viewer.Account == nil {
 			break
 		}
 
-		return e.complexity.Todo.Done(childComplexity), true
+		args, err := ec.field_Viewer_account_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
 
-	case "Todo.id":
-		if e.complexity.Todo.ID == nil {
+		return e.complexity.Viewer.Account(childComplexity, args["id"].(string)), true
+
+	case "Viewer.empty":
+		if e.complexity.Viewer.Empty == nil {
 			break
 		}
 
-		return e.complexity.Todo.ID(childComplexity), true
-
-	case "Todo.text":
-		if e.complexity.Todo.Text == nil {
-			break
-		}
-
-		return e.complexity.Todo.Text(childComplexity), true
+		return e.complexity.Viewer.Empty(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -268,34 +274,69 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schemas/accounts.graphql", Input: `type Account {
-  id: ID!
-  email: String!
+  """
+  The unique identifier for the account
+  """
+  id: UUID!
+  """
+  The email address of the account
+  """
+  emailAddress: String!
+  """
+  The createdAt time of the account
+  """
+  createdAt: Time!
+  """
+  The updatedAt time of the account
+  """
+  updatedAt: Time!
 }
 
-extend type Query {
-  accounts: [Account!]!
+extend type Viewer {
+  account(id: ID!): Account @goField(forceResolver: true)
 }
 `, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
 #
 # https://gqlgen.com/getting-started/
 
+# Scalars
+scalar Time
+scalar UUID
+
+# Directives
+directive @goModel(
+  model: String
+  models: [String!]
+  forceGenerate: Boolean
+) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+
+directive @goField(
+  forceResolver: Boolean
+  name: String
+  omittable: Boolean
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+directive @goTag(
+  key: String!
+  value: String
+) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
 type Query {
   empty: Boolean!
+
+  """
+  Viewer is the root query object for the user
+  """
+  viewer: Viewer!
 }
 
 type Mutation {
   empty: Boolean!
 }
-`, BuiltIn: false},
-	{Name: "../schemas/todos.graphql", Input: `type Todo {
-  id: ID!
-  done: Boolean!
-  text: String!
-}
 
-extend type Query {
-  todos: [Todo!]!
+type Viewer {
+  empty: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../../../federation/directives.graphql", Input: `

@@ -7,12 +7,29 @@ package resolvers
 import (
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
+	"fmt"
+	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
+
+	"connectrpc.com/connect"
+	"github.com/google/uuid"
 )
 
-// Accounts is the resolver for the accounts field.
-func (r *queryResolver) Accounts(ctx context.Context) ([]*models.Account, error) {
-	return []*models.Account{
-		{ID: "1", Email: "test@email.com"},
-		{ID: "2", Email: "another_test@email.com"},
+// Account is the resolver for the account field.
+func (r *viewerResolver) Account(ctx context.Context, obj *models.Viewer, id string) (*models.Account, error) {
+	// Call the Accounts API
+	resp, err := r.AccountsAPIClient.GetAccount(ctx, connect.NewRequest(&accountsapiv1.GetAccountRequest{
+		CommonId: id,
+	}))
+
+	// Check if there was an error or if the account is nil
+	if err != nil || resp.Msg.Account == nil {
+		return nil, fmt.Errorf("error getting account by commonID: %w", err)
+	}
+
+	return &models.Account{
+		ID:           uuid.MustParse(resp.Msg.Account.CommonId),
+		EmailAddress: resp.Msg.Account.EmailAddress,
+		CreatedAt:    resp.Msg.Account.CreatedAt.AsTime(),
+		UpdatedAt:    resp.Msg.Account.UpdatedAt.AsTime(),
 	}, nil
 }

@@ -6,6 +6,7 @@ package resolvers
 
 import (
 	"apps/services/accounts-graphql/internal/graph/generated"
+	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 )
 
@@ -19,11 +20,22 @@ func (r *queryResolver) Empty(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+// Viewer is the resolver for the viewer field.
+func (r *queryResolver) Viewer(ctx context.Context) (*models.Viewer, error) {
+	return &models.Viewer{
+		Empty: true,
+	}, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Viewer returns generated.ViewerResolver implementation.
+func (r *Resolver) Viewer() generated.ViewerResolver { return &viewerResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type viewerResolver struct{ *Resolver }
