@@ -3,7 +3,7 @@
 package generated
 
 import (
-	"apps/services/accounts-graphql/internal/graph/models"
+	"apps/services/<%=serviceName %>/internal/graph/models"
 	"context"
 	"errors"
 	"fmt"
