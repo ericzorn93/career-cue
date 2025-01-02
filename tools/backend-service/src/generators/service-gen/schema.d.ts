@@ -1,4 +1,4 @@
-type ServiceType = 'app' | 'worker';
+type ServiceType = 'api' | 'graphql' | 'worker';
 
 export interface CreateBackendServiceGeneratorSchema {
   serviceName: string;

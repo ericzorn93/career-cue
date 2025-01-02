@@ -15,7 +15,7 @@ describe('service-gen generator', () => {
   let tree: Tree;
   const options: CreateBackendServiceGeneratorSchema = {
     serviceName: 'test',
-    serviceType: 'app',
+    serviceType: 'api',
   };
 
   beforeEach(() => {
