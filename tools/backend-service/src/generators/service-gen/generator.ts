@@ -2,6 +2,7 @@ import {
   addProjectConfiguration,
   formatFiles,
   generateFiles,
+  ProjectConfiguration,
   Tree,
 } from '@nx/devkit';
 import * as path from 'path';
@@ -13,7 +14,8 @@ export async function createBackendServiceGenerator(
   options: CreateBackendServiceGeneratorSchema
 ) {
   const projectRoot = `apps/services/${options.serviceName}`;
-  addProjectConfiguration(tree, options.serviceName, {
+
+  const defaultConfig: ProjectConfiguration = {
     root: projectRoot,
     projectType: 'application',
     sourceRoot: projectRoot,
@@ -58,8 +60,32 @@ export async function createBackendServiceGenerator(
         },
       },
     },
-  });
-  generateFiles(tree, path.join(__dirname, 'files'), projectRoot, options);
+  };
+
+  let finalConfig: ProjectConfiguration = defaultConfig;
+  let filesPath: string = path.join(__dirname, 'api-worker-files');
+
+  switch (options.serviceType) {
+    case 'graphql':
+      Object.assign(finalConfig.targets, {
+        generate: {
+          executor: 'nx:run-commands',
+          options: {
+            cwd: '{projectRoot}',
+            commands: ['go generate ./...', 'pnpm graphql:gen:dev'],
+          },
+        },
+      });
+      filesPath = path.join(__dirname, 'graphql-files');
+      break;
+    case 'api':
+    case 'worker':
+    default:
+      break;
+  }
+
+  addProjectConfiguration(tree, options.serviceName, finalConfig);
+  generateFiles(tree, filesPath, projectRoot, options);
   await formatFiles(tree);
   await execSync('pnpm go:tidy');
 }
