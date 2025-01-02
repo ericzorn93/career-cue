@@ -7,7 +7,7 @@
     "proto:gen": "pnpm proto:update && buf generate && pnpm proto:push && pnpm go:tidy",
     "proto:push": "buf push",
     "go:tidy": "sh ./scripts/go_mod_tidy.sh",
-    "graphql:gen": "rover supergraph compose --config ./graphql/supergraph.yaml > ./graphql/supergraph.graphql",
+    "graphql:gen": "rover supergraph compose --config ./graphql/supergraph-dev.yaml > ./graphql/supergraph.graphql",
     "dev": "tilt up"
   },
   "private": true,
