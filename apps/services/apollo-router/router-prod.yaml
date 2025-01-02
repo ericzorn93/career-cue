@@ -5,8 +5,8 @@ cors:
   allow_any_origin: true
 sandbox:
   enabled: true
-homepage:
-  enabled: true
+# homepage:
+#   enabled: true
 include_subgraph_errors:
   all: true # Propagate errors from all subgraphs
 plugins:
