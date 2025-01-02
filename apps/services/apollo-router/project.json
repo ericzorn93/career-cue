@@ -1,0 +1,24 @@
+{
+  "name": "apollo-router",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/services/apollo-router",
+  "projectType": "application",
+  "tags": ["apollo", "graphql", "api", "services"],
+  "targets": {
+    "docker-build": {
+      "dependsOn": ["build"],
+      "command": "docker build -f apps/services/apollo-router/Dockerfile . -t apollo-router"
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "flyctl deploy -c apps/services/apollo-router/fly.toml -y",
+          "flyctl scale count 1 -r ewr -c apps/services/apollo-router/fly.toml -y",
+          "flyctl scale count 0 -r lax -c apps/services/apollo-router/fly.toml -y",
+          "flyctl scale count 0 -r ord -c apps/services/apollo-router/fly.toml -y"
+        ]
+      }
+    }
+  }
+}

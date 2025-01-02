@@ -7,13 +7,16 @@
     "proto:gen": "pnpm proto:update && buf generate && pnpm proto:push && pnpm go:tidy",
     "proto:push": "buf push",
     "go:tidy": "sh ./scripts/go_mod_tidy.sh",
+    "graphql:gen:dev": "rover supergraph compose --config ./graphql/supergraph-dev.yaml > ./graphql/supergraph-dev.graphql",
+    "graphql:gen:prod": "rover supergraph compose --config ./apps/services/apollo-router/supergraph-prod.yaml > ./apps/services/apollo-router/supergraph-prod.graphql",
     "dev": "tilt up"
   },
   "private": true,
   "dependencies": {
     "@nx-go/nx-go": "3.3.0",
     "@nx/devkit": "20.1.3",
-    "@nx/js": "^20.1.3"
+    "@nx/js": "^20.1.3",
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -22,7 +25,11 @@
     "@nx/jest": "20.1.3",
     "@nx/node": "20.1.3",
     "@nx/plugin": "20.1.3",
+    "@nx/web": "20.1.3",
+    "@nx/webpack": "20.1.3",
     "@nx/workspace": "20.1.3",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
+    "@svgr/webpack": "^8.0.1",
     "@swc-node/register": "~1.9.1",
     "@swc/cli": "~0.3.12",
     "@swc/core": "~1.5.7",
@@ -36,10 +43,12 @@
     "jest-environment-node": "^29.7.0",
     "nx": "20.1.3",
     "prettier": "^2.6.2",
+    "react-refresh": "^0.10.0",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
     "typescript": "~5.5.2",
-    "typescript-eslint": "^8.0.0"
+    "typescript-eslint": "^8.0.0",
+    "webpack-cli": "^5.1.4"
   }
 }

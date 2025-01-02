@@ -53,6 +53,7 @@ type ComplexityRoot struct {
 	Todo struct {
 		Done func(childComplexity int) int
 		ID   func(childComplexity int) int
+		Text func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -120,6 +121,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.ID(childComplexity), true
+
+	case "Todo.text":
+		if e.complexity.Todo.Text == nil {
+			break
+		}
+
+		return e.complexity.Todo.Text(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -247,6 +255,7 @@ type Mutation {
 	{Name: "../schemas/todos.graphql", Input: `type Todo {
   id: ID!
   done: Boolean!
+  text: String!
 }
 
 extend type Query {

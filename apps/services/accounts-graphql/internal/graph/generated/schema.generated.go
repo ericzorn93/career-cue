@@ -192,6 +192,8 @@ func (ec *executionContext) fieldContext_Query_todos(_ context.Context, field gr
 				return ec.fieldContext_Todo_id(ctx, field)
 			case "done":
 				return ec.fieldContext_Todo_done(ctx, field)
+			case "text":
+				return ec.fieldContext_Todo_text(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},

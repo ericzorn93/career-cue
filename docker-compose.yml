@@ -95,6 +95,28 @@ services:
       - ./docker-startup/db:/docker-entrypoint-initdb.d
     restart: always
   ############ /CockroachDB Cluser ############
+
+  ############ Apollo Router ############
+  apollo-router:
+    image: ghcr.io/apollographql/router:v1.59.0
+    container_name: apollo-router
+    ports:
+      - '4000:4000'
+    volumes:
+      - ./graphql/supergraph-dev.yaml:/supergraph.yaml
+      - ./graphql/supergraph-dev.graphql:/supergraph.graphql
+      - ./graphql/router-dev.yaml:/router.yaml
+    command:
+      [
+        '--dev',
+        '--config',
+        '/router.yaml',
+        '--supergraph',
+        '/supergraph.graphql',
+      ]
+    depends_on:
+      - accounts-graphql
+  ############ /Apollo Router ############
 volumes:
   inbound-webhooks-api:
   accounts-api:

@@ -7,17 +7,16 @@ package resolvers
 import (
 	"apps/services/accounts-graphql/internal/graph/generated"
 	"context"
-	"fmt"
 )
 
 // Empty is the resolver for the empty field.
 func (r *mutationResolver) Empty(ctx context.Context) (bool, error) {
-	panic(fmt.Errorf("not implemented: Empty - empty"))
+	return true, nil
 }
 
 // Empty is the resolver for the empty field.
 func (r *queryResolver) Empty(ctx context.Context) (bool, error) {
-	panic(fmt.Errorf("not implemented: Empty - empty"))
+	return true, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

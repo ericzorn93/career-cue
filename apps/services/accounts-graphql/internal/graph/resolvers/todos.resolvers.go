@@ -7,11 +7,13 @@ package resolvers
 import (
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
+	"log"
 )
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*models.Todo, error) {
+	log.Println("resolvers.Todos")
 	return []*models.Todo{
-		{ID: "1", Done: false},
+		{ID: "1", Done: false, Text: "Buy milk"},
 	}, nil
 }
