@@ -32,7 +32,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{projectRoot}",
-        "command": "go generate ./..."
+        "commands": ["go generate ./...", "pnpm graphql:gen:dev"]
       }
     },
     "docker-build": {
