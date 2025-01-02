@@ -40,26 +40,13 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	Account struct {
-		Email func(childComplexity int) int
-		ID    func(childComplexity int) int
-	}
-
 	Mutation struct {
 		Empty func(childComplexity int) int
 	}
 
 	Query struct {
-		Accounts           func(childComplexity int) int
 		Empty              func(childComplexity int) int
-		Todos              func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
-	}
-
-	Todo struct {
-		Done func(childComplexity int) int
-		ID   func(childComplexity int) int
-		Text func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -86,33 +73,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Account.email":
-		if e.complexity.Account.Email == nil {
-			break
-		}
-
-		return e.complexity.Account.Email(childComplexity), true
-
-	case "Account.id":
-		if e.complexity.Account.ID == nil {
-			break
-		}
-
-		return e.complexity.Account.ID(childComplexity), true
-
 	case "Mutation.empty":
 		if e.complexity.Mutation.Empty == nil {
 			break
 		}
 
 		return e.complexity.Mutation.Empty(childComplexity), true
-
-	case "Query.accounts":
-		if e.complexity.Query.Accounts == nil {
-			break
-		}
-
-		return e.complexity.Query.Accounts(childComplexity), true
 
 	case "Query.empty":
 		if e.complexity.Query.Empty == nil {
@@ -121,40 +87,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Empty(childComplexity), true
 
-	case "Query.todos":
-		if e.complexity.Query.Todos == nil {
-			break
-		}
-
-		return e.complexity.Query.Todos(childComplexity), true
-
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
 			break
 		}
 
 		return e.complexity.Query.__resolve__service(childComplexity), true
-
-	case "Todo.done":
-		if e.complexity.Todo.Done == nil {
-			break
-		}
-
-		return e.complexity.Todo.Done(childComplexity), true
-
-	case "Todo.id":
-		if e.complexity.Todo.ID == nil {
-			break
-		}
-
-		return e.complexity.Todo.ID(childComplexity), true
-
-	case "Todo.text":
-		if e.complexity.Todo.Text == nil {
-			break
-		}
-
-		return e.complexity.Todo.Text(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -267,15 +205,6 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schemas/accounts.graphql", Input: `type Account {
-  id: ID!
-  email: String!
-}
-
-extend type Query {
-  accounts: [Account!]!
-}
-`, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
 #
 # https://gqlgen.com/getting-started/
@@ -286,16 +215,6 @@ type Query {
 
 type Mutation {
   empty: Boolean!
-}
-`, BuiltIn: false},
-	{Name: "../schemas/todos.graphql", Input: `type Todo {
-  id: ID!
-  done: Boolean!
-  text: String!
-}
-
-extend type Query {
-  todos: [Todo!]!
 }
 `, BuiltIn: false},
 	{Name: "../../../federation/directives.graphql", Input: `
