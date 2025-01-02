@@ -1,7 +1,9 @@
 # see https://www.apollographql.com/docs/router/configuration/overview#yaml-config-file
 
 supergraph:
-  listen: 0.0.0.0:4000
+  listen:
+    - 0.0.0.0:4000
+    - "[::1]:8080"
   introspection: true
 cors:
   allow_any_origin: true
