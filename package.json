@@ -8,7 +8,7 @@
     "proto:push": "buf push",
     "go:tidy": "sh ./scripts/go_mod_tidy.sh",
     "graphql:gen:dev": "rover supergraph compose --config ./graphql/supergraph-dev.yaml > ./graphql/supergraph-dev.graphql",
-    "graphql:gen:prod": "rover supergraph compose --config ./graphql/supergraph-prod.yaml > ./graphql/supergraph-prod.graphql",
+    "graphql:gen:prod": "rover supergraph compose --config ./apps/services/apollo-router/supergraph-prod.yaml > ./apps/services/apollo-router/supergraph-prod.graphql",
     "dev": "tilt up"
   },
   "private": true,

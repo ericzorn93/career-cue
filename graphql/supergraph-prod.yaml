@@ -1,7 +1,0 @@
-federation_version: "2"
-subgraphs:
-  # Subgraph introspection
-  accounts:
-    routing_url: https://accounts-graphql-prod.fly.dev/graphql  # <- can be omitted if the same as introspection URL
-    schema:
-      subgraph_url: https://accounts-graphql-prod.fly.dev/graphql
