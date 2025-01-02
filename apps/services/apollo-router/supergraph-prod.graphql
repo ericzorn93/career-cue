@@ -16,11 +16,17 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
+type Account {
+  email: String!
+  id: ID!
+}
+
 type Mutation {
   empty: Boolean! @join__field(graph: ACCOUNTS)
 }
 
 type Query {
+  accounts: [Account!]! @join__field(graph: ACCOUNTS)
   empty: Boolean! @join__field(graph: ACCOUNTS)
   todos: [Todo!]! @join__field(graph: ACCOUNTS)
 }
