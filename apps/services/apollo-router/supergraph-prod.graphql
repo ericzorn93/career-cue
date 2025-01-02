@@ -52,5 +52,5 @@ enum core__Purpose {
 scalar join__FieldSet
 
 enum join__Graph {
-  ACCOUNTS @join__graph(name: "accounts" url: "https://accounts-graphql-prod.fly.dev/graphql")
+  ACCOUNTS @join__graph(name: "accounts" url: "https://accounts-graphql-prod.internal:8080/graphql")
 }
