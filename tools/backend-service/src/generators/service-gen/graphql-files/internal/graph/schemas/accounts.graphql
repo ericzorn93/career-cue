@@ -1,8 +1,0 @@
-type Account {
-  id: ID!
-  email: String!
-}
-
-extend type Query {
-  accounts: [Account!]!
-}

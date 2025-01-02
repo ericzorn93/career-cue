@@ -1,9 +1,9 @@
 package main
 
 import (
-	"apps/services/accounts-graphql/internal/config"
-	"apps/services/accounts-graphql/internal/graph/generated"
-	"apps/services/accounts-graphql/internal/graph/resolvers"
+	"apps/services/<%= serviceName %>/internal/config"
+	"apps/services/<%= serviceName %>/internal/graph/generated"
+	"apps/services/<%= serviceName %>/internal/graph/resolvers"
 	"context"
 	"errors"
 	"log"
