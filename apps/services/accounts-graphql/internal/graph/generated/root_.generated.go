@@ -40,11 +40,17 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Account struct {
+		Email func(childComplexity int) int
+		ID    func(childComplexity int) int
+	}
+
 	Mutation struct {
 		Empty func(childComplexity int) int
 	}
 
 	Query struct {
+		Accounts           func(childComplexity int) int
 		Empty              func(childComplexity int) int
 		Todos              func(childComplexity int) int
 		__resolve__service func(childComplexity int) int
@@ -80,12 +86,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Account.email":
+		if e.complexity.Account.Email == nil {
+			break
+		}
+
+		return e.complexity.Account.Email(childComplexity), true
+
+	case "Account.id":
+		if e.complexity.Account.ID == nil {
+			break
+		}
+
+		return e.complexity.Account.ID(childComplexity), true
+
 	case "Mutation.empty":
 		if e.complexity.Mutation.Empty == nil {
 			break
 		}
 
 		return e.complexity.Mutation.Empty(childComplexity), true
+
+	case "Query.accounts":
+		if e.complexity.Query.Accounts == nil {
+			break
+		}
+
+		return e.complexity.Query.Accounts(childComplexity), true
 
 	case "Query.empty":
 		if e.complexity.Query.Empty == nil {
@@ -240,6 +267,15 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schemas/accounts.graphql", Input: `type Account {
+  id: ID!
+  email: String!
+}
+
+extend type Query {
+  accounts: [Account!]!
+}
+`, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
 #
 # https://gqlgen.com/getting-started/
