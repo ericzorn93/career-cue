@@ -6,7 +6,7 @@ EXPOSE 4000
 
 WORKDIR /dist
 
-COPY ./apps/services/apollo-router/router-prod.yaml /config/router.yaml
-COPY ./apps/services/apollo-router/supergraph-prod.graphql /config/supergraph.graphql
+COPY ./apps/services/apollo-router/router-prod.yaml ./config/router.yaml
+COPY ./apps/services/apollo-router/supergraph-prod.graphql ./config/supergraph.graphql
 
-CMD ["--config", "/config/router.yaml", "--supergraph", "/config/supergraph.graphql"]
+CMD ["--config", "/dist//config/router.yaml", "--supergraph", "/dist/config/supergraph.graphql"]
