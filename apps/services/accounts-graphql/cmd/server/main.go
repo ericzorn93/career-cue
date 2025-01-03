@@ -6,6 +6,7 @@ import (
 	"apps/services/accounts-graphql/internal/graph/resolvers"
 	"context"
 	"errors"
+	"libs/backend/cache"
 	"log"
 	"log/slog"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/vektah/gqlparser/v2/ast"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -84,13 +86,26 @@ func run() error {
 					srv.AddTransport(transport.Options{})
 					srv.AddTransport(transport.GET{})
 					srv.AddTransport(transport.POST{})
-					// srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+
+					// Create caches
+					queryCache, err := cache.NewLRUCache[*ast.QueryDocument](1000, params.Logger)
+					if err != nil {
+						params.Logger.Error("Cannot create query cache", slog.Any("error", err))
+						return err
+					}
+
+					automaticPersistedQueryCache, err := cache.NewLRUCache[string](100, params.Logger)
+					if err != nil {
+						params.Logger.Error("Cannot create persisted query cache", slog.Any("error", err))
+						return err
+					}
 
 					// Middleware
 					srv.Use(extension.Introspection{})
-					// srv.Use(extension.AutomaticPersistedQuery{
-					// Cache: lru.New[string](100),
-					// })
+					srv.SetQueryCache(queryCache)
+					srv.Use(extension.AutomaticPersistedQuery{
+						Cache: automaticPersistedQueryCache,
+					})
 
 					params.Mux.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
 					params.Mux.Handle("/graphql", srv)
