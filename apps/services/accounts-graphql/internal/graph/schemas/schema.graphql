@@ -30,13 +30,16 @@ type Query {
   """
   Viewer is the root query object for the user
   """
-  viewer: Viewer!
+  viewer: Viewer
 }
 
 type Mutation {
   empty: Boolean!
 }
 
+"""
+Viewer is the root query object for the user
+"""
 type Viewer {
   empty: Boolean!
 }

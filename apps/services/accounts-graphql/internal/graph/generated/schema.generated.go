@@ -28,7 +28,7 @@ type QueryResolver interface {
 	Viewer(ctx context.Context) (*models.Viewer, error)
 }
 type ViewerResolver interface {
-	Account(ctx context.Context, obj *models.Viewer, id string) (*models.Account, error)
+	Account(ctx context.Context, obj *models.Viewer, commonID uuid.UUID) (*models.Account, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -61,23 +61,23 @@ func (ec *executionContext) field_Query___type_argsName(
 func (ec *executionContext) field_Viewer_account_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := ec.field_Viewer_account_argsID(ctx, rawArgs)
+	arg0, err := ec.field_Viewer_account_argsCommonID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg0
+	args["commonID"] = arg0
 	return args, nil
 }
-func (ec *executionContext) field_Viewer_account_argsID(
+func (ec *executionContext) field_Viewer_account_argsCommonID(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-	if tmp, ok := rawArgs["id"]; ok {
-		return ec.unmarshalNID2string(ctx, tmp)
+) (uuid.UUID, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("commonID"))
+	if tmp, ok := rawArgs["commonID"]; ok {
+		return ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
 	}
 
-	var zeroVal string
+	var zeroVal uuid.UUID
 	return zeroVal, nil
 }
 
@@ -198,14 +198,11 @@ func (ec *executionContext) _Query_viewer(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.Viewer)
 	fc.Result = res
-	return ec.marshalNViewer2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐViewer(ctx, field.Selections, res)
+	return ec.marshalOViewer2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐViewer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -462,7 +459,7 @@ func (ec *executionContext) _Viewer_account(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Viewer().Account(rctx, obj, fc.Args["id"].(string))
+		return ec.resolvers.Viewer().Account(rctx, obj, fc.Args["commonID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -615,16 +612,13 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		case "viewer":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Query_viewer(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -793,15 +787,8 @@ func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx
 	return res
 }
 
-func (ec *executionContext) marshalNViewer2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐViewer(ctx context.Context, sel ast.SelectionSet, v models.Viewer) graphql.Marshaler {
-	return ec._Viewer(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNViewer2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐViewer(ctx context.Context, sel ast.SelectionSet, v *models.Viewer) graphql.Marshaler {
+func (ec *executionContext) marshalOViewer2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐViewer(ctx context.Context, sel ast.SelectionSet, v *models.Viewer) graphql.Marshaler {
 	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
 		return graphql.Null
 	}
 	return ec._Viewer(ctx, sel, v)

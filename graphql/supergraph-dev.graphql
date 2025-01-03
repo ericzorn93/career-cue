@@ -16,6 +16,7 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
+"""The Account type represents a user account in the system."""
 type Account {
   """The createdAt time of the account"""
   createdAt: Time!
@@ -38,15 +39,20 @@ type Query {
   empty: Boolean! @join__field(graph: ACCOUNTS)
 
   """Viewer is the root query object for the user"""
-  viewer: Viewer! @join__field(graph: ACCOUNTS)
+  viewer: Viewer @join__field(graph: ACCOUNTS)
 }
 
 scalar Time
 
 scalar UUID
 
+"""Viewer is the root query object for the user"""
 type Viewer {
-  account(id: ID!): Account @join__field(graph: ACCOUNTS)
+  """Get an account by its unique identifier"""
+  account(
+    """The unique identifier of the account"""
+    commonID: UUID!
+  ): Account @join__field(graph: ACCOUNTS)
   empty: Boolean!
 }
 

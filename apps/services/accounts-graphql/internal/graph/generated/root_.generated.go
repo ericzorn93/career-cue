@@ -10,6 +10,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/google/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -59,7 +60,7 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
-		Account func(childComplexity int, id string) int
+		Account func(childComplexity int, commonID uuid.UUID) int
 		Empty   func(childComplexity int) int
 	}
 
@@ -153,7 +154,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Viewer.Account(childComplexity, args["id"].(string)), true
+		return e.complexity.Viewer.Account(childComplexity, args["commonID"].(uuid.UUID)), true
 
 	case "Viewer.empty":
 		if e.complexity.Viewer.Empty == nil {
@@ -273,7 +274,10 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schemas/accounts.graphql", Input: `type Account {
+	{Name: "../schemas/accounts.graphql", Input: `"""
+The Account type represents a user account in the system.
+"""
+type Account {
   """
   The unique identifier for the account
   """
@@ -293,7 +297,15 @@ var sources = []*ast.Source{
 }
 
 extend type Viewer {
-  account(id: ID!): Account @goField(forceResolver: true)
+  """
+  Get an account by its unique identifier
+  """
+  account(
+    """
+    The unique identifier of the account
+    """
+    commonID: UUID!
+  ): Account @goField(forceResolver: true)
 }
 `, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
@@ -328,13 +340,16 @@ type Query {
   """
   Viewer is the root query object for the user
   """
-  viewer: Viewer!
+  viewer: Viewer
 }
 
 type Mutation {
   empty: Boolean!
 }
 
+"""
+Viewer is the root query object for the user
+"""
 type Viewer {
   empty: Boolean!
 }
