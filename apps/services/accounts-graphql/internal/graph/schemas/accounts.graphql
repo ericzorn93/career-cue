@@ -24,5 +24,10 @@ extend type Viewer {
   """
   Get an account by its unique identifier
   """
-  account(id: UUID!): Account @goField(forceResolver: true)
+  account(
+    """
+    The unique identifier of the account
+    """
+    commonID: UUID!
+  ): Account @goField(forceResolver: true)
 }

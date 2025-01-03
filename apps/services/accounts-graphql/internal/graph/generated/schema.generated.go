@@ -28,7 +28,7 @@ type QueryResolver interface {
 	Viewer(ctx context.Context) (*models.Viewer, error)
 }
 type ViewerResolver interface {
-	Account(ctx context.Context, obj *models.Viewer, id uuid.UUID) (*models.Account, error)
+	Account(ctx context.Context, obj *models.Viewer, commonID uuid.UUID) (*models.Account, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -61,19 +61,19 @@ func (ec *executionContext) field_Query___type_argsName(
 func (ec *executionContext) field_Viewer_account_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := ec.field_Viewer_account_argsID(ctx, rawArgs)
+	arg0, err := ec.field_Viewer_account_argsCommonID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg0
+	args["commonID"] = arg0
 	return args, nil
 }
-func (ec *executionContext) field_Viewer_account_argsID(
+func (ec *executionContext) field_Viewer_account_argsCommonID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (uuid.UUID, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-	if tmp, ok := rawArgs["id"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("commonID"))
+	if tmp, ok := rawArgs["commonID"]; ok {
 		return ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
 	}
 
@@ -459,7 +459,7 @@ func (ec *executionContext) _Viewer_account(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Viewer().Account(rctx, obj, fc.Args["id"].(uuid.UUID))
+		return ec.resolvers.Viewer().Account(rctx, obj, fc.Args["commonID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -60,7 +60,7 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
-		Account func(childComplexity int, id uuid.UUID) int
+		Account func(childComplexity int, commonID uuid.UUID) int
 		Empty   func(childComplexity int) int
 	}
 
@@ -154,7 +154,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Viewer.Account(childComplexity, args["id"].(uuid.UUID)), true
+		return e.complexity.Viewer.Account(childComplexity, args["commonID"].(uuid.UUID)), true
 
 	case "Viewer.empty":
 		if e.complexity.Viewer.Empty == nil {
@@ -300,7 +300,12 @@ extend type Viewer {
   """
   Get an account by its unique identifier
   """
-  account(id: UUID!): Account @goField(forceResolver: true)
+  account(
+    """
+    The unique identifier of the account
+    """
+    commonID: UUID!
+  ): Account @goField(forceResolver: true)
 }
 `, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
