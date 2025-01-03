@@ -53,9 +53,10 @@ export async function createBackendServiceGenerator(
         options: {
           commands: [
             `flyctl deploy -c apps/services/${options.serviceName}/fly.toml -y`,
-            `flyctl scale count 1 -r ewr -c apps/services/${options.serviceName}/fly.toml -y`,
-            `flyctl scale count 1 -r lax -c apps/services/${options.serviceName}/fly.toml -y`,
-            `flyctl scale count 1 -r ord -c apps/services/${options.serviceName}/fly.toml -y`,
+            `flyctl scale count 1 -r iad -c apps/services/${options.serviceName}/fly.toml -y`,
+            `flyctl scale count 0 -r ewr -c apps/services/${options.serviceName}/fly.toml -y`,
+            `flyctl scale count 0 -r lax -c apps/services/${options.serviceName}/fly.toml -y`,
+            `flyctl scale count 0 -r ord -c apps/services/${options.serviceName}/fly.toml -y`,
           ],
         },
       },
