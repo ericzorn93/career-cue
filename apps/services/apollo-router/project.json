@@ -14,7 +14,8 @@
       "options": {
         "commands": [
           "flyctl deploy -c apps/services/apollo-router/fly.toml -y",
-          "flyctl scale count 1 -r ewr -c apps/services/apollo-router/fly.toml -y",
+          "flyctl scale count 1 -r iad -c apps/services/apollo-router/fly.toml -y",
+          "flyctl scale count 0 -r ewr -c apps/services/apollo-router/fly.toml -y",
           "flyctl scale count 0 -r lax -c apps/services/apollo-router/fly.toml -y",
           "flyctl scale count 0 -r ord -c apps/services/apollo-router/fly.toml -y"
         ]
