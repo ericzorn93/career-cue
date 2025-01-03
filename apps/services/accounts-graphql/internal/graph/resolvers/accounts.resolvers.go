@@ -15,10 +15,10 @@ import (
 )
 
 // Account is the resolver for the account field.
-func (r *viewerResolver) Account(ctx context.Context, obj *models.Viewer, id string) (*models.Account, error) {
+func (r *viewerResolver) Account(ctx context.Context, obj *models.Viewer, id uuid.UUID) (*models.Account, error) {
 	// Call the Accounts API
 	resp, err := r.AccountsAPIClient.GetAccount(ctx, connect.NewRequest(&accountsapiv1.GetAccountRequest{
-		CommonId: id,
+		CommonId: id.String(),
 	}))
 
 	// Check if there was an error or if the account is nil

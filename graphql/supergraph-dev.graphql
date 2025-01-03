@@ -38,15 +38,16 @@ type Query {
   empty: Boolean! @join__field(graph: ACCOUNTS)
 
   """Viewer is the root query object for the user"""
-  viewer: Viewer! @join__field(graph: ACCOUNTS)
+  viewer: Viewer @join__field(graph: ACCOUNTS)
 }
 
 scalar Time
 
 scalar UUID
 
+"""Viewer is the root query object for the user"""
 type Viewer {
-  account(id: ID!): Account @join__field(graph: ACCOUNTS)
+  account(id: UUID!): Account @join__field(graph: ACCOUNTS)
   empty: Boolean!
 }
 

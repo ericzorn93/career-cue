@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// The Account type represents a user account in the system.
 type Account struct {
 	// The unique identifier for the account
 	ID uuid.UUID `json:"id"`
@@ -25,7 +26,9 @@ type Mutation struct {
 type Query struct {
 }
 
+// Viewer is the root query object for the user
 type Viewer struct {
-	Empty   bool     `json:"empty"`
+	Empty bool `json:"empty"`
+	// Get an account by its unique identifier
 	Account *Account `json:"account,omitempty"`
 }
