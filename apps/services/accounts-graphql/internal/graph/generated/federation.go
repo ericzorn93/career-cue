@@ -172,25 +172,6 @@ func (ec *executionContext) resolveEntity(
 
 			return entity, nil
 		}
-	case "Viewer":
-		resolverName, err := entityResolverNameForViewer(ctx, rep)
-		if err != nil {
-			return nil, fmt.Errorf(`finding resolver for Entity "Viewer": %w`, err)
-		}
-		switch resolverName {
-
-		case "findViewerByID":
-			id0, err := ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, rep["id"])
-			if err != nil {
-				return nil, fmt.Errorf(`unmarshalling param 0 for findViewerByID(): %w`, err)
-			}
-			entity, err := ec.resolvers.Entity().FindViewerByID(ctx, id0)
-			if err != nil {
-				return nil, fmt.Errorf(`resolving Entity "Viewer": %w`, err)
-			}
-
-			return entity, nil
-		}
 
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownType, typeName)
@@ -249,40 +230,5 @@ func entityResolverNameForAccount(ctx context.Context, rep EntityRepresentation)
 		return "findAccountByID", nil
 	}
 	return "", fmt.Errorf("%w for Account due to %v", ErrTypeNotFound,
-		errors.Join(entityResolverErrs...).Error())
-}
-
-func entityResolverNameForViewer(ctx context.Context, rep EntityRepresentation) (string, error) {
-	// we collect errors because a later entity resolver may work fine
-	// when an entity has multiple keys
-	entityResolverErrs := []error{}
-	for {
-		var (
-			m   EntityRepresentation
-			val any
-			ok  bool
-		)
-		_ = val
-		// if all of the KeyFields values for this resolver are null,
-		// we shouldn't use use it
-		allNull := true
-		m = rep
-		val, ok = m["id"]
-		if !ok {
-			entityResolverErrs = append(entityResolverErrs,
-				fmt.Errorf("%w due to missing Key Field \"id\" for Viewer", ErrTypeNotFound))
-			break
-		}
-		if allNull {
-			allNull = val == nil
-		}
-		if allNull {
-			entityResolverErrs = append(entityResolverErrs,
-				fmt.Errorf("%w due to all null value KeyFields for Viewer", ErrTypeNotFound))
-			break
-		}
-		return "findViewerByID", nil
-	}
-	return "", fmt.Errorf("%w for Viewer due to %v", ErrTypeNotFound,
 		errors.Join(entityResolverErrs...).Error())
 }

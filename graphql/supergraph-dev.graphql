@@ -20,18 +20,21 @@ directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on IN
 Account has default account interface with additional
 account properties
 """
-type Account implements AccountInterface {
+type Account implements AccountInterface
+  @join__owner(graph: ACCOUNTS)
+  @join__type(graph: ACCOUNTS, key: "id")
+{
   """The createdAt time of the account"""
-  createdAt: Time!
+  createdAt: Time! @join__field(graph: ACCOUNTS)
 
   """The email address of the account"""
-  emailAddress: String!
+  emailAddress: String! @join__field(graph: ACCOUNTS)
 
   """The unique identifier for the account"""
-  id: UUID!
+  id: UUID! @join__field(graph: ACCOUNTS)
 
   """The updatedAt time of the account"""
-  updatedAt: Time!
+  updatedAt: Time! @join__field(graph: ACCOUNTS)
 }
 
 """
@@ -53,10 +56,13 @@ interface AccountInterface {
 }
 
 type Mutation {
+  """Delete account by commonID"""
+  deleteAccount(commonID: UUID!): Time! @join__field(graph: ACCOUNTS)
   empty: Boolean! @join__field(graph: ACCOUNTS)
 }
 
 type Query {
+  """Obtains the account by commonID or email address"""
   account(input: RetrieveAccountInput!): Account @join__field(graph: ACCOUNTS)
   empty: Boolean! @join__field(graph: ACCOUNTS)
 

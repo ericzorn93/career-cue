@@ -44,7 +44,7 @@ type Account implements AccountInterface @key(fields: "id") {
   updatedAt: Time!
 }
 
-extend type Viewer implements AccountInterface @key(fields: "id") {
+extend type Viewer implements AccountInterface {
   """
   The unique identifier for the account
   """
@@ -79,5 +79,15 @@ input RetrieveAccountInput {
 }
 
 extend type Query {
+  """
+  Obtains the account by commonID or email address
+  """
   account(input: RetrieveAccountInput!): Account
+}
+
+extend type Mutation {
+  """
+  Delete account by commonID
+  """
+  deleteAccount(commonID: UUID!): Time!
 }

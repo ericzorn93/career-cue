@@ -91,5 +91,3 @@ func (this Viewer) GetCreatedAt() time.Time { return this.CreatedAt }
 
 // The updatedAt time of the account
 func (this Viewer) GetUpdatedAt() time.Time { return this.UpdatedAt }
-
-func (Viewer) IsEntity() {}

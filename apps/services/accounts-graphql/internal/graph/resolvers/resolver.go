@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"apps/services/accounts-graphql/internal/config"
+	"libs/backend/boot"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 	"net/http"
 
@@ -15,10 +16,11 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
+	Logger            boot.Logger
 	AccountsAPIClient accountsapiv1connect.AccountServiceClient
 }
 
-func NewResolver(config config.Config) *Resolver {
+func NewResolver(logger boot.Logger, config config.Config) *Resolver {
 	// Set up Accounts API Client
 	accountsAPIClient := accountsapiv1connect.NewAccountServiceClient(
 		http.DefaultClient,
@@ -27,6 +29,7 @@ func NewResolver(config config.Config) *Resolver {
 	)
 
 	return &Resolver{
+		Logger:            logger,
 		AccountsAPIClient: accountsAPIClient,
 	}
 }

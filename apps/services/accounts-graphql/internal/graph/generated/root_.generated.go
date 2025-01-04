@@ -52,11 +52,11 @@ type ComplexityRoot struct {
 
 	Entity struct {
 		FindAccountByID func(childComplexity int, id uuid.UUID) int
-		FindViewerByID  func(childComplexity int, id uuid.UUID) int
 	}
 
 	Mutation struct {
-		Empty func(childComplexity int) int
+		DeleteAccount func(childComplexity int, commonID uuid.UUID) int
+		Empty         func(childComplexity int) int
 	}
 
 	Query struct {
@@ -139,17 +139,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entity.FindAccountByID(childComplexity, args["id"].(uuid.UUID)), true
 
-	case "Entity.findViewerByID":
-		if e.complexity.Entity.FindViewerByID == nil {
+	case "Mutation.deleteAccount":
+		if e.complexity.Mutation.DeleteAccount == nil {
 			break
 		}
 
-		args, err := ec.field_Entity_findViewerByID_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteAccount_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Entity.FindViewerByID(childComplexity, args["id"].(uuid.UUID)), true
+		return e.complexity.Mutation.DeleteAccount(childComplexity, args["commonID"].(uuid.UUID)), true
 
 	case "Mutation.empty":
 		if e.complexity.Mutation.Empty == nil {
@@ -402,7 +402,7 @@ type Account implements AccountInterface @key(fields: "id") {
   updatedAt: Time!
 }
 
-extend type Viewer implements AccountInterface @key(fields: "id") {
+extend type Viewer implements AccountInterface {
   """
   The unique identifier for the account
   """
@@ -437,7 +437,17 @@ input RetrieveAccountInput {
 }
 
 extend type Query {
+  """
+  Obtains the account by commonID or email address
+  """
   account(input: RetrieveAccountInput!): Account
+}
+
+extend type Mutation {
+  """
+  Delete account by commonID
+  """
+  deleteAccount(commonID: UUID!): Time!
 }
 `, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
@@ -544,12 +554,11 @@ type Mutation {
 `, BuiltIn: true},
 	{Name: "../../../federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
-union _Entity = Account | Viewer
+union _Entity = Account
 
 # fake type to build resolver interfaces for users to implement
 type Entity {
 	findAccountByID(id: UUID!,): Account!
-	findViewerByID(id: UUID!,): Viewer!
 }
 
 type _Service {
