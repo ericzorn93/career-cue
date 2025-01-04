@@ -5,8 +5,6 @@ import (
 	"libs/backend/boot"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 	"net/http"
-
-	"connectrpc.com/connect"
 )
 
 //go:generate go run github.com/99designs/gqlgen generate
@@ -25,7 +23,6 @@ func NewResolver(logger boot.Logger, config config.Config) *Resolver {
 	accountsAPIClient := accountsapiv1connect.NewAccountServiceClient(
 		http.DefaultClient,
 		config.AccountsAPIURI,
-		connect.WithGRPC(),
 	)
 
 	return &Resolver{
