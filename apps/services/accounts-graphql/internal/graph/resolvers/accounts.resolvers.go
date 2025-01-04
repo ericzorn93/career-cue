@@ -15,10 +15,25 @@ import (
 )
 
 // Account is the resolver for the account field.
-func (r *viewerResolver) Account(ctx context.Context, obj *models.Viewer, commonID uuid.UUID) (*models.Account, error) {
+func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccountInput) (*models.Account, error) {
 	// Call the Accounts API
+	commonID := input.CommonID
+	emailAddress := input.EmailAddress
+
+	var commonIDForSearch *string
+	var emailAddressForSearch *string
+
+	switch {
+	case commonID != nil:
+		commonIDStr := commonID.String()
+		commonIDForSearch = &commonIDStr
+	case emailAddress != nil:
+		emailAddressForSearch = emailAddress
+	}
+
 	resp, err := r.AccountsAPIClient.GetAccount(ctx, connect.NewRequest(&accountsapiv1.GetAccountRequest{
-		CommonId: commonID.String(),
+		CommonId:     commonIDForSearch,
+		EmailAddress: emailAddressForSearch,
 	}))
 
 	// Check if there was an error or if the account is nil
@@ -26,8 +41,14 @@ func (r *viewerResolver) Account(ctx context.Context, obj *models.Viewer, common
 		return nil, fmt.Errorf("error getting account by commonID: %w", err)
 	}
 
+	// Parse values (commonID,)
+	parsedCommonID, err := uuid.Parse(resp.Msg.Account.CommonId)
+	if err != nil {
+		return nil, fmt.Errorf("commonID cannot be parsed from account: %w", err)
+	}
+
 	return &models.Account{
-		ID:           uuid.MustParse(resp.Msg.Account.CommonId),
+		ID:           parsedCommonID,
 		EmailAddress: resp.Msg.Account.EmailAddress,
 		CreatedAt:    resp.Msg.Account.CreatedAt.AsTime(),
 		UpdatedAt:    resp.Msg.Account.UpdatedAt.AsTime(),

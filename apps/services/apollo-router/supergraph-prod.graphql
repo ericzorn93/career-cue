@@ -16,8 +16,29 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
-"""The Account type represents a user account in the system."""
-type Account {
+"""
+Account has default account interface with additional
+account properties
+"""
+type Account implements AccountInterface {
+  """The createdAt time of the account"""
+  createdAt: Time!
+
+  """The email address of the account"""
+  emailAddress: String!
+
+  """The unique identifier for the account"""
+  id: UUID!
+
+  """The updatedAt time of the account"""
+  updatedAt: Time!
+}
+
+"""
+Account interface defines key
+shared account properties
+"""
+interface AccountInterface {
   """The createdAt time of the account"""
   createdAt: Time!
 
@@ -36,10 +57,23 @@ type Mutation {
 }
 
 type Query {
+  account(input: RetrieveAccountInput!): Account @join__field(graph: ACCOUNTS)
   empty: Boolean! @join__field(graph: ACCOUNTS)
 
   """Viewer is the root query object for the user"""
-  viewer: Viewer @join__field(graph: ACCOUNTS)
+  viewer(
+    """The unique identifier for the viewer"""
+    commonID: UUID!
+  ): Viewer @join__field(graph: ACCOUNTS)
+}
+
+"""Uses either the commonID or email address to fetch user"""
+input RetrieveAccountInput {
+  """commonID is the unique identifier for an account"""
+  commonID: UUID
+
+  """emailAddress defines the unique email address for the account"""
+  emailAddress: String
 }
 
 scalar Time
@@ -47,13 +81,19 @@ scalar Time
 scalar UUID
 
 """Viewer is the root query object for the user"""
-type Viewer {
-  """Get an account by its unique identifier"""
-  account(
-    """The unique identifier of the account"""
-    commonID: UUID!
-  ): Account @join__field(graph: ACCOUNTS)
+type Viewer implements AccountInterface {
+  """The createdAt time of the account"""
+  createdAt: Time! @join__field(graph: ACCOUNTS)
+
+  """The email address of the account"""
+  emailAddress: String! @join__field(graph: ACCOUNTS)
   empty: Boolean!
+
+  """The unique identifier for the account"""
+  id: UUID! @join__field(graph: ACCOUNTS)
+
+  """The updatedAt time of the account"""
+  updatedAt: Time! @join__field(graph: ACCOUNTS)
 }
 
 enum core__Purpose {

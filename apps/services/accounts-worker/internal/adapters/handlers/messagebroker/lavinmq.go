@@ -51,17 +51,14 @@ func (h LavinMQHandler) HandleUserRegisteredEvent(ctx context.Context, queueName
 		proto.Unmarshal(msg.Body, &userRegisteredEvent)
 
 		// Parse CommonID
-		commonID, err := userValueObjects.NewCommonIDFromString(userRegisteredEvent.CommonId)
-		if err != nil {
-			h.Logger.Error("Cannot create common ID", slog.Any("error", err))
-			continue
-		}
+		commonID := userValueObjects.NewCommonIDFromString(userRegisteredEvent.CommonId)
+		emailAddress := userValueObjects.NewEmailAddress(userRegisteredEvent.EmailAddress)
 
 		// Create User in Accounts API
 		user := userEntities.NewUser(
-			userEntities.WithUserUsername(userRegisteredEvent.Username),
-			userEntities.WithEmailAddress(userRegisteredEvent.EmailAddress),
 			userEntities.WithCommonID(commonID),
+			userEntities.WithEmailAddress(emailAddress),
+			userEntities.WithUserUsername(userRegisteredEvent.Username),
 		)
 
 		// Create Account in Accounts API

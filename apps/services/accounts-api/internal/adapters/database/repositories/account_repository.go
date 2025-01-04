@@ -37,7 +37,7 @@ func (r AccountRepository) CreateAccount(ctx context.Context, user userEntities.
 	// Create account
 	account := &models.Account{
 		CommonID:     user.CommonID.Value(),
-		EmailAddress: user.EmailAddress,
+		EmailAddress: user.EmailAddress.String(),
 		UserName:     user.Username,
 	}
 
@@ -50,8 +50,8 @@ func (r AccountRepository) CreateAccount(ctx context.Context, user userEntities.
 	return nil
 }
 
-// GetAccount gets an account from the database by commonID
-func (r AccountRepository) GetAccount(ctx context.Context, commonID userValueObjects.CommonID) (userEntities.User, error) {
+// GetAccountByCommonID gets an account from the database by commonID
+func (r AccountRepository) GetAccountByCommonID(ctx context.Context, commonID userValueObjects.CommonID) (userEntities.User, error) {
 	r.Logger.Info("Getting account", slog.String("commonID", commonID.String()))
 
 	account := &models.Account{}
@@ -61,13 +61,33 @@ func (r AccountRepository) GetAccount(ctx context.Context, commonID userValueObj
 		return userEntities.User{}, errors.New("account not found")
 	}
 
+	return r.convertAccountToUser(account), nil
+}
+
+// GetAccountByEmailAddress gets an account from the database by email address
+func (r AccountRepository) GetAccountByEmailAddress(ctx context.Context, emailAdress userValueObjects.EmailAddress) (userEntities.User, error) {
+	r.Logger.Info("Getting account", slog.String("emailAdress", emailAdress.String()))
+
+	account := &models.Account{}
+	r.Database.First(account, "email_address = ?", emailAdress.Value())
+
+	if account.ID == uuid.Nil {
+		return userEntities.User{}, errors.New("account not found")
+	}
+
+	return r.convertAccountToUser(account), nil
+}
+
+// convertAccountToUser converts an account to a user
+func (r AccountRepository) convertAccountToUser(account *models.Account) userEntities.User {
 	parsedCommonID := userValueObjects.NewCommonIDFromUUID(account.CommonID)
+	parsedEmailAddress := userValueObjects.NewEmailAddress(account.EmailAddress)
 
 	return userEntities.NewUser(
 		userEntities.WithCommonID(parsedCommonID),
-		userEntities.WithEmailAddress(account.EmailAddress),
+		userEntities.WithEmailAddress(parsedEmailAddress),
 		userEntities.WithUserUsername(account.UserName),
 		userEntities.WithCreatedAt(account.CreatedAt),
 		userEntities.WithUpdatedAt(account.UpdatedAt),
-	), nil
+	)
 }

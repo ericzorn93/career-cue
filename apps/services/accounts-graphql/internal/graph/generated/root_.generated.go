@@ -3,6 +3,7 @@
 package generated
 
 import (
+	"apps/services/accounts-graphql/internal/graph/models"
 	"bytes"
 	"context"
 	"errors"
@@ -35,7 +36,6 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
-	Viewer() ViewerResolver
 }
 
 type DirectiveRoot struct {
@@ -54,14 +54,18 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Account            func(childComplexity int, input models.RetrieveAccountInput) int
 		Empty              func(childComplexity int) int
-		Viewer             func(childComplexity int) int
+		Viewer             func(childComplexity int, commonID uuid.UUID) int
 		__resolve__service func(childComplexity int) int
 	}
 
 	Viewer struct {
-		Account func(childComplexity int, commonID uuid.UUID) int
-		Empty   func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		EmailAddress func(childComplexity int) int
+		Empty        func(childComplexity int) int
+		ID           func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
 	}
 
 	_Service struct {
@@ -123,6 +127,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Empty(childComplexity), true
 
+	case "Query.account":
+		if e.complexity.Query.Account == nil {
+			break
+		}
+
+		args, err := ec.field_Query_account_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Account(childComplexity, args["input"].(models.RetrieveAccountInput)), true
+
 	case "Query.empty":
 		if e.complexity.Query.Empty == nil {
 			break
@@ -135,7 +151,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Viewer(childComplexity), true
+		args, err := ec.field_Query_viewer_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Viewer(childComplexity, args["commonID"].(uuid.UUID)), true
 
 	case "Query._service":
 		if e.complexity.Query.__resolve__service == nil {
@@ -144,17 +165,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.__resolve__service(childComplexity), true
 
-	case "Viewer.account":
-		if e.complexity.Viewer.Account == nil {
+	case "Viewer.createdAt":
+		if e.complexity.Viewer.CreatedAt == nil {
 			break
 		}
 
-		args, err := ec.field_Viewer_account_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
+		return e.complexity.Viewer.CreatedAt(childComplexity), true
+
+	case "Viewer.emailAddress":
+		if e.complexity.Viewer.EmailAddress == nil {
+			break
 		}
 
-		return e.complexity.Viewer.Account(childComplexity, args["commonID"].(uuid.UUID)), true
+		return e.complexity.Viewer.EmailAddress(childComplexity), true
 
 	case "Viewer.empty":
 		if e.complexity.Viewer.Empty == nil {
@@ -162,6 +185,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Viewer.Empty(childComplexity), true
+
+	case "Viewer.id":
+		if e.complexity.Viewer.ID == nil {
+			break
+		}
+
+		return e.complexity.Viewer.ID(childComplexity), true
+
+	case "Viewer.updatedAt":
+		if e.complexity.Viewer.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Viewer.UpdatedAt(childComplexity), true
 
 	case "_Service.sdl":
 		if e.complexity._Service.SDL == nil {
@@ -177,7 +214,9 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputRetrieveAccountInput,
+	)
 	first := true
 
 	switch opCtx.Operation.Operation {
@@ -275,9 +314,10 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schemas/accounts.graphql", Input: `"""
-The Account type represents a user account in the system.
+Account interface defines key
+shared account properties
 """
-type Account {
+interface AccountInterface {
   """
   The unique identifier for the account
   """
@@ -296,16 +336,65 @@ type Account {
   updatedAt: Time!
 }
 
-extend type Viewer {
+"""
+Account has default account interface with additional
+account properties
+"""
+type Account implements AccountInterface {
   """
-  Get an account by its unique identifier
+  The unique identifier for the account
   """
-  account(
-    """
-    The unique identifier of the account
-    """
-    commonID: UUID!
-  ): Account @goField(forceResolver: true)
+  id: UUID!
+  """
+  The email address of the account
+  """
+  emailAddress: String!
+  """
+  The createdAt time of the account
+  """
+  createdAt: Time!
+  """
+  The updatedAt time of the account
+  """
+  updatedAt: Time!
+}
+
+extend type Viewer implements AccountInterface {
+  """
+  The unique identifier for the account
+  """
+  id: UUID!
+  """
+  The email address of the account
+  """
+  emailAddress: String!
+  """
+  The createdAt time of the account
+  """
+  createdAt: Time!
+  """
+  The updatedAt time of the account
+  """
+  updatedAt: Time!
+}
+
+"""
+Uses either the commonID or email address to fetch user
+"""
+input RetrieveAccountInput {
+  """
+  commonID is the unique identifier for an account
+  """
+  commonID: UUID
+
+  """
+  emailAddress defines the unique email address for the account
+  """
+  emailAddress: String
+}
+
+extend type Query {
+  account(input: RetrieveAccountInput!): Account
 }
 `, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
@@ -334,23 +423,28 @@ directive @goTag(
   value: String
 ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
+"""
+Viewer is the root query object for the user
+"""
+type Viewer {
+  empty: Boolean!
+}
+
 type Query {
   empty: Boolean!
 
   """
   Viewer is the root query object for the user
   """
-  viewer: Viewer
+  viewer(
+    """
+    The unique identifier for the viewer
+    """
+    commonID: UUID!
+  ): Viewer @goField(forceResolver: true)
 }
 
 type Mutation {
-  empty: Boolean!
-}
-
-"""
-Viewer is the root query object for the user
-"""
-type Viewer {
   empty: Boolean!
 }
 `, BuiltIn: false},

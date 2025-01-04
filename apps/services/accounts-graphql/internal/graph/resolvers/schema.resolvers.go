@@ -8,6 +8,11 @@ import (
 	"apps/services/accounts-graphql/internal/graph/generated"
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
+	"fmt"
+	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
+
+	"connectrpc.com/connect"
+	"github.com/google/uuid"
 )
 
 // Empty is the resolver for the empty field.
@@ -21,9 +26,30 @@ func (r *queryResolver) Empty(ctx context.Context) (bool, error) {
 }
 
 // Viewer is the resolver for the viewer field.
-func (r *queryResolver) Viewer(ctx context.Context) (*models.Viewer, error) {
+func (r *queryResolver) Viewer(ctx context.Context, commonID uuid.UUID) (*models.Viewer, error) {
+	// Call the Accounts API
+	commonIDStr := commonID.String()
+	resp, err := r.AccountsAPIClient.GetAccount(ctx, connect.NewRequest(&accountsapiv1.GetAccountRequest{
+		CommonId: &commonIDStr,
+	}))
+
+	// Check if there was an error or if the account is nil
+	if err != nil || resp.Msg.Account == nil {
+		return nil, fmt.Errorf("error getting account by commonID: %w", err)
+	}
+
+	// Parse values (commonID,)
+	parsedCommonID, err := uuid.Parse(resp.Msg.Account.CommonId)
+	if err != nil {
+		return nil, fmt.Errorf("commonID cannot be parsed from account: %w", err)
+	}
+
 	return &models.Viewer{
-		Empty: true,
+		Empty:        true,
+		ID:           parsedCommonID,
+		EmailAddress: resp.Msg.Account.EmailAddress,
+		CreatedAt:    resp.Msg.Account.CreatedAt.AsTime(),
+		UpdatedAt:    resp.Msg.Account.UpdatedAt.AsTime(),
 	}, nil
 }
 
@@ -33,9 +59,5 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// Viewer returns generated.ViewerResolver implementation.
-func (r *Resolver) Viewer() generated.ViewerResolver { return &viewerResolver{r} }
-
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type viewerResolver struct{ *Resolver }

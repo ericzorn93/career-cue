@@ -1,7 +1,8 @@
 """
-The Account type represents a user account in the system.
+Account interface defines key
+shared account properties
 """
-type Account {
+interface AccountInterface {
   """
   The unique identifier for the account
   """
@@ -20,14 +21,63 @@ type Account {
   updatedAt: Time!
 }
 
-extend type Viewer {
+"""
+Account has default account interface with additional
+account properties
+"""
+type Account implements AccountInterface {
   """
-  Get an account by its unique identifier
+  The unique identifier for the account
   """
-  account(
-    """
-    The unique identifier of the account
-    """
-    commonID: UUID!
-  ): Account @goField(forceResolver: true)
+  id: UUID!
+  """
+  The email address of the account
+  """
+  emailAddress: String!
+  """
+  The createdAt time of the account
+  """
+  createdAt: Time!
+  """
+  The updatedAt time of the account
+  """
+  updatedAt: Time!
+}
+
+extend type Viewer implements AccountInterface {
+  """
+  The unique identifier for the account
+  """
+  id: UUID!
+  """
+  The email address of the account
+  """
+  emailAddress: String!
+  """
+  The createdAt time of the account
+  """
+  createdAt: Time!
+  """
+  The updatedAt time of the account
+  """
+  updatedAt: Time!
+}
+
+"""
+Uses either the commonID or email address to fetch user
+"""
+input RetrieveAccountInput {
+  """
+  commonID is the unique identifier for an account
+  """
+  commonID: UUID
+
+  """
+  emailAddress defines the unique email address for the account
+  """
+  emailAddress: String
+}
+
+extend type Query {
+  account(input: RetrieveAccountInput!): Account
 }
