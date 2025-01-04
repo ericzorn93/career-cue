@@ -79,6 +79,16 @@
       },
       "title": "CreateAcountResponse defines the response for the create account request"
     },
+    "v1DeleteAccountResponse": {
+      "type": "object",
+      "properties": {
+        "deletedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "DeleteAccountResponse will let the caller know if the server deleted the account"
+    },
     "v1GetAccountResponse": {
       "type": "object",
       "properties": {

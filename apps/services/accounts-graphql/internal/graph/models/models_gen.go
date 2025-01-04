@@ -49,6 +49,8 @@ func (this Account) GetCreatedAt() time.Time { return this.CreatedAt }
 // The updatedAt time of the account
 func (this Account) GetUpdatedAt() time.Time { return this.UpdatedAt }
 
+func (Account) IsEntity() {}
+
 type Mutation struct {
 }
 

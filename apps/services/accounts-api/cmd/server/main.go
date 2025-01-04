@@ -88,7 +88,7 @@ func run() error {
 					accountRepo := repositories.NewAccountRespository(params.Logger, params.DB)
 
 					// Create services
-					registrationService := services.NewRegistrationService(params.Logger, accountRepo)
+					registrationService := services.NewAccountService(params.Logger, accountRepo)
 
 					// Create Application
 					app := app.NewApp(

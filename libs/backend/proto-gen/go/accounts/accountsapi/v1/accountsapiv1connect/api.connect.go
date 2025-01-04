@@ -39,6 +39,9 @@ const (
 	// AccountServiceGetAccountProcedure is the fully-qualified name of the AccountService's GetAccount
 	// RPC.
 	AccountServiceGetAccountProcedure = "/accounts.accountsapi.v1.AccountService/GetAccount"
+	// AccountServiceDeleteAccountProcedure is the fully-qualified name of the AccountService's
+	// DeleteAccount RPC.
+	AccountServiceDeleteAccountProcedure = "/accounts.accountsapi.v1.AccountService/DeleteAccount"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -46,6 +49,7 @@ var (
 	accountServiceServiceDescriptor             = v1.File_accounts_accountsapi_v1_api_proto.Services().ByName("AccountService")
 	accountServiceCreateAccountMethodDescriptor = accountServiceServiceDescriptor.Methods().ByName("CreateAccount")
 	accountServiceGetAccountMethodDescriptor    = accountServiceServiceDescriptor.Methods().ByName("GetAccount")
+	accountServiceDeleteAccountMethodDescriptor = accountServiceServiceDescriptor.Methods().ByName("DeleteAccount")
 )
 
 // AccountServiceClient is a client for the accounts.accountsapi.v1.AccountService service.
@@ -54,6 +58,8 @@ type AccountServiceClient interface {
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
 	// GetAccount retrieves an account by its common id
 	GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error)
+	// Delete Account will soft/hard delete an account
+	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 }
 
 // NewAccountServiceClient constructs a client for the accounts.accountsapi.v1.AccountService
@@ -78,6 +84,12 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(accountServiceGetAccountMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		deleteAccount: connect.NewClient[v1.DeleteAccountRequest, v1.DeleteAccountResponse](
+			httpClient,
+			baseURL+AccountServiceDeleteAccountProcedure,
+			connect.WithSchema(accountServiceDeleteAccountMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -85,6 +97,7 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 type accountServiceClient struct {
 	createAccount *connect.Client[v1.CreateAccountRequest, v1.CreateAcountResponse]
 	getAccount    *connect.Client[v1.GetAccountRequest, v1.GetAccountResponse]
+	deleteAccount *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
 }
 
 // CreateAccount calls accounts.accountsapi.v1.AccountService.CreateAccount.
@@ -97,12 +110,19 @@ func (c *accountServiceClient) GetAccount(ctx context.Context, req *connect.Requ
 	return c.getAccount.CallUnary(ctx, req)
 }
 
+// DeleteAccount calls accounts.accountsapi.v1.AccountService.DeleteAccount.
+func (c *accountServiceClient) DeleteAccount(ctx context.Context, req *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error) {
+	return c.deleteAccount.CallUnary(ctx, req)
+}
+
 // AccountServiceHandler is an implementation of the accounts.accountsapi.v1.AccountService service.
 type AccountServiceHandler interface {
 	// CreateAccount creates a new account
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAcountResponse], error)
 	// GetAccount retrieves an account by its common id
 	GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error)
+	// Delete Account will soft/hard delete an account
+	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 }
 
 // NewAccountServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -123,12 +143,20 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 		connect.WithSchema(accountServiceGetAccountMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	accountServiceDeleteAccountHandler := connect.NewUnaryHandler(
+		AccountServiceDeleteAccountProcedure,
+		svc.DeleteAccount,
+		connect.WithSchema(accountServiceDeleteAccountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/accounts.accountsapi.v1.AccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AccountServiceCreateAccountProcedure:
 			accountServiceCreateAccountHandler.ServeHTTP(w, r)
 		case AccountServiceGetAccountProcedure:
 			accountServiceGetAccountHandler.ServeHTTP(w, r)
+		case AccountServiceDeleteAccountProcedure:
+			accountServiceDeleteAccountHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -144,4 +172,8 @@ func (UnimplementedAccountServiceHandler) CreateAccount(context.Context, *connec
 
 func (UnimplementedAccountServiceHandler) GetAccount(context.Context, *connect.Request[v1.GetAccountRequest]) (*connect.Response[v1.GetAccountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.AccountService.GetAccount is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("accounts.accountsapi.v1.AccountService.DeleteAccount is not implemented"))
 }

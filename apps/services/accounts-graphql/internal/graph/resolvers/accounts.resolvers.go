@@ -9,13 +9,36 @@ import (
 	"context"
 	"fmt"
 	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
+	"log/slog"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 )
 
+// DeleteAccount is the resolver for the deleteAccount field.
+func (r *mutationResolver) DeleteAccount(ctx context.Context, commonID uuid.UUID) (*time.Time, error) {
+	r.Logger.Info("Deleting account", slog.String("commonID", commonID.String()))
+
+	// Call Accounts API
+	const hardDelete = false
+	resp, err := r.AccountsAPIClient.DeleteAccount(ctx, connect.NewRequest(&accountsapiv1.DeleteAccountRequest{
+		CommonId:   commonID.String(),
+		HardDelete: hardDelete,
+	}))
+
+	if err != nil {
+		return nil, fmt.Errorf("could not delete account: %w", err)
+	}
+
+	deletedAtUTC := resp.Msg.DeletedAt.AsTime().UTC()
+	return &deletedAtUTC, nil
+}
+
 // Account is the resolver for the account field.
 func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccountInput) (*models.Account, error) {
+	loggerValues := make([]any, 0)
+
 	// Call the Accounts API
 	commonID := input.CommonID
 	emailAddress := input.EmailAddress
@@ -27,10 +50,15 @@ func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccoun
 	case commonID != nil:
 		commonIDStr := commonID.String()
 		commonIDForSearch = &commonIDStr
+		loggerValues = append(loggerValues, slog.String("commonID", commonIDStr))
 	case emailAddress != nil:
 		emailAddressForSearch = emailAddress
+		loggerValues = append(loggerValues, slog.String("emailAddress", *emailAddress))
 	}
 
+	r.Logger.Info("Fetching account", loggerValues...)
+
+	// Call the accounts API
 	resp, err := r.AccountsAPIClient.GetAccount(ctx, connect.NewRequest(&accountsapiv1.GetAccountRequest{
 		CommonId:     commonIDForSearch,
 		EmailAddress: emailAddressForSearch,

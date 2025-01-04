@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"libs/backend/boot"
 	"libs/backend/domain/user/entities"
-	"libs/backend/domain/user/valueobjects"
+	userValueObjects "libs/backend/domain/user/valueobjects"
 	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 	accountsDomain "libs/backend/proto-gen/go/accounts/domain"
@@ -16,7 +16,7 @@ import (
 )
 
 // AuthHandler handles all gRPC endpoints for inbound webhooks
-type RegistrationServiceHandler struct {
+type AccountServiceHandler struct {
 	accountsapiv1connect.UnimplementedAccountServiceHandler
 
 	// Logger is the logger from the boot framework
@@ -27,20 +27,20 @@ type RegistrationServiceHandler struct {
 }
 
 // NewRegistrationHandler will return a pointer to the inbound webhooks API server
-func NewRegistrationHandler(logger boot.Logger, app app.App) *RegistrationServiceHandler {
-	return &RegistrationServiceHandler{
+func NewRegistrationHandler(logger boot.Logger, app app.App) *AccountServiceHandler {
+	return &AccountServiceHandler{
 		Logger: logger,
 		App:    app,
 	}
 }
 
 // CreateAccount handles user creation and saves them in the database
-func (r *RegistrationServiceHandler) CreateAccount(
+func (r *AccountServiceHandler) CreateAccount(
 	ctx context.Context,
 	req *connect.Request[accountsapiv1.CreateAccountRequest],
 ) (*connect.Response[accountsapiv1.CreateAcountResponse], error) {
-	commonID := valueobjects.NewCommonIDFromString(req.Msg.CommonId)
-	emailAddress := valueobjects.NewEmailAddress(req.Msg.EmailAddress)
+	commonID := userValueObjects.NewCommonIDFromString(req.Msg.CommonId)
+	emailAddress := userValueObjects.NewEmailAddress(req.Msg.EmailAddress)
 
 	// Convert to user domain type
 	user := entities.NewUser(
@@ -56,21 +56,21 @@ func (r *RegistrationServiceHandler) CreateAccount(
 }
 
 // GetAccount handles user creation and saves them in the database
-func (r *RegistrationServiceHandler) GetAccount(
+func (r *AccountServiceHandler) GetAccount(
 	ctx context.Context,
 	req *connect.Request[accountsapiv1.GetAccountRequest],
 ) (*connect.Response[accountsapiv1.GetAccountResponse], error) {
 
 	// Parse the commonID vs emailAddress, depending on which one is passed
-	var commonID valueobjects.CommonID
-	var emailAddress valueobjects.EmailAddress
+	var commonID userValueObjects.CommonID
+	var emailAddress userValueObjects.EmailAddress
 
 	if req.Msg.CommonId != nil {
-		commonID = valueobjects.NewCommonIDFromString(*req.Msg.CommonId)
+		commonID = userValueObjects.NewCommonIDFromString(*req.Msg.CommonId)
 	}
 
 	if req.Msg.EmailAddress != nil {
-		emailAddress = valueobjects.NewEmailAddress(*req.Msg.EmailAddress)
+		emailAddress = userValueObjects.NewEmailAddress(*req.Msg.EmailAddress)
 	}
 
 	// Get the user from the database
@@ -90,4 +90,22 @@ func (r *RegistrationServiceHandler) GetAccount(
 	resp := &accountsapiv1.GetAccountResponse{Account: account}
 
 	return connect.NewResponse(resp), nil
+}
+
+// DeleteAccount handles account deletion
+func (r *AccountServiceHandler) DeleteAccount(
+	ctx context.Context,
+	req *connect.Request[accountsapiv1.DeleteAccountRequest],
+) (*connect.Response[accountsapiv1.DeleteAccountResponse], error) {
+	// Parse incoming request data
+	parsedCommonID := userValueObjects.NewCommonIDFromString(req.Msg.CommonId)
+	hardDelete := req.Msg.HardDelete
+
+	// Perform deletion logic
+	deletedAt, err := r.App.RegistrationService.DeleteUser(ctx, parsedCommonID, hardDelete)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return connect.NewResponse(&accountsapiv1.DeleteAccountResponse{DeletedAt: timestamppb.New(deletedAt)}), nil
 }

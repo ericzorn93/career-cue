@@ -34,6 +34,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Entity() EntityResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -49,8 +50,13 @@ type ComplexityRoot struct {
 		UpdatedAt    func(childComplexity int) int
 	}
 
+	Entity struct {
+		FindAccountByID func(childComplexity int, id uuid.UUID) int
+	}
+
 	Mutation struct {
-		Empty func(childComplexity int) int
+		DeleteAccount func(childComplexity int, commonID uuid.UUID) int
+		Empty         func(childComplexity int) int
 	}
 
 	Query struct {
@@ -58,6 +64,7 @@ type ComplexityRoot struct {
 		Empty              func(childComplexity int) int
 		Viewer             func(childComplexity int, commonID uuid.UUID) int
 		__resolve__service func(childComplexity int) int
+		__resolve_entities func(childComplexity int, representations []map[string]any) int
 	}
 
 	Viewer struct {
@@ -120,6 +127,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Account.UpdatedAt(childComplexity), true
 
+	case "Entity.findAccountByID":
+		if e.complexity.Entity.FindAccountByID == nil {
+			break
+		}
+
+		args, err := ec.field_Entity_findAccountByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Entity.FindAccountByID(childComplexity, args["id"].(uuid.UUID)), true
+
+	case "Mutation.deleteAccount":
+		if e.complexity.Mutation.DeleteAccount == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteAccount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAccount(childComplexity, args["commonID"].(uuid.UUID)), true
+
 	case "Mutation.empty":
 		if e.complexity.Mutation.Empty == nil {
 			break
@@ -164,6 +195,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.__resolve__service(childComplexity), true
+
+	case "Query._entities":
+		if e.complexity.Query.__resolve_entities == nil {
+			break
+		}
+
+		args, err := ec.field_Query__entities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.__resolve_entities(childComplexity, args["representations"].([]map[string]any)), true
 
 	case "Viewer.createdAt":
 		if e.complexity.Viewer.CreatedAt == nil {
@@ -340,7 +383,7 @@ interface AccountInterface {
 Account has default account interface with additional
 account properties
 """
-type Account implements AccountInterface {
+type Account implements AccountInterface @key(fields: "id") {
   """
   The unique identifier for the account
   """
@@ -394,7 +437,17 @@ input RetrieveAccountInput {
 }
 
 extend type Query {
+  """
+  Obtains the account by commonID or email address
+  """
   account(input: RetrieveAccountInput!): Account
+}
+
+extend type Mutation {
+  """
+  Delete account by commonID
+  """
+  deleteAccount(commonID: UUID!): Time!
 }
 `, BuiltIn: false},
 	{Name: "../schemas/schema.graphql", Input: `# GraphQL schema example
@@ -500,11 +553,20 @@ type Mutation {
 	scalar federation__Scope
 `, BuiltIn: true},
 	{Name: "../../../federation/entity.graphql", Input: `
+# a union of all types that use the @key directive
+union _Entity = Account
+
+# fake type to build resolver interfaces for users to implement
+type Entity {
+	findAccountByID(id: UUID!,): Account!
+}
+
 type _Service {
   sdl: String
 }
 
 extend type Query {
+  _entities(representations: [_Any!]!): [_Entity]!
   _service: _Service!
 }
 `, BuiltIn: true},
