@@ -25,7 +25,7 @@ interface AccountInterface {
 Account has default account interface with additional
 account properties
 """
-type Account implements AccountInterface {
+type Account implements AccountInterface @key(fields: "id") {
   """
   The unique identifier for the account
   """
@@ -44,7 +44,7 @@ type Account implements AccountInterface {
   updatedAt: Time!
 }
 
-extend type Viewer implements AccountInterface {
+extend type Viewer implements AccountInterface @key(fields: "id") {
   """
   The unique identifier for the account
   """

@@ -275,7 +275,7 @@ func (ec *executionContext) _AccountInterface(ctx context.Context, sel ast.Selec
 
 // region    **************************** object.gotpl ****************************
 
-var accountImplementors = []string{"Account", "AccountInterface"}
+var accountImplementors = []string{"Account", "AccountInterface", "_Entity"}
 
 func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, obj *models.Account) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, accountImplementors)
@@ -332,6 +332,20 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAccount2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐAccount(ctx context.Context, sel ast.SelectionSet, v models.Account) graphql.Marshaler {
+	return ec._Account(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAccount2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐAccount(ctx context.Context, sel ast.SelectionSet, v *models.Account) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Account(ctx, sel, v)
+}
 
 func (ec *executionContext) unmarshalNRetrieveAccountInput2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐRetrieveAccountInput(ctx context.Context, v any) (models.RetrieveAccountInput, error) {
 	res, err := ec.unmarshalInputRetrieveAccountInput(ctx, v)
