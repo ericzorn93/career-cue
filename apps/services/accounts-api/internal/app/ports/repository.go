@@ -11,6 +11,9 @@ type AccountRepository interface {
 	// CreateAccount creates an account in the database
 	CreateAccount(context.Context, userEntities.User) error
 
-	// GetAccount gets an account from the database by commonID
-	GetAccount(context.Context, userValueObjects.CommonID) (userEntities.User, error)
+	// GetAccountByCommonID gets an account from the database by commonID
+	GetAccountByCommonID(context.Context, userValueObjects.CommonID) (userEntities.User, error)
+
+	// GetAccountByEmailAddress gets an account from the database by email address
+	GetAccountByEmailAddress(context.Context, userValueObjects.EmailAddress) (userEntities.User, error)
 }

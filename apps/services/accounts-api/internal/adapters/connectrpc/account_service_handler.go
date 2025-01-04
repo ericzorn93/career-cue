@@ -39,15 +39,13 @@ func (r *RegistrationServiceHandler) CreateAccount(
 	ctx context.Context,
 	req *connect.Request[accountsapiv1.CreateAccountRequest],
 ) (*connect.Response[accountsapiv1.CreateAcountResponse], error) {
-	commonID, err := valueobjects.NewCommonIDFromString(req.Msg.CommonId)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid common ID: %w", err))
-	}
+	commonID := valueobjects.NewCommonIDFromString(req.Msg.CommonId)
+	emailAddress := valueobjects.NewEmailAddress(req.Msg.EmailAddress)
 
 	// Convert to user domain type
 	user := entities.NewUser(
 		entities.WithCommonID(commonID),
-		entities.WithEmailAddress(req.Msg.EmailAddress),
+		entities.WithEmailAddress(emailAddress),
 		entities.WithUserUsername(req.Msg.Username),
 	)
 
@@ -62,13 +60,21 @@ func (r *RegistrationServiceHandler) GetAccount(
 	ctx context.Context,
 	req *connect.Request[accountsapiv1.GetAccountRequest],
 ) (*connect.Response[accountsapiv1.GetAccountResponse], error) {
-	commonID, err := valueobjects.NewCommonIDFromString(req.Msg.CommonId)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid common ID: %w", err))
+
+	// Parse the commonID vs emailAddress, depending on which one is passed
+	var commonID valueobjects.CommonID
+	var emailAddress valueobjects.EmailAddress
+
+	if req.Msg.CommonId != nil {
+		commonID = valueobjects.NewCommonIDFromString(*req.Msg.CommonId)
+	}
+
+	if req.Msg.EmailAddress != nil {
+		emailAddress = valueobjects.NewEmailAddress(*req.Msg.EmailAddress)
 	}
 
 	// Get the user from the database
-	user, err := r.App.RegistrationService.GetUser(ctx, commonID)
+	user, err := r.App.RegistrationService.GetUser(ctx, commonID, emailAddress)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found: %w", err))
 	}
@@ -76,7 +82,7 @@ func (r *RegistrationServiceHandler) GetAccount(
 	// Convert to proto types
 	account := &accountsDomain.Account{
 		CommonId:     user.CommonID.String(),
-		EmailAddress: user.EmailAddress,
+		EmailAddress: user.EmailAddress.String(),
 		Username:     user.Username,
 		CreatedAt:    timestamppb.New(user.CreatedAt),
 		UpdatedAt:    timestamppb.New(user.UpdatedAt),

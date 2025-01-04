@@ -5,7 +5,7 @@ import "apps/services/accounts-api/internal/app/ports"
 // App is the application struct
 type App struct {
 	// RegistrationService is the registration service
-	RegistrationService ports.RegistrationService
+	RegistrationService ports.AccountService
 }
 
 // AppOption is the option for the application
@@ -23,7 +23,7 @@ func NewApp(opts ...AppOption) App {
 }
 
 // WithRegistrationService sets the registration service in the application
-func WithRegistrationService(service ports.RegistrationService) AppOption {
+func WithRegistrationService(service ports.AccountService) AppOption {
 	return func(a *App) {
 		a.RegistrationService = service
 	}

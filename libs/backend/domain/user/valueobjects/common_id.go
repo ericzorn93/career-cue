@@ -1,9 +1,6 @@
 package valueobjects
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/google/uuid"
 )
 
@@ -18,13 +15,13 @@ func NewCommonID() CommonID {
 }
 
 // NewCommonID creates a new CommonID
-func NewCommonIDFromString(value string) (CommonID, error) {
+func NewCommonIDFromString(value string) CommonID {
 	commonID, err := uuid.Parse(value)
 	if err != nil {
-		return CommonID{}, fmt.Errorf("invalid CommonID: %w", err)
+		return CommonID{}
 	}
 
-	return CommonID{value: commonID}, nil
+	return CommonID{value: commonID}
 }
 
 // NewCommonIDFromUUID creates a new CommonID from uuid.UUID instance
@@ -47,7 +44,7 @@ func (c CommonID) String() string {
 	return c.value.String()
 }
 
-// MarshalJSON marshals the CommonID to JSON
-func (c CommonID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(c.value.String())
+// IsEmtpy checks if the CommonID is empty
+func (c CommonID) IsEmpty() bool {
+	return c.value == uuid.Nil
 }

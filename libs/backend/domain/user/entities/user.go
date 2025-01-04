@@ -12,7 +12,7 @@ type User struct {
 	LastName             string
 	Nickname             string
 	Username             string
-	EmailAddress         string
+	EmailAddress         valueobjects.EmailAddress
 	EmailAddressVerified bool
 	PhoneNumber          string
 	PhoneNumberVerified  bool
@@ -55,7 +55,7 @@ func WithUserUsername(username string) UserOption {
 }
 
 // WithEmailAddress adds the user's email address to the struct
-func WithEmailAddress(emailAddress string) UserOption {
+func WithEmailAddress(emailAddress valueobjects.EmailAddress) UserOption {
 	return func(u *User) {
 		u.EmailAddress = emailAddress
 	}

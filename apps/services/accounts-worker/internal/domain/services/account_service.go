@@ -44,7 +44,7 @@ func (s AccountService) CreateAccount(ctx context.Context, user userEntities.Use
 	// Call the accounts-api to create the account
 	account, err := s.RegistrationServiceClient.CreateAccount(ctx, connect.NewRequest(&accountsapiv1.CreateAccountRequest{
 		Username:     user.Username,
-		EmailAddress: user.EmailAddress,
+		EmailAddress: user.EmailAddress.String(),
 		CommonId:     user.CommonID.String(),
 	}))
 

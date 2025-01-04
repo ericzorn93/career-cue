@@ -2,7 +2,6 @@ package connectrpc
 
 import (
 	"context"
-	"log/slog"
 
 	"connectrpc.com/connect"
 
@@ -36,17 +35,14 @@ func (h *AuthHandler) UserRegistered(
 	req *connect.Request[inboundwebhooksapiv1.UserRegisteredRequest],
 ) (*connect.Response[commonv1.Empty], error) {
 	// Parse CommonID
-	commonID, err := userValueObjects.NewCommonIDFromString(req.Msg.CommonId)
-	if err != nil {
-		h.Logger.Error("Cannot create common ID", slog.Any("error", err))
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
+	commonID := userValueObjects.NewCommonIDFromString(req.Msg.CommonId)
+	emailAddress := userValueObjects.NewEmailAddress(req.Msg.EmailAddress)
 
 	if err := h.Application.AuthService.RegisterUser(
 		userEntities.NewUser(
-			userEntities.WithUserUsername(req.Msg.Username),
-			userEntities.WithEmailAddress(req.Msg.EmailAddress),
 			userEntities.WithCommonID(commonID),
+			userEntities.WithEmailAddress(emailAddress),
+			userEntities.WithUserUsername(req.Msg.Username),
 			userEntities.WithMetadata(make(map[string]any, 0)),
 		),
 	); err != nil {
