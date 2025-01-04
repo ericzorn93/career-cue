@@ -4,7 +4,7 @@
 #
 
 app = '<%= serviceName %>-prod'
-primary_region = 'ewr'
+primary_region = 'iad'
 
 [build]
 dockerfile = 'Dockerfile'

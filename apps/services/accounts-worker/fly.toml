@@ -1,7 +1,7 @@
 app = 'accounts-worker-prod'
 
 [[services]]
-primary_region = 'ewr'
+primary_region = 'iad'
 
 [build]
 dockerfile = "Dockerfile"
