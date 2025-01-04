@@ -4,10 +4,12 @@ import (
 	"apps/services/accounts-api/internal/models"
 	"context"
 	"errors"
+	"fmt"
 	"libs/backend/boot"
 	userEntities "libs/backend/domain/user/entities"
 	userValueObjects "libs/backend/domain/user/valueobjects"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -69,13 +71,41 @@ func (r AccountRepository) GetAccountByEmailAddress(ctx context.Context, emailAd
 	r.Logger.Info("Getting account", slog.String("emailAdress", emailAdress.String()))
 
 	account := &models.Account{}
-	r.Database.First(account, "email_address = ?", emailAdress.Value())
+	r.Database.First(account, "email_address = ?", emailAdress)
 
 	if account.ID == uuid.Nil {
 		return userEntities.User{}, errors.New("account not found")
 	}
 
 	return r.convertAccountToUser(account), nil
+}
+
+// SoftDeleteAccountByCommonID will mark the user as deleted in the database with a timestamp
+func (r AccountRepository) SoftDeleteAccountByCommonID(ctx context.Context, commonID userValueObjects.CommonID) (time.Time, error) {
+	r.Logger.Info("Handling soft deletion of account by commonID", slog.String("commonID", commonID.String()))
+
+	// Handle soft deletion in the database
+	deletedAccount := &models.Account{}
+	if err := r.Database.Delete(deletedAccount, "common_id = ?", commonID).Error; err != nil {
+		r.Logger.Error("Cannot soft delete the user by commonID", slog.String("commonID", commonID.String()))
+		return time.Time{}, fmt.Errorf("cannot soft delete account: %w", err)
+	}
+
+	return deletedAccount.DeletedAt.Time, nil
+}
+
+// HardDeleteAccountByCommonID will remove the user from the dataase
+func (r AccountRepository) HardDeleteAccountByCommonID(ctx context.Context, commonID userValueObjects.CommonID) (time.Time, error) {
+	r.Logger.Info("Handling hard deletion of account by commonID", slog.Any("commonID", commonID.String()))
+
+	// Handle soft deletion in the database
+	deletedAccount := &models.Account{}
+	if err := r.Database.Unscoped().Delete(deletedAccount, "common_id = ?", commonID).Error; err != nil {
+		r.Logger.Error("Cannot hard delete the user by commonID", slog.String("commonID", commonID.String()))
+		return time.Time{}, fmt.Errorf("cannot hard delete accoutn: %w", err)
+	}
+
+	return deletedAccount.DeletedAt.Time, nil
 }
 
 // convertAccountToUser converts an account to a user

@@ -8,10 +8,11 @@ import (
 	userEntities "libs/backend/domain/user/entities"
 	userValueObjects "libs/backend/domain/user/valueobjects"
 	"log/slog"
+	"time"
 )
 
-// RegistrationService is the registration service
-type RegistrationService struct {
+// AccountService is the registration service
+type AccountService struct {
 	// Logger is the logger from the boot framework
 	Logger boot.Logger
 
@@ -19,16 +20,16 @@ type RegistrationService struct {
 	AccountRepository ports.AccountRepository
 }
 
-// NewRegistrationService creates a new registration service
-func NewRegistrationService(logger boot.Logger, accountRepository ports.AccountRepository) RegistrationService {
-	return RegistrationService{
+// NewAccountService creates a new registration service
+func NewAccountService(logger boot.Logger, accountRepository ports.AccountRepository) AccountService {
+	return AccountService{
 		Logger:            logger,
 		AccountRepository: accountRepository,
 	}
 }
 
 // RegisterUser registers a user in the system and the database
-func (s RegistrationService) RegisterUser(ctx context.Context, user userEntities.User) error {
+func (s AccountService) RegisterUser(ctx context.Context, user userEntities.User) error {
 	s.Logger.Info("Registering user", slog.String("commonID", user.CommonID.String()))
 
 	// Create account
@@ -41,7 +42,7 @@ func (s RegistrationService) RegisterUser(ctx context.Context, user userEntities
 }
 
 // GetUser gets a user from the system
-func (s RegistrationService) GetUser(ctx context.Context, commonID userValueObjects.CommonID, emailAddress userValueObjects.EmailAddress) (userEntities.User, error) {
+func (s AccountService) GetUser(ctx context.Context, commonID userValueObjects.CommonID, emailAddress userValueObjects.EmailAddress) (userEntities.User, error) {
 	var err error
 
 	s.Logger.Info("Getting user", slog.String("commonID", commonID.String()))
@@ -65,4 +66,25 @@ func (s RegistrationService) GetUser(ctx context.Context, commonID userValueObje
 	}
 
 	return user, nil
+}
+
+// Delete user will delete the user from the system (hard or soft deletion)
+func (s AccountService) DeleteUser(ctx context.Context, commonID userValueObjects.CommonID, hardDelete bool) (time.Time, error) {
+	s.Logger.Info("Deleting user by commonID", slog.String("commonID", commonID.String()), slog.Bool("hardDelete", hardDelete))
+
+	switch {
+	case !hardDelete:
+		deletedAt, err := s.AccountRepository.SoftDeleteAccountByCommonID(ctx, commonID)
+		if err != nil {
+			return time.Time{}, err
+		}
+		return deletedAt, nil
+	default:
+		deletedAt, err := s.AccountRepository.HardDeleteAccountByCommonID(ctx, commonID)
+		if err != nil {
+			return time.Time{}, err
+		}
+
+		return deletedAt, nil
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	userEntities "libs/backend/domain/user/entities"
 	userValueObjects "libs/backend/domain/user/valueobjects"
+	"time"
 )
 
 // AccountRepository is the interface for the account repository
@@ -16,4 +17,10 @@ type AccountRepository interface {
 
 	// GetAccountByEmailAddress gets an account from the database by email address
 	GetAccountByEmailAddress(context.Context, userValueObjects.EmailAddress) (userEntities.User, error)
+
+	// SoftDeleteAccountByCommonID will soft delete the user
+	SoftDeleteAccountByCommonID(context.Context, userValueObjects.CommonID) (time.Time, error)
+
+	// HardDeleteAccountByCommonID will hard delete the user
+	HardDeleteAccountByCommonID(context.Context, userValueObjects.CommonID) (time.Time, error)
 }
