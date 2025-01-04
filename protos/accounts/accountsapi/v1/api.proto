@@ -5,6 +5,7 @@ package accounts.accountsapi.v1;
 import "buf/validate/validate.proto";
 import "google/type/datetime.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
 import "accounts/domain/account.proto";
 
 service AccountService {
@@ -13,13 +14,16 @@ service AccountService {
 
     // GetAccount retrieves an account by its common id
     rpc GetAccount(GetAccountRequest) returns (GetAccountResponse) {}
+
+    // Delete Account will soft/hard delete an account
+    rpc DeleteAccount(DeleteAccountRequest) returns (DeleteAccountResponse) {}
 }
 
 // CreateAccountRequest defines the incoming data for the create account request
 message CreateAccountRequest {
     string username = 1 [(buf.validate.field).string.min_len = 1];
     string email_address = 2 [(buf.validate.field).string.email = true];
-    string common_id = 3 [(buf.validate.field).string.min_len = 1];
+    string common_id = 3 [(buf.validate.field).string.uuid = true];
 }
 
 // CreateAcountResponse defines the response for the create account request
@@ -29,7 +33,7 @@ message CreateAcountResponse {
 
 // GetAccountRequest defines the incoming data for the get account request
 message GetAccountRequest {
-  optional string common_id = 1 [(buf.validate.field).string.min_len = 1];
+  optional string common_id = 1 [(buf.validate.field).string.uuid = true];
   optional string email_address = 2 [
     (buf.validate.field).string.email = true,
     (buf.validate.field).required = false
@@ -39,4 +43,15 @@ message GetAccountRequest {
 // GetAccountResponse defines the response for the get account request
 message GetAccountResponse{
   accounts.domain.Account account = 1;
+}
+
+// DeleteAccountRequest will hard/soft delete an account by common_id
+message DeleteAccountRequest {
+  string common_id = 1 [(buf.validate.field).string.uuid = true];
+  bool hard_delete = 2;
+}
+
+// DeleteAccountResponse will let the caller know if the server deleted the account
+message DeleteAccountResponse {
+  google.protobuf.Timestamp deleted_at = 1;
 }
