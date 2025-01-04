@@ -25,10 +25,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Empty(ctx context.Context) (bool, error)
-	Viewer(ctx context.Context) (*models.Viewer, error)
-}
-type ViewerResolver interface {
-	Account(ctx context.Context, obj *models.Viewer, commonID uuid.UUID) (*models.Account, error)
+	Viewer(ctx context.Context, commonID uuid.UUID) (*models.Viewer, error)
+	Account(ctx context.Context, input models.RetrieveAccountInput) (*models.Account, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -58,17 +56,40 @@ func (ec *executionContext) field_Query___type_argsName(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Viewer_account_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Query_account_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := ec.field_Viewer_account_argsCommonID(ctx, rawArgs)
+	arg0, err := ec.field_Query_account_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_account_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (models.RetrieveAccountInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNRetrieveAccountInput2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐRetrieveAccountInput(ctx, tmp)
+	}
+
+	var zeroVal models.RetrieveAccountInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_viewer_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_viewer_argsCommonID(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
 	args["commonID"] = arg0
 	return args, nil
 }
-func (ec *executionContext) field_Viewer_account_argsCommonID(
+func (ec *executionContext) field_Query_viewer_argsCommonID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (uuid.UUID, error) {
@@ -191,7 +212,7 @@ func (ec *executionContext) _Query_viewer(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Viewer(rctx)
+		return ec.resolvers.Query().Viewer(rctx, fc.Args["commonID"].(uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -205,7 +226,7 @@ func (ec *executionContext) _Query_viewer(ctx context.Context, field graphql.Col
 	return ec.marshalOViewer2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐViewer(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_viewer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -215,11 +236,90 @@ func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field g
 			switch field.Name {
 			case "empty":
 				return ec.fieldContext_Viewer_empty(ctx, field)
-			case "account":
-				return ec.fieldContext_Viewer_account(ctx, field)
+			case "id":
+				return ec.fieldContext_Viewer_id(ctx, field)
+			case "emailAddress":
+				return ec.fieldContext_Viewer_emailAddress(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Viewer_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Viewer_updatedAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Viewer", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_viewer_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_account(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_account(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Account(rctx, fc.Args["input"].(models.RetrieveAccountInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Account)
+	fc.Result = res
+	return ec.marshalOAccount2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_account(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Account_id(ctx, field)
+			case "emailAddress":
+				return ec.fieldContext_Account_emailAddress(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Account_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Account_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Account", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_account_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -445,8 +545,8 @@ func (ec *executionContext) fieldContext_Viewer_empty(_ context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Viewer_account(ctx context.Context, field graphql.CollectedField, obj *models.Viewer) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Viewer_account(ctx, field)
+func (ec *executionContext) _Viewer_id(ctx context.Context, field graphql.CollectedField, obj *models.Viewer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Viewer_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -459,50 +559,164 @@ func (ec *executionContext) _Viewer_account(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Viewer().Account(rctx, obj, fc.Args["commonID"].(uuid.UUID))
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.Account)
+	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalOAccount2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Viewer_account(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Viewer_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Viewer",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Account_id(ctx, field)
-			case "emailAddress":
-				return ec.fieldContext_Account_emailAddress(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Account_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Account_updatedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Account", field.Name)
+			return nil, errors.New("field of type UUID does not have child fields")
 		},
 	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Viewer_emailAddress(ctx context.Context, field graphql.CollectedField, obj *models.Viewer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Viewer_emailAddress(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
 	defer func() {
 		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
 		}
 	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Viewer_account_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmailAddress, nil
+	})
+	if err != nil {
 		ec.Error(ctx, err)
-		return fc, err
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Viewer_emailAddress(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Viewer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Viewer_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.Viewer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Viewer_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Viewer_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Viewer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Viewer_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.Viewer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Viewer_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Viewer_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Viewer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -628,6 +842,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "account":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_account(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "_service":
 			field := field
 
@@ -681,7 +914,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var viewerImplementors = []string{"Viewer"}
+var viewerImplementors = []string{"Viewer", "AccountInterface"}
 
 func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, obj *models.Viewer) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, viewerImplementors)
@@ -695,41 +928,28 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 		case "empty":
 			out.Values[i] = ec._Viewer_empty(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
-		case "account":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Viewer_account(ctx, field, obj)
-				return res
+		case "id":
+			out.Values[i] = ec._Viewer_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
+		case "emailAddress":
+			out.Values[i] = ec._Viewer_emailAddress(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "createdAt":
+			out.Values[i] = ec._Viewer_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._Viewer_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -784,6 +1004,22 @@ func (ec *executionContext) marshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 	}
+	return res
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v any) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUUID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUUID(*v)
 	return res
 }
 

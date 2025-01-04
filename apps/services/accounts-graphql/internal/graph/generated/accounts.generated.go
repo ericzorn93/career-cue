@@ -6,6 +6,7 @@ import (
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -209,15 +210,72 @@ func (ec *executionContext) fieldContext_Account_updatedAt(_ context.Context, fi
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputRetrieveAccountInput(ctx context.Context, obj any) (models.RetrieveAccountInput, error) {
+	var it models.RetrieveAccountInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"commonID", "emailAddress"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "commonID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("commonID"))
+			data, err := ec.unmarshalOUUID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CommonID = data
+		case "emailAddress":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emailAddress"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EmailAddress = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
+
+func (ec *executionContext) _AccountInterface(ctx context.Context, sel ast.SelectionSet, obj models.AccountInterface) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case models.Account:
+		return ec._Account(ctx, sel, &obj)
+	case *models.Account:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Account(ctx, sel, obj)
+	case models.Viewer:
+		return ec._Viewer(ctx, sel, &obj)
+	case *models.Viewer:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Viewer(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
 
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
 
-var accountImplementors = []string{"Account"}
+var accountImplementors = []string{"Account", "AccountInterface"}
 
 func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, obj *models.Account) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, accountImplementors)
@@ -274,6 +332,11 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) unmarshalNRetrieveAccountInput2appsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐRetrieveAccountInput(ctx context.Context, v any) (models.RetrieveAccountInput, error) {
+	res, err := ec.unmarshalInputRetrieveAccountInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
 
 func (ec *executionContext) marshalOAccount2ᚖappsᚋservicesᚋaccountsᚑgraphqlᚋinternalᚋgraphᚋmodelsᚐAccount(ctx context.Context, sel ast.SelectionSet, v *models.Account) graphql.Marshaler {
 	if v == nil {

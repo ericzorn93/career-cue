@@ -8,7 +8,22 @@ import (
 	"github.com/google/uuid"
 )
 
-// The Account type represents a user account in the system.
+// Account interface defines key
+// shared account properties
+type AccountInterface interface {
+	IsAccountInterface()
+	// The unique identifier for the account
+	GetID() uuid.UUID
+	// The email address of the account
+	GetEmailAddress() string
+	// The createdAt time of the account
+	GetCreatedAt() time.Time
+	// The updatedAt time of the account
+	GetUpdatedAt() time.Time
+}
+
+// Account has default account interface with additional
+// account properties
 type Account struct {
 	// The unique identifier for the account
 	ID uuid.UUID `json:"id"`
@@ -20,15 +35,57 @@ type Account struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+func (Account) IsAccountInterface() {}
+
+// The unique identifier for the account
+func (this Account) GetID() uuid.UUID { return this.ID }
+
+// The email address of the account
+func (this Account) GetEmailAddress() string { return this.EmailAddress }
+
+// The createdAt time of the account
+func (this Account) GetCreatedAt() time.Time { return this.CreatedAt }
+
+// The updatedAt time of the account
+func (this Account) GetUpdatedAt() time.Time { return this.UpdatedAt }
+
 type Mutation struct {
 }
 
 type Query struct {
 }
 
+// Uses either the commonID or email address to fetch user
+type RetrieveAccountInput struct {
+	// commonID is the unique identifier for an account
+	CommonID *uuid.UUID `json:"commonID,omitempty"`
+	// emailAddress defines the unique email address for the account
+	EmailAddress *string `json:"emailAddress,omitempty"`
+}
+
 // Viewer is the root query object for the user
 type Viewer struct {
 	Empty bool `json:"empty"`
-	// Get an account by its unique identifier
-	Account *Account `json:"account,omitempty"`
+	// The unique identifier for the account
+	ID uuid.UUID `json:"id"`
+	// The email address of the account
+	EmailAddress string `json:"emailAddress"`
+	// The createdAt time of the account
+	CreatedAt time.Time `json:"createdAt"`
+	// The updatedAt time of the account
+	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+func (Viewer) IsAccountInterface() {}
+
+// The unique identifier for the account
+func (this Viewer) GetID() uuid.UUID { return this.ID }
+
+// The email address of the account
+func (this Viewer) GetEmailAddress() string { return this.EmailAddress }
+
+// The createdAt time of the account
+func (this Viewer) GetCreatedAt() time.Time { return this.CreatedAt }
+
+// The updatedAt time of the account
+func (this Viewer) GetUpdatedAt() time.Time { return this.UpdatedAt }
