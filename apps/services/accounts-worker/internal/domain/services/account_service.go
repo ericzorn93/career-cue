@@ -42,11 +42,12 @@ func NewAccountService(params AccountServiceParams) AccountService {
 // webhooks
 func (s AccountService) CreateAccount(ctx context.Context, user userEntities.User) error {
 	// Call the accounts-api to create the account
-	account, err := s.RegistrationServiceClient.CreateAccount(ctx, connect.NewRequest(&accountsapiv1.CreateAccountRequest{
+	req := connect.NewRequest(&accountsapiv1.CreateAccountRequest{
 		Username:     user.Username,
 		EmailAddress: user.EmailAddress.String(),
 		CommonId:     user.CommonID.String(),
-	}))
+	})
+	account, err := s.RegistrationServiceClient.CreateAccount(ctx, req)
 
 	if err != nil {
 		s.Logger.Error("Cannot create account in Accounts API", slog.Any("error", err))
