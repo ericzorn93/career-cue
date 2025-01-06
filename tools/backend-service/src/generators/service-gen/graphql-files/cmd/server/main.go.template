@@ -22,7 +22,7 @@ import (
 
 	"libs/backend/boot"
 	"libs/backend/cache"
-	auth "libs/backend/http-auth"
+	auth "libs/backend/httpauth"
 )
 
 // serviceName is the name of the microservice

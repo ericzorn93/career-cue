@@ -9,7 +9,7 @@ import (
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 	"fmt"
-	httpAuth "libs/backend/http-auth"
+	httpAuth "libs/backend/httpauth"
 	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
 
 	"connectrpc.com/connect"

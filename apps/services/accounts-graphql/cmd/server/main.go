@@ -8,7 +8,7 @@ import (
 	"errors"
 	"libs/backend/boot"
 	"libs/backend/cache"
-	auth "libs/backend/http-auth"
+	auth "libs/backend/httpauth"
 	"log"
 	"log/slog"
 	"os"

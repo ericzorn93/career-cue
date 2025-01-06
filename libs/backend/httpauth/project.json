@@ -1,8 +1,8 @@
 {
-  "name": "http-auth",
+  "name": "httpauth",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "libs/backend/http-auth",
+  "sourceRoot": "libs/backend/httpauth",
   "tags": ["services", "api", "authentication"],
   "targets": {
     "test": {

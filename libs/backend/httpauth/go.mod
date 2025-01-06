@@ -1,4 +1,4 @@
-module libs/backend/http-auth
+module libs/backend/httpauth
 
 go 1.23
 
