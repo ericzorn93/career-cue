@@ -60,7 +60,6 @@ func (r *AccountServiceHandler) GetAccount(
 	ctx context.Context,
 	req *connect.Request[accountsapiv1.GetAccountRequest],
 ) (*connect.Response[accountsapiv1.GetAccountResponse], error) {
-
 	// Parse the commonID vs emailAddress, depending on which one is passed
 	var commonID userValueObjects.CommonID
 	var emailAddress userValueObjects.EmailAddress

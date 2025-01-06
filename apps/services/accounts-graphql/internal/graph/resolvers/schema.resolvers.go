@@ -9,6 +9,7 @@ import (
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 	"fmt"
+	"libs/backend/auth"
 	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
 
 	"connectrpc.com/connect"
@@ -29,9 +30,13 @@ func (r *queryResolver) Empty(ctx context.Context) (bool, error) {
 func (r *queryResolver) Viewer(ctx context.Context, commonID uuid.UUID) (*models.Viewer, error) {
 	// Call the Accounts API
 	commonIDStr := commonID.String()
-	resp, err := r.AccountsAPIClient.GetAccount(ctx, connect.NewRequest(&accountsapiv1.GetAccountRequest{
+
+	req := connect.NewRequest(&accountsapiv1.GetAccountRequest{
 		CommonId: &commonIDStr,
-	}))
+	})
+	authHeader := auth.GetAuthTokenFromContext(ctx)
+	req.Header().Add(auth.AuthorizationHeaderKey, authHeader)
+	resp, err := r.AccountsAPIClient.GetAccount(ctx, req)
 
 	// Check if there was an error or if the account is nil
 	if err != nil || resp.Msg.Account == nil {

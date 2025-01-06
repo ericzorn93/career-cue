@@ -6,6 +6,7 @@ import (
 	"apps/services/accounts-graphql/internal/graph/resolvers"
 	"context"
 	"errors"
+	"libs/backend/auth"
 	"libs/backend/cache"
 	"log"
 	"log/slog"
@@ -110,7 +111,7 @@ func run() error {
 					})
 
 					params.Mux.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
-					params.Mux.Handle("/graphql", srv)
+					params.Mux.Handle("/graphql", auth.AuthMiddleware(srv))
 
 					return nil
 				},
