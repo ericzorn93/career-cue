@@ -49,26 +49,25 @@ func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccoun
 	commonID := input.CommonID
 	emailAddress := input.EmailAddress
 
-	var commonIDForSearch *string
-	var emailAddressForSearch *string
-
+	// Construct proper request
+	var req *connect.Request[accountsapiv1.GetAccountRequest]
 	switch {
 	case commonID != nil && *commonID != uuid.Nil:
 		commonIDStr := commonID.String()
-		commonIDForSearch = &commonIDStr
+		req = connect.NewRequest(&accountsapiv1.GetAccountRequest{
+			CommonId: &commonIDStr,
+		})
 		loggerValues = append(loggerValues, slog.String("commonID", commonIDStr))
 	case emailAddress != nil && *emailAddress != "":
-		emailAddressForSearch = emailAddress
 		loggerValues = append(loggerValues, slog.String("emailAddress", *emailAddress))
+		req = connect.NewRequest(&accountsapiv1.GetAccountRequest{
+			EmailAddress: emailAddress,
+		})
 	}
 
 	r.Logger.Info("Fetching account", loggerValues...)
 
 	// Call the accounts API
-	req := connect.NewRequest(&accountsapiv1.GetAccountRequest{
-		CommonId:     commonIDForSearch,
-		EmailAddress: emailAddressForSearch,
-	})
 	authHeader := auth.GetAuthTokenFromContext(ctx)
 	req.Header().Add(auth.AuthorizationHeaderKey, authHeader)
 	resp, err := r.AccountsAPIClient.GetAccount(ctx, req)
