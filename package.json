@@ -1,6 +1,6 @@
 {
   "name": "@career-cue/source",
-  "version": "0.0.42",
+  "version": "0.0.43",
   "license": "MIT",
   "engines": {
     "node": ">=22",
