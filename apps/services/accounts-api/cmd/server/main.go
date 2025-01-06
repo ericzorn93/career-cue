@@ -20,7 +20,7 @@ import (
 	connectrpcadapter "apps/services/accounts-api/internal/adapters/connectrpc"
 	"apps/services/accounts-api/internal/adapters/database/repositories"
 	"libs/backend/boot"
-	auth "libs/backend/httpauth"
+	"libs/backend/httpauth"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 )
 
@@ -49,7 +49,7 @@ func run() error {
 	}
 
 	// Custom interceptors
-	authInterceptor := auth.NewAuthInterceptor(logger)
+	authInterceptor := httpauth.NewAuthInterceptor(logger)
 
 	options := []connect.HandlerOption{
 		connect.WithInterceptors(
