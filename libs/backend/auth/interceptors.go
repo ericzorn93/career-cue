@@ -63,7 +63,8 @@ func (a AuthInerceptor) Incoming() connect.UnaryInterceptorFunc {
 				)
 			}
 
-			ctx = SetClaims(ctx, claims.(*validator.ValidatedClaims))
+			// Set the validated custom claims to the context
+			ctx = SetClaimsToContext(ctx, claims.(*validator.ValidatedClaims))
 
 			return next(ctx, req)
 		})

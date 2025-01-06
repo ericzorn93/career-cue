@@ -23,10 +23,15 @@ func (r *mutationResolver) DeleteAccount(ctx context.Context, commonID uuid.UUID
 
 	// Call Accounts API
 	const hardDelete = false
-	resp, err := r.AccountsAPIClient.DeleteAccount(ctx, connect.NewRequest(&accountsapiv1.DeleteAccountRequest{
+
+	accessToken := auth.GetAuthTokenFromContext(ctx)
+	req := connect.NewRequest(&accountsapiv1.DeleteAccountRequest{
 		CommonId:   commonID.String(),
 		HardDelete: hardDelete,
-	}))
+	})
+	req.Header().Add(auth.AuthorizationHeaderKey, accessToken)
+
+	resp, err := r.AccountsAPIClient.DeleteAccount(ctx, req)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not delete account: %w", err)
@@ -39,7 +44,6 @@ func (r *mutationResolver) DeleteAccount(ctx context.Context, commonID uuid.UUID
 // Account is the resolver for the account field.
 func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccountInput) (*models.Account, error) {
 	loggerValues := make([]any, 0)
-	r.Logger.Info("Context", slog.Any("ctx", ctx.Value("auth")))
 
 	// Call the Accounts API
 	commonID := input.CommonID
