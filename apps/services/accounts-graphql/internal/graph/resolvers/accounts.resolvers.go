@@ -8,7 +8,7 @@ import (
 	"apps/services/accounts-graphql/internal/graph/models"
 	"context"
 	"fmt"
-	"libs/backend/auth"
+	httpAuth "libs/backend/http-auth"
 	accountsapiv1 "libs/backend/proto-gen/go/accounts/accountsapi/v1"
 	"log/slog"
 	"time"
@@ -24,12 +24,12 @@ func (r *mutationResolver) DeleteAccount(ctx context.Context, commonID uuid.UUID
 	// Call Accounts API
 	const hardDelete = false
 
-	accessToken := auth.GetAuthTokenFromContext(ctx)
+	accessToken := httpAuth.GetAuthTokenFromContext(ctx)
 	req := connect.NewRequest(&accountsapiv1.DeleteAccountRequest{
 		CommonId:   commonID.String(),
 		HardDelete: hardDelete,
 	})
-	req.Header().Add(auth.AuthorizationHeaderKey, accessToken)
+	req.Header().Add(httpAuth.AuthorizationHeaderKey, accessToken)
 
 	resp, err := r.AccountsAPIClient.DeleteAccount(ctx, req)
 
@@ -68,8 +68,8 @@ func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccoun
 	r.Logger.Info("Fetching account", loggerValues...)
 
 	// Call the accounts API
-	authHeader := auth.GetAuthTokenFromContext(ctx)
-	req.Header().Add(auth.AuthorizationHeaderKey, authHeader)
+	authHeader := httpAuth.GetAuthTokenFromContext(ctx)
+	req.Header().Add(httpAuth.AuthorizationHeaderKey, authHeader)
 	resp, err := r.AccountsAPIClient.GetAccount(ctx, req)
 
 	// Check if there was an error or if the account is nil

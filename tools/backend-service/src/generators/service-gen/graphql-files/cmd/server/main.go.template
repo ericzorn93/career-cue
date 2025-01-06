@@ -20,9 +20,9 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"libs/backend/auth"
 	"libs/backend/boot"
 	"libs/backend/cache"
+	auth "libs/backend/http-auth"
 )
 
 // serviceName is the name of the microservice

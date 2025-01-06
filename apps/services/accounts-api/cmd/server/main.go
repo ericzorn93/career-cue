@@ -19,8 +19,8 @@ import (
 
 	connectrpcadapter "apps/services/accounts-api/internal/adapters/connectrpc"
 	"apps/services/accounts-api/internal/adapters/database/repositories"
-	"libs/backend/auth"
 	"libs/backend/boot"
+	auth "libs/backend/http-auth"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 )
 
