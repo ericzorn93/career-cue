@@ -15,7 +15,12 @@ sandbox:
 homepage:
   enabled: false
 include_subgraph_errors:
-  all: true # Propagate errors from all subgraphs
+  all: true
+telemetry:
+  instrumentation:
+    spans:
+      mode: spec_compliant
+
 plugins:
   experimental.expose_query_plan: true
 
