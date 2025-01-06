@@ -1,6 +1,8 @@
 package auth
 
-func Auth(name string) string {
-	result := "Auth " + name
-	return result
+import "context"
+
+// Validator ensure handling of access token by service
+type Validator interface {
+	EnsureValidToken(ctx context.Context, accessToken string) (interface{}, error)
 }

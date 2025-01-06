@@ -5,6 +5,11 @@ supergraph:
   introspection: true
 cors:
   allow_any_origin: true
+headers:
+  all:
+    request:
+      - propagate:
+          named: "Authorization"
 sandbox:
   enabled: true
 homepage:

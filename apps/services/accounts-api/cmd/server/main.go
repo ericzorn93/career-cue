@@ -19,6 +19,7 @@ import (
 
 	connectrpcadapter "apps/services/accounts-api/internal/adapters/connectrpc"
 	"apps/services/accounts-api/internal/adapters/database/repositories"
+	"libs/backend/auth"
 	"libs/backend/boot"
 	"libs/backend/proto-gen/go/accounts/accountsapi/v1/accountsapiv1connect"
 )
@@ -46,8 +47,15 @@ func run() error {
 		logger.Error("Cannot set up validation interceptor", slog.Any("error", err))
 		return err
 	}
+
+	// Custom interceptors
+	authInterceptor := auth.NewAuthInterceptor(logger)
+
 	options := []connect.HandlerOption{
-		connect.WithInterceptors(validationInterceptor),
+		connect.WithInterceptors(
+			validationInterceptor,
+			authInterceptor.Incoming(),
+		),
 	}
 
 	// Initialize the gRPC Options
@@ -103,6 +111,8 @@ func run() error {
 						registrationHandler,
 						options...,
 					)
+
+					// HTTP Handlers and reflection registered with Mux
 					params.Mux.Handle(path, httpHandler)
 					reflector := grpcreflect.NewStaticReflector(accountsapiv1connect.AccountServiceName)
 					params.Mux.Handle(grpcreflect.NewHandlerV1(reflector))
