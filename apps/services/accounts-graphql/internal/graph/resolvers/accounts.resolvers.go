@@ -58,7 +58,7 @@ func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccoun
 			CommonId: &commonIDStr,
 		})
 		loggerValues = append(loggerValues, slog.String("commonID", commonIDStr))
-	case emailAddress != nil && *emailAddress != "":
+	case emailAddress != nil:
 		loggerValues = append(loggerValues, slog.String("emailAddress", *emailAddress))
 		req = connect.NewRequest(&accountsapiv1.GetAccountRequest{
 			EmailAddress: emailAddress,
