@@ -66,7 +66,7 @@ func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccoun
 		EmailAddress: emailAddressForSearch,
 	})
 	authHeader := auth.GetAuthTokenFromContext(ctx)
-	req.Header().Add("Authorization", authHeader)
+	req.Header().Add(auth.AuthorizationHeaderKey, authHeader)
 	resp, err := r.AccountsAPIClient.GetAccount(ctx, req)
 
 	// Check if there was an error or if the account is nil

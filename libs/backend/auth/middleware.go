@@ -10,7 +10,7 @@ import (
 func AuthMiddleware(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Obtain auth header from the request
-		authHeader := r.Header.Get("Authorization")
+		authHeader := r.Header.Get(AuthorizationHeaderKey)
 
 		// Append to context
 		ctx := r.Context()

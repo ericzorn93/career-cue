@@ -35,7 +35,7 @@ func (r *queryResolver) Viewer(ctx context.Context, commonID uuid.UUID) (*models
 		CommonId: &commonIDStr,
 	})
 	authHeader := auth.GetAuthTokenFromContext(ctx)
-	req.Header().Add("Authorization", authHeader)
+	req.Header().Add(auth.AuthorizationHeaderKey, authHeader)
 	resp, err := r.AccountsAPIClient.GetAccount(ctx, req)
 
 	// Check if there was an error or if the account is nil

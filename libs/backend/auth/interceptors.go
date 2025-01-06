@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	tokenHeader      = "Authorization"
 	tokenValueLength = 2
 )
 
@@ -32,7 +31,7 @@ func (a AuthInerceptor) Incoming() connect.UnaryInterceptorFunc {
 			ctx context.Context,
 			req connect.AnyRequest,
 		) (connect.AnyResponse, error) {
-			authTokenHeaderValue := req.Header().Get(tokenHeader)
+			authTokenHeaderValue := req.Header().Get(AuthorizationHeaderKey)
 
 			// Check token in handlers.
 			if authTokenHeaderValue == "" {
