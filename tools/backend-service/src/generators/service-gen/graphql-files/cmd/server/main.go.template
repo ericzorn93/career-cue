@@ -22,6 +22,7 @@ import (
 
 	"libs/backend/boot"
 	"libs/backend/cache"
+	"libs/backend/httpauth"
 )
 
 // serviceName is the name of the microservice
@@ -108,7 +109,7 @@ func run() error {
 					})
 
 					params.Mux.Handle("/", playground.Handler("GraphQL playground", "/graphql"))
-					params.Mux.Handle("/graphql", srv)
+					params.Mux.Handle("/graphql", httpauth.AuthMiddleware(srv))
 
 					return nil
 				},

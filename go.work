@@ -5,7 +5,7 @@ use (
 	./apps/services/accounts-graphql
 	./apps/services/accounts-worker
 	./apps/services/inbound-webhooks-api
-	./libs/backend/auth
+	./libs/backend/httpauth
 	./libs/backend/boot
 	./libs/backend/cache
 	./libs/backend/domain/user

@@ -6,8 +6,9 @@ import (
 	"apps/services/accounts-graphql/internal/graph/resolvers"
 	"context"
 	"errors"
-	"libs/backend/auth"
+	"libs/backend/boot"
 	"libs/backend/cache"
+	auth "libs/backend/httpauth"
 	"log"
 	"log/slog"
 	"os"
@@ -21,8 +22,6 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"libs/backend/boot"
 )
 
 // serviceName is the name of the microservice

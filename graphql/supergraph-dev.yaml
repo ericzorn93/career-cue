@@ -5,3 +5,9 @@ subgraphs:
     routing_url: http://accounts-graphql:3000/graphql  # <- can be omitted if the same as introspection URL
     schema:
       subgraph_url: http://localhost:3003/graphql
+include_subgraph_errors:
+  all: true
+telemetry:
+  instrumentation:
+    spans:
+      mode: spec_compliant
