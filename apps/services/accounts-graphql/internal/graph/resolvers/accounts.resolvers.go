@@ -53,11 +53,11 @@ func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccoun
 	var emailAddressForSearch *string
 
 	switch {
-	case commonID != nil:
+	case commonID != nil && *commonID != uuid.Nil:
 		commonIDStr := commonID.String()
 		commonIDForSearch = &commonIDStr
 		loggerValues = append(loggerValues, slog.String("commonID", commonIDStr))
-	case emailAddress != nil:
+	case emailAddress != nil && *emailAddress != "":
 		emailAddressForSearch = emailAddress
 		loggerValues = append(loggerValues, slog.String("emailAddress", *emailAddress))
 	}
