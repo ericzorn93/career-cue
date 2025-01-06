@@ -52,7 +52,7 @@ func (r *queryResolver) Account(ctx context.Context, input models.RetrieveAccoun
 	// Construct proper request
 	var req *connect.Request[accountsapiv1.GetAccountRequest]
 	switch {
-	case commonID != nil && *commonID != uuid.Nil:
+	case commonID != nil:
 		commonIDStr := commonID.String()
 		req = connect.NewRequest(&accountsapiv1.GetAccountRequest{
 			CommonId: &commonIDStr,
