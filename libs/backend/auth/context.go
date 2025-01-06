@@ -18,13 +18,13 @@ type authMiddlewareContextKey struct{}
 // AuthMiddlewareContextKey will be used to obtain and set context auth
 var AuthMiddlewareContextKey authMiddlewareContextKey = authMiddlewareContextKey{}
 
-// SetClaims will assign the custom claims to the conext
-func SetClaims(ctx context.Context, claims *validator.ValidatedClaims) context.Context {
+// SetClaimsToContext will assign the custom claims to the conext
+func SetClaimsToContext(ctx context.Context, claims *validator.ValidatedClaims) context.Context {
 	return context.WithValue(ctx, ClaimsKey, claims.CustomClaims.(*CustomClaims))
 }
 
-// GetClaims will pull the custom claims out of the context
-func GetClaims(ctx context.Context) (*CustomClaims, error) {
+// GetClaimsFromContext will pull the custom claims out of the context
+func GetClaimsFromContext(ctx context.Context) (*CustomClaims, error) {
 	claims := ctx.Value(ClaimsKey)
 	customClaimsValidated, ok := claims.(*CustomClaims)
 

@@ -38,7 +38,7 @@
       "options": {
         "commands": [
           "flyctl deploy -c apps/services/accounts-api/fly.toml -y",
-          "flyctl scale count 1 -r iad -c apps/services/accounts-api/fly.toml -y",
+          "flyctl scale count 2 -r iad -c apps/services/accounts-api/fly.toml -y",
           "flyctl scale count 0 -r ewr -c apps/services/accounts-api/fly.toml -y",
           "flyctl scale count 0 -r lax -c apps/services/accounts-api/fly.toml -y",
           "flyctl scale count 0 -r ord -c apps/services/accounts-api/fly.toml -y"
