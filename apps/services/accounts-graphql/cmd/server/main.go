@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"libs/backend/auth"
+	"libs/backend/boot"
 	"libs/backend/cache"
 	"log"
 	"log/slog"
@@ -21,8 +22,6 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"libs/backend/boot"
 )
 
 // serviceName is the name of the microservice
