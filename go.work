@@ -5,10 +5,11 @@ use (
 	./apps/services/accounts-graphql
 	./apps/services/accounts-worker
 	./apps/services/inbound-webhooks-api
-	./libs/backend/httpauth
+	./libs/backend/auth
 	./libs/backend/boot
 	./libs/backend/cache
 	./libs/backend/domain/user
 	./libs/backend/eventing
+	./libs/backend/httpauth
 	./libs/backend/proto-gen/go
 )
