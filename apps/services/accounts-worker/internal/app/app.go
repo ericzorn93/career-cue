@@ -1,10 +1,14 @@
 package app
 
-import "apps/services/accounts-worker/internal/app/ports"
+import (
+	"apps/services/accounts-worker/internal/app/ports"
+	"libs/backend/auth/m2m"
+)
 
 // App is the main application struct
 type App struct {
 	AccountService ports.AccountService
+	M2MService     m2m.M2MGenerator
 }
 
 // AppOption is a function that modifies the App struct
@@ -25,5 +29,12 @@ func NewApp(opts ...AppOption) App {
 func WithAccountService(accountService ports.AccountService) AppOption {
 	return func(app *App) {
 		app.AccountService = accountService
+	}
+}
+
+// WithM2MGenerator will allow the application to access m2m tokens from the auth provider
+func WithM2MGenerator(m2mGenerator m2m.M2MGenerator) AppOption {
+	return func(a *App) {
+		a.M2MService = m2mGenerator
 	}
 }

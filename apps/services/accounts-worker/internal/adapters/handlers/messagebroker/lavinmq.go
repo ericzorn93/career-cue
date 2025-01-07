@@ -3,6 +3,7 @@ package messagebroker
 import (
 	"apps/services/accounts-worker/internal/app"
 	"context"
+	"libs/backend/auth/m2m"
 	"libs/backend/boot"
 	userEntities "libs/backend/domain/user/entities"
 	userValueObjects "libs/backend/domain/user/valueobjects"
@@ -16,15 +17,17 @@ import (
 type LavinMQHandler struct {
 	Logger   boot.Logger
 	Consumer boot.AMQPConsumer
+	M2M      m2m.M2MGenerator
 	App      app.App
 }
 
 // LavinMQHandler is the constructor for LavinMQHandler
-func NewLavinMQHandler(logger boot.Logger, consumer boot.AMQPConsumer, app app.App) LavinMQHandler {
+func NewLavinMQHandler(logger boot.Logger, consumer boot.AMQPConsumer, app app.App, m2mGenerator m2m.M2MGenerator) LavinMQHandler {
 	return LavinMQHandler{
 		Logger:   logger,
 		Consumer: consumer,
 		App:      app,
+		M2M:      m2mGenerator,
 	}
 }
 
