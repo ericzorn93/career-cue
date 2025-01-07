@@ -16,7 +16,6 @@ import (
 var _ M2MGenerator = (*M2M)(nil)
 
 const (
-	audience          string = "https://career-cue-auth-api.com"
 	clientCredentials string = "client_credentials"
 )
 
@@ -26,6 +25,7 @@ type M2MGenerator interface {
 
 type M2M struct {
 	domain       string
+	audience     string
 	clientID     string
 	clientSecret string
 	auth         *authentication.Authentication
@@ -65,7 +65,7 @@ func (t Token) GetHeaderValue() string {
 	return fmt.Sprintf("%s %s", t.tokenType, t.accessToken)
 }
 
-func NewM2M(auth0Domain, auth0ClientID, auth0ClientSecret string) (*M2M, error) {
+func NewM2M(auth0Domain, auth0Audience, auth0ClientID, auth0ClientSecret string) (*M2M, error) {
 	ctx := context.Background()
 	a, err := authentication.New(ctx, auth0Domain, authentication.WithClientID(auth0ClientID), authentication.WithClientSecret(auth0ClientSecret))
 	if err != nil {
@@ -74,6 +74,7 @@ func NewM2M(auth0Domain, auth0ClientID, auth0ClientSecret string) (*M2M, error) 
 
 	return &M2M{
 		domain:       auth0Domain,
+		audience:     auth0Audience,
 		clientID:     auth0ClientID,
 		clientSecret: auth0ClientSecret,
 		auth:         a,
@@ -107,7 +108,7 @@ func (g *M2M) fetchToken() (Token, error) {
 	reqBody := tokenRequestBody{
 		ClientID:     g.clientID,
 		ClientSecret: g.clientSecret,
-		Audience:     audience,
+		Audience:     g.audience,
 		GrantType:    clientCredentials,
 	}
 
